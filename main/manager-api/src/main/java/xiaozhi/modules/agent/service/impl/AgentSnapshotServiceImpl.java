@@ -581,7 +581,7 @@ public class AgentSnapshotServiceImpl extends BaseServiceImpl<AgentSnapshotDao, 
         }
         Object typeValue = llmModelData.getConfigJson().get("type");
         String type = typeValue == null ? "" : typeValue.toString();
-        if ("openai".equals(type) || "ollama".equals(type)) {
+        if ("openai".equals(type) || "ollama".equals(type) || "openrouter".equals(type)) {
             return;
         }
         if ("Intent_function_call".equals(agent.getIntentModelId())) {

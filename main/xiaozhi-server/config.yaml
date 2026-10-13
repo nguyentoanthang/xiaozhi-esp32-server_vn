@@ -666,6 +666,24 @@ LLM:
     type: ollama
     model_name: qwen2.5 #  使用的模型名称，需要预先使用ollama pull下载
     base_url: http://localhost:11434  # Ollama服务地址
+  # OpenRouter (official `openrouter` SDK), example only: uncomment and fill in, then select it in selected_module.LLM
+  # OpenRouterLLM:
+  #   type: openrouter
+  #   model_name: openai/gpt-4o-mini  # format: vendor/model
+  #   api_key: your_openrouter_api_key
+  #   base_url: https://openrouter.ai/api/v1
+  #   timeout: 30  # seconds
+  #   # Optional routing, leave out to not send:
+  #   # fallback_models: anthropic/claude-3.5-haiku,google/gemini-2.0-flash-001
+  #   # provider_sort: latency  # price / throughput / latency (ignored if provider_order is set)
+  #   # provider_order: DeepInfra,Together
+  #   # provider_only: DeepInfra,Together
+  #   # provider_ignore: Azure
+  #   # allow_fallbacks: true
+  #   # require_parameters: true  # default true, needed for function calling
+  #   # data_collection: deny  # allow / deny
+  #   # reasoning_effort: low  # max / xhigh / high / medium / low / minimal / none
+  #   # record_routing: false  # default false; true logs the selected provider with the usage line (enable after live test L10 passes)
   DifyLLM:
     # 定义LLM API类型
     type: dify

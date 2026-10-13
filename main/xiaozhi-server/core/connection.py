@@ -951,6 +951,8 @@ class ConnectionHandler:
             self.asr = modules["asr"]
         if modules.get("llm", None) is not None:
             self.llm = modules["llm"]
+            if hasattr(self.llm, "bind_connection"):
+                self.llm.bind_connection(device_id=self.device_id)
         if modules.get("intent", None) is not None:
             self.intent = modules["intent"]
         if modules.get("memory", None) is not None:
