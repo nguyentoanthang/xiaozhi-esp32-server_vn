@@ -425,19 +425,143 @@ in L10 and in the `routing_meta` variant of L4). Because of that risk `record_ro
 Source for every step: `docs/Deployment_all.md` (section "方式二：本地源码运行全模块"), `main/manager-api/src/main/resources/application*.yml`,
 `main/manager-web/vue.config.js`, `main/xiaozhi-server/config_from_api.yaml`.
 
-### 14.1 Prerequisites
+### 14.1 Tools: what each one is for, and how to install it
 
-| Tool | Needed | Check (PowerShell) | Source |
+#### What each tool does
+
+| Tool | Used by | What it is for | Needed for |
 |---|---|---|---|
-| JDK | 21 | `java -version` | `pom.xml` `java.version` = 21; CI uses 21 |
-| Maven | 3.8+ | `mvn -v` | `manager-api/README.md` |
-| Node.js + npm | 20 is what CI uses (the repo declares no `engines`) | `node -v; npm -v` | `.github/workflows/test.yml`; minimum not verifiable |
-| Python | 3.10 (docs create a conda env with 3.10; the SDK needs >= 3.10) | `python --version` | `Deployment_all.md`, plan section 2.2 |
-| MySQL | 8.0+ (docs' docker example uses `mysql:latest`) | `mysql --version` | `manager-api/README.md` |
-| Redis | 5.0+ | `redis-cli ping` (expects `PONG`) | `manager-api/README.md` |
-| ffmpeg | on `PATH`; `app.py` calls `check_ffmpeg_installed()` and raises `ValueError` if missing | `ffmpeg -version` | `app.py`, `core/utils/util.py` |
-| libopus | docs install it with conda (`conda install libopus`); how to provide it with plain pip on Windows is **not documented in the repo** | – | `Deployment_all.md` step 5 |
-| ASR model | `models/SenseVoiceSmall/model.pt` for the default FunASR ASR | `Test-Path main\xiaozhi-server\models\SenseVoiceSmall\model.pt` | `Deployment_all.md` step 7 |
+| Python 3.10 (via conda) | `xiaozhi-server` | Runs the voice server (`app.py`): WebSocket, ASR/LLM/TTS pipeline, the new OpenRouter provider. | everything |
+| ffmpeg | `xiaozhi-server` | Converts audio (decode/encode between wav/mp3 and the Opus frames the device speaks). `app.py` calls `check_ffmpeg_installed()` and refuses to start without it. | server |
+| libopus | `xiaozhi-server` (`opuslib_next`) | The Opus audio codec library. `opuslib_next` loads it with `ctypes.util.find_library("opus")`, so a file called `opus.dll` must be on `PATH`. | server |
+| ASR model (`SenseVoiceSmall/model.pt`) | `xiaozhi-server` | The local speech-to-text model used by the default `FunASR` ASR. Not in git because it is large. | server (with the default ASR) |
+| JDK 21 | `manager-api` | Java runtime and compiler for the console backend (`pom.xml` sets `java.version` 21). | full mode |
+| Maven | `manager-api` | Java build tool: downloads Java libraries, compiles and starts the backend (`mvn spring-boot:run`). | full mode |
+| MySQL 8 | `manager-api` | The database: users, agents, devices, model configs (including the new OpenRouter row). Tables are created by Liquibase at first start. | full mode |
+| Redis | `manager-api` | Cache and short-lived data: config cache, device activation codes, captcha. The Python server itself does **not** use Redis (verified: no Redis import or package in `xiaozhi-server`). | full mode |
+| Node.js + npm | `manager-web` | Builds and serves the Vue console (`npm install`, `npm run serve`). Only needed to run the web UI. | full mode |
+
+Which mode needs what:
+
+| Goal | Install |
+|---|---|
+| Run the **live OpenRouter tests** (section 15) | Python + `pip install -r requirements.txt` + `pytest`. Verified on the author's development machine (not the run machine): the mock-transport run of all 10 live tests passed without ffmpeg, libopus, conda or any model. |
+| Run the **voice server, minimal mode** (section 14.10) | Python 3.10, ffmpeg, libopus, ASR model (or a cloud ASR in the YAML) |
+| Run the **voice server, full mode** (rest of section 14) | everything in the table |
+
+#### Check what the run machine already has
+
+Do this first on the machine that will run the server, and install only what is missing. (The author of this guide looked at a different machine, so nothing here describes your run machine.)
+
+```powershell
+python --version; conda --version
+ffmpeg -version
+java -version; mvn -v
+node -v; npm -v
+mysql --version
+redis-cli ping            # or: memurai-cli ping
+winget --version          # the install commands below use winget
+Test-Path C:\MyWorking\Development\xiaozhi-esp32-server_vn\main\xiaozhi-server\models\SenseVoiceSmall\model.pt
+```
+
+Things to watch for:
+
+* **An old Java first on `PATH`.** `java -version` must say 21. If it says 1.8 or another version, follow the `JAVA_HOME` lines in step 2.
+* **Python version.** The project docs use 3.10 (conda env below). A newer Python may work for the tests, but only 3.10 is the documented path.
+* **A different database already running** (e.g. PostgreSQL) does not help: `manager-api` needs MySQL.
+* **`model.pt` is not in git.** `models\SenseVoiceSmall\` may exist with config files only; the model file must be downloaded (step 7).
+* **Node.** CI uses Node 20. A newer Node is untested here; if `npm install` fails, install Node 20.
+
+#### Install steps (PowerShell, in this order)
+
+Close and reopen PowerShell after each install so `PATH` refreshes. Some installers show a Windows permission prompt.
+
+**1. Miniconda -> Python 3.10 + ffmpeg + libopus** (the route the project docs use, `Deployment_all.md`):
+
+```powershell
+winget install -e --id Anaconda.Miniconda3
+```
+
+Open **Anaconda Prompt** from the Start menu (or run `conda init powershell` once and reopen PowerShell), then:
+
+```powershell
+conda create -n xiaozhi-esp32-server python=3.10 -y
+conda activate xiaozhi-esp32-server
+conda install libopus -y
+conda install ffmpeg -y
+conda install libiconv -y
+ffmpeg -version                 # must print "ffmpeg version ..."
+```
+
+The docs add the Tsinghua mirror channels because they are written for China; elsewhere the default channels are fine (if `conda install` cannot find a package, add `-c conda-forge`).
+
+Where `opus.dll` ends up: after `conda install libopus`, look in `<miniconda>\envs\xiaozhi-esp32-server\Library\bin`. While the env is **activated**, conda puts that folder on `PATH`, so `opuslib_next` finds it; always run `python app.py` from the activated env. *Not verified:* that the conda package names the file exactly `opus.dll`. If `import opuslib_next` later says "Could not find Opus library", search that folder for `*opus*.dll` and copy it to `opus.dll` in the same folder. Plain-pip alternative: none known; `winget install -e --id Gyan.FFmpeg` gives ffmpeg but not `opus.dll`.
+
+**2. JDK 21:**
+
+```powershell
+winget install -e --id Microsoft.OpenJDK.21
+```
+
+If an older Java (for example 1.8) is already first on `PATH`, `java -version` will not say 21; point each shell that runs Maven at JDK 21. Find the real folder first; the name below is the expected pattern, not verified:
+
+```powershell
+Get-ChildItem "C:\Program Files\Microsoft" -Filter "jdk-21*"
+$env:JAVA_HOME = "C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot"
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+java -version                   # must say 21
+```
+
+Or set `JAVA_HOME` permanently in Windows "Environment Variables" and move its `bin` above any older Java in `PATH` (do not delete the older entry if other tools need it).
+
+**3. Maven** (no winget package was found; manual install):
+
+1. Download the *Binary zip archive* `apache-maven-3.9.x-bin.zip` from https://maven.apache.org/download.cgi (the repo asks for 3.8+).
+2. Extract to `C:\tools\apache-maven-3.9.x`.
+3. Add `C:\tools\apache-maven-3.9.x\bin` to your user `PATH` (or per shell: `$env:Path = "C:\tools\apache-maven-3.9.x\bin;$env:Path"`).
+4. `mvn -v` must show Maven and `Java version: 21`.
+
+**4. MySQL:**
+
+```powershell
+winget install -e --id Oracle.MySQL
+```
+
+The installer asks for a `root` password. The repo expects `root` / `123456` (`application-dev.yml`); use that, or edit the file. winget offers 8.4.9; the docs say 8.0+, so 8.4 should work but is **not tested here**. Make sure the MySQL service is running (Windows "Services"), and add its `bin` folder to `PATH` if `mysql --version` is not found (typically `C:\Program Files\MySQL\MySQL Server 8.4\bin`, not verified). Then create the database (section 14.2). *Untested alternative:* `winget install -e --id MariaDB.Server` (same protocol and SQL as MySQL; this repo has not been run on it).
+
+**5. Redis** (the repo needs 5.0+):
+
+* Do **not** use `winget install Redis.Redis`: that package is version 3.0.x, too old.
+* Use **Memurai Developer**, a Redis-compatible server for Windows: `winget install -e --id Memurai.MemuraiDeveloper`. It runs as a Windows service on `127.0.0.1:6379`, which is what `application-dev.yml` expects. Check with `memurai-cli ping` (expects `PONG`; the CLI name is from memory, not verified). The Developer edition is the free one for development/testing (check its license). The Redis version it emulates was not checked.
+* Alternative (not checked): WSL2 + `sudo apt install redis-server`.
+
+**6. Node.js:** if `node -v` is missing, install Node 20 (the CI version; newer versions are untested here). If you already have Node, try it first and switch to 20 only if `npm install` fails.
+
+**7. ASR model** (the file is large; the link is hosted in China and may be slow):
+
+```powershell
+cd C:\MyWorking\Development\xiaozhi-esp32-server_vn\main\xiaozhi-server
+curl.exe -L -o models\SenseVoiceSmall\model.pt https://modelscope.cn/models/iic/SenseVoiceSmall/resolve/master/model.pt
+Test-Path models\SenseVoiceSmall\model.pt     # True
+```
+
+Source: `Deployment_all.md` (it also lists a Baidu Netdisk mirror). If you use another ASR provider you can skip this.
+
+#### Verify everything (new PowerShell)
+
+```powershell
+conda activate xiaozhi-esp32-server
+python --version                 # 3.10.x
+ffmpeg -version
+java -version                    # 21 (after the JAVA_HOME lines above)
+mvn -v                           # Maven 3.8+, Java 21
+node -v; npm -v
+mysql --version
+memurai-cli ping                 # PONG   (or redis-cli ping)
+Test-Path C:\MyWorking\Development\xiaozhi-esp32-server_vn\main\xiaozhi-server\models\SenseVoiceSmall\model.pt
+```
+
+After `pip install -r requirements.txt` (section 14.6) also run `python -c "import opuslib_next"`: no output means libopus was found.
 
 ### 14.2 Database and Redis
 
@@ -510,7 +634,7 @@ Menu names: zh `参数管理` = en "Params Management"; zh `模型配置` = en "
 
 ```powershell
 cd C:\MyWorking\Development\xiaozhi-esp32-server_vn\main\xiaozhi-server
-python -m venv .venv ; .\.venv\Scripts\Activate.ps1
+conda activate xiaozhi-esp32-server          # the env from 14.1 (Python 3.10, ffmpeg, libopus)
 pip install -r requirements.txt            # now includes openrouter==1.3.43
 mkdir data -ErrorAction SilentlyContinue
 Copy-Item config_from_api.yaml data\.config.yaml   # docs: if data\.config.yaml already exists, remove it first
@@ -532,8 +656,7 @@ The copied file also contains a `server:` block (ip `0.0.0.0`, port `8000`, http
 python app.py
 ```
 
-Expected: a line like `Server is running at ws://<ip>:8000/xiaozhi/v1/` (Deployment_all.md). conda is what the docs use; a plain venv is my
-substitution (not covered by the docs).
+Expected: a line like `Server is running at ws://<ip>:8000/xiaozhi/v1/` (Deployment_all.md). conda is what the docs use (section 14.1).
 
 ### 14.7 Device or test page
 
@@ -612,7 +735,7 @@ LLM:
 
 ```powershell
 cd C:\MyWorking\Development\xiaozhi-esp32-server_vn\main\xiaozhi-server
-.\.venv\Scripts\Activate.ps1                      # the venv from 14.6 (needs: pip install -r requirements.txt, pytest)
+conda activate xiaozhi-esp32-server                  # the env from 14.1 (needs: pip install -r requirements.txt, pytest)
 $env:RUN_LIVE_API_TESTS = "1"
 $env:OPENROUTER_API_KEY = "sk-or-v1-..."          # your key
 # optional:
@@ -625,7 +748,7 @@ pytest tests/core/providers/test_openrouter_live.py -s -q --noconftest -p no:cac
 
 One test: `pytest tests/core/providers/test_openrouter_live.py -s -q --noconftest -p no:cacheprovider -k L3` (also `-k "L1_ or L2"`;
 note `-k L1` would also select L10, so use `L1_` for L1 alone).
-`pytest` itself is not in `requirements.txt` (CI installs `pytest pytest-asyncio freezegun`), so `pip install pytest` in the venv if needed.
+`pytest` itself is not in `requirements.txt` (CI installs `pytest pytest-asyncio freezegun`), so `pip install pytest` in the conda env if needed.
 When done: `Remove-Item Env:OPENROUTER_API_KEY, Env:RUN_LIVE_API_TESTS`.
 
 If the key is missing or the flag is not `1`, all 10 tests show as `s` (skipped) with the reason in `-rs` output.
