@@ -277,7 +277,7 @@ export default {
         goToPage('/login');
       }, (err) => {
         showDanger(err.data.msg || this.$t('message.error'));
-        if (err.data != null && err.data.msg != null && (err.data.msg.indexOf('Captcha') > -1)) {
+        if (err.data != null && err.data.msg != null && (err.data.msg.indexOf('Graphic verification code') > -1)) {
           this.fetchCaptcha()
         }
       });
