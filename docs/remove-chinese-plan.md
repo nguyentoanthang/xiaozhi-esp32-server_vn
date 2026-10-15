@@ -68,4 +68,58 @@ Kept as-is for now; revisit when switching the server to Vietnamese:
 - Home Assistant device examples and other region-specific defaults.
 
 ## Status
-Done in one commit. Not verified: Java was never compiled (no Maven), SQL never run against MySQL, web vitest and mobile type-check not run.
+Done in two local commits (translation + Chinese removal, then a captcha fix). Nothing has been
+compiled or run end to end yet; use the checklist below.
+
+## Verification checklist (tick as you test)
+
+### Build and tests
+- [ ] manager-api compiles: `mvn -q compile` in `main/manager-api` (never built; edits were string substitutions).
+- [ ] manager-api tests pass: `mvn test` (touched: `TimbreServiceImplTest`, `AESUtilsTest`,
+      `AgentSnapshotServiceImplTest`, `loginControllerTest`).
+- [ ] manager-web: `npm install`, then `npm run build` and the vitest suite (not run: no `node_modules`).
+      `npm run check:i18n` and the 9 contract tests already pass.
+- [ ] manager-mobile: `npm install`, then type-check/lint/build (not run).
+- [ ] xiaozhi-server tests: create `data/.config.yaml`, `pip install pydub`, run
+      `python -m pytest tests`. 14 tests (`test_memory`, `test_rag`, `test_stt`, `test_tts`) could not run.
+
+### Fresh-database startup
+- [ ] Liquibase applies every changelog on an empty MySQL with no syntax errors (edited by hand, never run).
+- [ ] Seed rows look right: `ai_tts_voice` languages are all `English`, agent template is `en`/`English`,
+      `end_prompt`, plugin params (`get_weather` default `London`, `news_sources` = `your_news_sources`).
+- [ ] `202608061800.sql` (Doubao remark REPLACE removed) applies cleanly.
+
+### Behavior
+- [ ] Web UI: login, register, forgot-password; language dropdown shows only en/de/vi/pt_BR; default is English.
+- [ ] Wrong graphic captcha shows the error and reloads the image (matches "Graphic verification code";
+      only works in English. de/vi/pt_BR messages will not trigger the reload).
+- [ ] Mobile app: default English; login links open the English agreement/privacy pages.
+- [ ] Device management page no longer has the "device theme generation" button; `/generator` is gone.
+- [ ] Server starts; unconfigured values containing `your_` are detected (websocket URL in OTA,
+      `mcp_endpoint`, vision URL, api keys) and real values are not mistaken for placeholders.
+- [ ] Manager API-driven config: model api keys show masked as `your_<name>` and saving works.
+- [ ] Agent role switching (`change_role`): persona names are now English ("English Teacher",
+      "Sassy Girlfriend", "Curious Little Boy"); confirm nothing passes the old Chinese names.
+- [ ] Chat summary/title generation still works (English prompts).
+- [ ] Time/date prompts: weekday and lunar text look sane (lunar is now "Lunar year N, month N, day N").
+- [ ] Voiceprint: "Unknown speaker" label is used consistently between server and API.
+- [ ] Short-term memory (`mem_local_short`) uses English JSON keys; start with a clean memory store.
+
+### Device and speech
+- [ ] ESP32 connects; strings sent to the device (`websocket_server.py`, `ota_handler.py`,
+      `vision_handler.py` are now English) do not break the firmware.
+- [ ] Read the exact wake-word text your firmware sends from the server log, then set `wakeup_words`
+      in `config.yaml` (defaults are `hello`, `hey there`; exit commands `exit`, `quit`, `goodbye`).
+- [ ] Wake-up reply: `config/assets/wakeup_words_short.wav` still speaks Chinese; replace it or disable
+      `enable_wakeup_words_response_cache`.
+- [ ] Pick an English (or Vietnamese) EdgeTTS voice and confirm the FunASR/SenseVoice language setting.
+- [ ] `system_error_response` and other fallback replies are English and spoken by a matching voice.
+
+### Cleanup / known leftovers
+- [ ] A CJK grep shows only the deferred items above plus binaries/screenshots.
+- [ ] Decide on `docs/images/**` screenshots and `manager-mobile/README.md` image filenames (Chinese).
+- [ ] Live2D `*_zh` model JSON files (`cdi3`/`physics3`) still hold Chinese parameter labels (display only).
+- [ ] `get_weather.py` fallback city is still the Chinese 广州 while `config.yaml` says Guangzhou; unify when customizing.
+- [ ] `AgentSnapshotServiceImplTest` still has `locale=zh-CN` in a mock URL (test data only).
+- [ ] `manager-mobile/package.json` author name was changed to "Huang Junsen"; confirm or revert.
+- [ ] Unrelated untracked dirs `.codegraph/` and `openrouter/` are not committed.
