@@ -1,23 +1,25 @@
-# get_news_from_newsnow 插件新闻源配置指南
+# get_news_from_newsnow Plugin News Source Configuration Guide
 
-## 概述
+<!-- TODO(vi): customize for Vietnamese usage (see docs/remove-chinese-plan.md). The news source names below are Chinese plugin data and must match the NewsNow identifiers. -->
 
-`get_news_from_newsnow` 插件现在支持通过Web管理界面动态配置新闻源，不再需要修改代码。用户可以在智控台中为每个智能体配置不同的新闻源。
+## Overview
 
-## 配置方式
+The `get_news_from_newsnow` plugin now supports configuring news sources dynamically through the web management interface, with no need to modify code. Users can configure different news sources for each agent in the Control Panel.
 
-### 1. 通过Web管理界面配置（推荐）
+## Configuration Methods
 
-1. 登录智控台
-2. 进入"角色配置"页面
-3. 选择要配置的智能体
-4. 点击"编辑功能"按钮
-5. 在右侧参数配置区域找到"newsnow新闻聚合"插件
-6. 在"新闻源配置"字段中输入分号分隔的中文名称
+### 1. Configure Through the Web Management Interface (Recommended)
 
-### 2. 配置文件方式
+1. Log in to the Control Panel
+2. Go to the "Role Configuration" page
+3. Select the agent to configure
+4. Click the "Edit Functions" button
+5. In the parameter configuration area on the right, find the "newsnow news aggregation" plugin
+6. In the "News Source Configuration" field, enter the Chinese names separated by semicolons
 
-在 `config.yaml` 中配置：
+### 2. Configuration File
+
+Configure in `config.yaml`:
 
 ```yaml
 plugins:
@@ -26,23 +28,23 @@ plugins:
     news_sources: "澎湃新闻;百度热搜;财联社;微博;抖音"
 ```
 
-## 新闻源配置格式
+## News Source Configuration Format
 
-新闻源配置使用分号分隔的中文名称，格式为：
+The news source configuration uses Chinese names separated by semicolons, in the format:
 
 ```
-中文名称1;中文名称2;中文名称3
+Chinese-name-1;Chinese-name-2;Chinese-name-3
 ```
 
-### 配置示例
+### Configuration Example
 
 ```
 澎湃新闻;百度热搜;财联社;微博;抖音;知乎;36氪
 ```
 
-## 支持的新闻源
+## Supported News Sources
 
-插件支持以下新闻源的中文名称：
+The plugin supports the following news sources, identified by their Chinese names:
 
 - 澎湃新闻
 - 百度热搜
@@ -73,33 +75,33 @@ plugins:
 - 卫星通讯社
 - 百度贴吧
 - 靠谱新闻
-- 以及更多...
+- and more...
 
-## 默认配置
+## Default Configuration
 
-如果未配置新闻源，插件将使用以下默认配置：
+If no news source is configured, the plugin uses the following default configuration:
 
 ```
 澎湃新闻;百度热搜;财联社
 ```
 
-## 使用说明
+## Usage
 
-1. **配置新闻源**：在Web界面或配置文件中设置新闻源的中文名称，用分号分隔
-2. **调用插件**：用户可以说"播报新闻"或"获取新闻"
-3. **指定新闻源**：用户可以说"播报澎湃新闻"或"获取百度热搜"
-4. **获取详情**：用户可以说"详细介绍这条新闻"
+1. **Configure news sources**: Set the Chinese names of the news sources in the web interface or the configuration file, separated by semicolons
+2. **Call the plugin**: The user can say "broadcast the news" or "get the news"
+3. **Specify a news source**: The user can say "broadcast 澎湃新闻 (The Paper) news" or "get 百度热搜 (Baidu Hot Search)"
+4. **Get details**: The user can say "tell me more about this news item"
 
-## 工作原理
+## How It Works
 
-1. 插件接受中文名称作为参数（如"澎湃新闻"）
-2. 根据配置的新闻源列表，将中文名称转换为对应的英文ID（如"thepaper"）
-3. 使用英文ID调用API获取新闻数据
-4. 返回新闻内容给用户
+1. The plugin accepts a Chinese name as a parameter (such as "澎湃新闻")
+2. Based on the configured news source list, the Chinese name is converted to the corresponding English ID (such as "thepaper")
+3. The English ID is used to call the API to fetch the news data
+4. The news content is returned to the user
 
-## 注意事项
+## Notes
 
-1. 配置的中文名称必须与 CHANNEL_MAP 中定义的名称完全一致
-2. 配置更改后需要重启服务或重新加载配置
-3. 如果配置的新闻源无效，插件会自动使用默认新闻源
-4. 多个新闻源之间使用英文分号(;)分隔，不要使用中文分号(；)
+1. The configured Chinese names must exactly match the names defined in CHANNEL_MAP
+2. After changing the configuration, restart the service or reload the configuration
+3. If a configured news source is invalid, the plugin automatically uses the default news source
+4. Separate multiple news sources with the English semicolon (;), not the Chinese semicolon (；)

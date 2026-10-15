@@ -1,4 +1,4 @@
-// 通用响应格式
+// Generic response format
 export interface IResponse<T = any> {
   code: number | string
   data: T
@@ -6,14 +6,14 @@ export interface IResponse<T = any> {
   status: string | number
 }
 
-// 分页请求参数
+// Pagination request parameters
 export interface PageParams {
   page: number
   pageSize: number
   [key: string]: any
 }
 
-// 分页响应数据
+// Pagination response data
 export interface PageResult<T> {
   list: T[]
   total: number

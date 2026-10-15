@@ -1,74 +1,74 @@
-# 联网搜索插件使用指南
+# Web Search Plugin Usage Guide
 
-## 功能简介
+## Feature Overview
 
-联网搜索插件 `web_search` 支持在对话过程中实时联网搜索信息并返回结果。插件支持三个搜索源：秘塔（Metaso）、Tavily和Serply，用户可根据需要选择其中一个。
+The web search plugin `web_search` supports searching the web for information in real time during a conversation and returning the results. The plugin supports three search providers: Metaso, Tavily, and Serply. Users can choose one of them as needed.
 
-## API Key申请指南
+## API Key Application Guide
 
-目前我们适配了`秘塔搜索`、`Tavily搜索`和`Serply搜索`。
-- Tavily搜索：每个月1000次免费额度。
-- 秘塔搜索：拥有较为优质的国内数据源。
-- Serply搜索：返回谷歌搜索结果，注册赠送2500次免费额度，额度用完后需要付费。
+We currently support `Metaso Search`, `Tavily Search`, and `Serply Search`.
+- Tavily Search: 1000 free calls per month.
+- Metaso Search: has relatively high-quality domestic (Chinese) data sources.
+- Serply Search: returns Google search results. Registration gives 2500 free calls; after the quota is used up, payment is required.
 
-## API Key申请指南
+## API Key Application Guide
 
-### 方式一：使用秘塔搜索
+### Option 1: Use Metaso Search
 
-- 访问 [秘塔搜索API](https://metaso.cn/search-api/api-keys)，注册并登录账号
-- 在API密钥管理页面，点击"创建新的Key"
-- 复制生成的API Key（以 `mk-` 为前缀），这是配置所需的关键信息
+- Visit the [Metaso Search API](https://metaso.cn/search-api/api-keys), register, and log in
+- On the API key management page, click "Create new Key"
+- Copy the generated API Key (prefixed with `mk-`). This is the key information needed for configuration
 
-### 方式二：使用Tavily搜索
+### Option 2: Use Tavily Search
 
-- 访问 [Tavily控制台](https://app.tavily.com/home)，注册并登录账号
-- 在控制台中创建API Key
-- 复制生成的API Key（以 `tvly-` 为前缀），这是配置所需的关键信息
+- Visit the [Tavily console](https://app.tavily.com/home), register, and log in
+- Create an API Key in the console
+- Copy the generated API Key (prefixed with `tvly-`). This is the key information needed for configuration
 
-### 方式三：使用Serply搜索
+### Option 3: Use Serply Search
 
-- 访问 [Serply](https://serply.io)，注册并登录账号
-- 在控制台中创建API Key
-- 复制生成的API Key，这是配置所需的关键信息
-- 接口说明见 [Serply文档](https://serply.io/docs)
+- Visit [Serply](https://serply.io), register, and log in
+- Create an API Key in the console
+- Copy the generated API Key. This is the key information needed for configuration
+- For the API description, see the [Serply documentation](https://serply.io/docs)
 
-## 配置方式
+## Configuration Methods
 
-### 方式1. 使用智控台部署（推荐）
+### Method 1. Use the Control Panel Deployment (Recommended)
 
-- 登录智控台
-- 进入"配置角色"页面，选择要配置的智能体
-- 点击"编辑功能"按钮，在右侧参数配置区域找到"联网搜索"插件
-- 勾选"联网搜索"
-- 填入搜索源（`metaso`、`tavily`或`serply`），并将对应的`API Key`填入配置项
-- 保存配置，再保存智能体配置
+- Log in to the Control Panel
+- Go to the "Configure Role" page and select the agent to configure
+- Click the "Edit Functions" button and find the "Web search" plugin in the parameter configuration area on the right
+- Check "Web search"
+- Enter the search provider (`metaso`, `tavily`, or `serply`) and enter the corresponding `API Key` in the configuration item
+- Save the configuration, then save the agent configuration
 
-### 方式2. 单模块xiaozhi-server部署
+### Method 2. Single-Module xiaozhi-server Deployment
 
-在 `data/.config.yaml` 中配置：
+Configure in `data/.config.yaml`:
 
-- 将搜索源填入 `provider`，可选值为 `metaso`、`tavily` 或 `serply`
-- 将申请到的API Key填入 `api_key`
+- Enter the search provider in `provider`; the options are `metaso`, `tavily`, or `serply`
+- Enter the API Key you obtained in `api_key`
 
 ```yaml
 plugins:
   web_search:
     provider: "metaso"
-    api_key: "你的API Key"
+    api_key: "your API Key"
 ```
 
-如需自定义返回结果数量和工具描述，可额外配置 `max_results` 和 `description`：
+To customize the number of returned results and the tool description, additionally configure `max_results` and `description`:
 
 ```yaml
 plugins:
   web_search:
     provider: "metaso"
-    description: "联网搜索工具。当用户明确需要联网搜索问题时使用此工具。"
+    description: "Web search tool. Use this tool when the user explicitly needs to search the web for an answer."
     max_results: 5
-    api_key: "你的API Key"
+    api_key: "your API Key"
 ```
 
-同时在 `functions` 列表中确保已启用 `web_search`：
+Also make sure `web_search` is enabled in the `functions` list:
 
 ```yaml
 plugins:
@@ -76,4 +76,4 @@ plugins:
     - web_search
 ```
 
-配置完成后重启服务即可生效。
+Restart the service after the configuration for it to take effect.

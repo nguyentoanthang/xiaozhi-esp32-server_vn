@@ -1,72 +1,72 @@
-登录AutoDL，租赁镜像
-选择镜像:
+Log in to AutoDL and rent an image
+Select the image:
 ```
 PyTorch / 2.1.0 / 3.10(ubuntu22.04) / cuda 12.1
 ```
 
-机器开机后，设置学术加速
+After the machine boots, enable academic acceleration
 ```
 source /etc/network_turbo
 ```
 
-进入工作目录
+Go to the working directory
 ```
 cd autodl-tmp/
 ```
 
-拉取项目
+Pull the project
 ```
 git clone https://gitclone.com/github.com/fishaudio/fish-speech.git ; cd fish-speech
 ```
 
-安装依赖
+Install dependencies
 ```
 pip install -e.
 ```
 
-如果报错，安装portaudio
+If you get an error, install portaudio
 ```
 apt-get install portaudio19-dev -y
 ```
 
-安装后执行
+After installing, run
 ```
 pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/cu121
 ```
 
-下载模型
+Download the model
 ```
 cd tools
 python download_models.py 
 ```
 
-下载完模型后运行接口
+After downloading the model, run the API
 ```
 python -m tools.api_server --listen 0.0.0.0:6006 
 ```
 
-然后用浏览器去到autodl实例页面
+Then go to the AutoDL instance page in a browser
 ```
 https://autodl.com/console/instance/list
 ```
 
-如下图点击你刚才机器的`自定义服务`按钮，开启端口转发服务
-![自定义服务](images/fishspeech/autodl-01.png)
+As shown below, click the `Custom Service` button of the machine you just created to enable the port forwarding service
+![Custom Service](images/fishspeech/autodl-01.png)
 
-端口转发服务设置完成后，你本地电脑打开网址`http://localhost:6006/`，就可以访问fish-speech的接口了
-![服务预览](images/fishspeech/autodl-02.png)
+After the port forwarding service is set up, open `http://localhost:6006/` on your local computer to access the fish-speech API
+![Service Preview](images/fishspeech/autodl-02.png)
 
 
-如果你是单模块部署，核心配置如下
+If you use the single-module deployment, the core configuration is as follows
 ```
 selected_module:
   TTS: FishSpeech
 TTS:
   FishSpeech:
     reference_audio: ["config/assets/wakeup_words.wav",]
-    reference_text: ["哈啰啊，我是小智啦，声音好听的台湾女孩一枚，超开心认识你耶，最近在忙啥，别忘了给我来点有趣的料哦，我超爱听八卦的啦",]
+    reference_text: ["Hello there, I'm Xiaozhi, a Taiwanese girl with a sweet voice. I'm super happy to meet you! What have you been up to lately? Don't forget to share something fun with me, I absolutely love gossip!",]
     api_key: "123"
     api_url: "http://127.0.0.1:6006/v1/tts"
 ```
 
-然后重启服务
+Then restart the service

@@ -23,7 +23,7 @@ import xiaozhi.modules.model.entity.ModelConfigEntity;
 import xiaozhi.modules.model.service.ModelConfigService;
 
 /**
- * @description 针对表【ai_agent_plugin_mapping(Agent与插件的唯一映射表)】的数据库操作Service实现
+ * @description Database operation Service implementation for the table [ai_agent_plugin_mapping (unique mapping table between Agent and plugin)]
  * @createDate 2025-05-25 22:33:17
  */
 @Service
@@ -43,7 +43,7 @@ public class AgentPluginMappingServiceImpl extends CrudRepository<AgentPluginMap
         for (int i = list.size() - 1; i >= 0; i--) {
             AgentPluginMapping mapping = list.get(i);
             if (StringUtils.isBlank(mapping.getProviderCode())) {
-                // 查询知识库插件参数
+                // Query knowledge base plugin parameters
                 KnowledgeBaseEntity knowledgeBaseEntity = knowledgeBaseService.selectById(mapping.getPluginId());
                 if (knowledgeBaseEntity == null) {
                     list.remove(i);
@@ -85,9 +85,9 @@ public class AgentPluginMappingServiceImpl extends CrudRepository<AgentPluginMap
                 paramInfo.put("dataset_ids",
                         knowledgeBaseList.stream().map(KnowledgeBaseEntity::getDatasetId).toList());
 
-                String description = "如果用户询问与【"
+                String description = "If the user asks about content within the scope covered by ["
                         + String.join(",", knowledgeBaseList.stream().map(KnowledgeBaseEntity::getName).toList())
-                        + "】涵盖的主体范围相关内容时应调用本方法，用于查询：" + String.join(",",
+                        + "], this method should be called to query: " + String.join(",",
                                 knowledgeBaseList.stream().map(KnowledgeBaseEntity::getDescription).toList());
                 paramInfo.put("description", description);
                 agentPluginMapping.setParamInfo(JsonUtils.toJsonString(paramInfo));

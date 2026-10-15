@@ -15,8 +15,8 @@ def test_is_emoji_returns_false_for_ascii_letter():
     assert is_emoji("a") is False
 
 
-def test_is_emoji_returns_false_for_chinese_char():
-    assert is_emoji("你") is False
+def test_is_emoji_returns_false_for_non_ascii_letter():
+    assert is_emoji("é") is False
 
 
 def test_is_punctuation_or_emoji_for_chinese_comma():
@@ -32,11 +32,11 @@ def test_is_punctuation_or_emoji_for_letter_is_false():
 
 
 def test_get_string_no_punctuation_or_emoji_strips_both_sides():
-    assert get_string_no_punctuation_or_emoji("， 你好 。") == "你好"
+    assert get_string_no_punctuation_or_emoji("， hello 。") == "hello"
 
 
 def test_get_string_no_punctuation_or_emoji_no_punctuation():
-    assert get_string_no_punctuation_or_emoji("你好") == "你好"
+    assert get_string_no_punctuation_or_emoji("hello") == "hello"
 
 
 def test_get_string_no_punctuation_or_emoji_empty_string():

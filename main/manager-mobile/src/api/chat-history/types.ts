@@ -1,4 +1,4 @@
-// 聊天会话列表项
+// Chat session list item
 export interface ChatSession {
   sessionId: string
   createdAt: string
@@ -6,34 +6,34 @@ export interface ChatSession {
   title: string
 }
 
-// 聊天会话列表响应
+// Chat session list response
 export interface ChatSessionsResponse {
   total: number
   list: ChatSession[]
 }
 
-// 聊天消息
+// Chat message
 export interface ChatMessage {
   createdAt: string
-  chatType: 1 | 2 | 3 // 1是用户，2是AI，3是参数说明
+  chatType: 1 | 2 | 3 // 1 is user, 2 is AI, 3 is parameter description
   content: string
   audioId: string | null
   macAddress: string
 }
 
-// 用户消息内容（需要解析JSON）
+// User message content (JSON parsing required)
 export interface UserMessageContent {
   speaker: string
   content: string
 }
 
-// 获取聊天会话列表参数
+// Parameters for getting the chat session list
 export interface GetSessionsParams {
   page: number
   limit: number
 }
 
-// 音频播放相关
+// Audio playback related
 export interface AudioResponse {
-  data: string // 音频下载ID
+  data: string // Audio download ID
 }

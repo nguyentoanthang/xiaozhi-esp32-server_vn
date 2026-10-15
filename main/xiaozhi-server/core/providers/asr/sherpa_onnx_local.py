@@ -17,7 +17,7 @@ TAG = __name__
 logger = setup_logging()
 
 
-# 捕获标准输出
+# Capture standard output
 class CaptureOutput:
     def __enter__(self):
         self._output = io.StringIO()
@@ -29,7 +29,7 @@ class CaptureOutput:
         self.output = self._output.getvalue()
         self._output.close()
 
-        # 将捕获到的内容通过 logger 输出
+        # Output the captured content through the logger
         if self.output:
             logger.bind(tag=TAG).info(self.output.strip())
 
@@ -40,23 +40,23 @@ class ASRProvider(ASRProviderBase):
         self.interface_type = InterfaceType.LOCAL
         self.model_dir = config.get("model_dir")
         self.output_dir = config.get("output_dir")
-        self.model_type = config.get("model_type", "sense_voice")  # 支持 paraformer
+        self.model_type = config.get("model_type", "sense_voice")  # supports paraformer
         self.delete_audio_file = delete_audio_file
 
-        # 确保输出目录存在
+        # Make sure the output directory exists
         os.makedirs(self.output_dir, exist_ok=True)
 
-        # 初始化模型文件路径
+        # Initialize model file paths
         model_files = {
             "model.int8.onnx": os.path.join(self.model_dir, "model.int8.onnx"),
             "tokens.txt": os.path.join(self.model_dir, "tokens.txt"),
         }
 
-        # 下载并检查模型文件
+        # Download and check model files
         try:
             for file_name, file_path in model_files.items():
                 if not os.path.isfile(file_path):
-                    logger.bind(tag=TAG).info(f"正在下载模型文件: {file_name}")
+                    logger.bind(tag=TAG).info(f"Downloading model file: {file_name}")
                     model_file_download(
                         model_id="pengzhendong/sherpa-onnx-sense-voice-zh-en-ja-ko-yue",
                         file_path=file_name,
@@ -64,13 +64,13 @@ class ASRProvider(ASRProviderBase):
                     )
 
                     if not os.path.isfile(file_path):
-                        raise FileNotFoundError(f"模型文件下载失败: {file_path}")
+                        raise FileNotFoundError(f"Model file download failed: {file_path}")
 
             self.model_path = model_files["model.int8.onnx"]
             self.tokens_path = model_files["tokens.txt"]
 
         except Exception as e:
-            logger.bind(tag=TAG).error(f"模型文件处理失败: {str(e)}")
+            logger.bind(tag=TAG).error(f"Model file processing failed: {str(e)}")
             raise
 
         with CaptureOutput():
@@ -126,7 +126,7 @@ class ASRProvider(ASRProviderBase):
     async def speech_to_text(
         self, opus_data: List[bytes], session_id: str, artifacts=None
     ) -> Tuple[Optional[str], Optional[str]]:
-        """语音转文本主处理逻辑"""
+        """Main speech-to-text processing logic"""
         file_path = None
         try:
             if artifacts is None:
@@ -140,11 +140,11 @@ class ASRProvider(ASRProviderBase):
             self.model.decode_stream(s)
             text = s.result.text
             logger.bind(tag=TAG).debug(
-                f"语音识别耗时: {time.time() - start_time:.3f}s | 结果: {text}"
+                f"Speech recognition took: {time.time() - start_time:.3f}s | result: {text}"
             )
 
             return text, file_path
 
         except Exception as e:
-            logger.bind(tag=TAG).error(f"语音识别失败: {e}", exc_info=True)
+            logger.bind(tag=TAG).error(f"Speech recognition failed: {e}", exc_info=True)
             return "", file_path

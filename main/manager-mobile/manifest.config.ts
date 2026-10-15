@@ -4,13 +4,13 @@ import process from 'node:process'
 import { defineManifestConfig } from '@uni-helper/vite-plugin-uni-manifest'
 import { loadEnv } from 'vite'
 
-// 手动解析命令行参数获取 mode
+// Manually parse command-line arguments to get the mode
 function getMode() {
   const args = process.argv.slice(2)
   const modeFlagIndex = args.findIndex(arg => arg === '--mode')
-  return modeFlagIndex !== -1 ? args[modeFlagIndex + 1] : args[0] === 'build' ? 'production' : 'development' // 默认 development
+  return modeFlagIndex !== -1 ? args[modeFlagIndex + 1] : args[0] === 'build' ? 'production' : 'development' // default to development
 }
-// 获取环境变量的范例
+// Example of reading environment variables
 const env = loadEnv(getMode(), path.resolve(process.cwd(), 'env'))
 const {
   VITE_APP_TITLE,
@@ -33,7 +33,7 @@ export default defineManifestConfig({
       // base: VITE_APP_PUBLIC_BASE,
     },
   },
-  /* 5+App特有相关 */
+  /* 5+App specific */
   'app-plus': {
     usingComponents: true,
     nvueStyleCompiler: 'uni-app',
@@ -47,11 +47,11 @@ export default defineManifestConfig({
       autoclose: true,
       delay: 0,
     },
-    /* 模块配置 */
+    /* Module configuration */
     modules: {},
-    /* 应用发布信息 */
+    /* App release info */
     distribute: {
-      /* android打包配置 */
+      /* Android packaging configuration */
       android: {
         minSdkVersion: 30,
         targetSdkVersion: 30,
@@ -76,11 +76,11 @@ export default defineManifestConfig({
           '<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>',
         ],
       },
-      /* ios打包配置 */
+      /* iOS packaging configuration */
       ios: {},
-      /* SDK配置 */
+      /* SDK configuration */
       sdkConfigs: {},
-      /* 图标配置 */
+      /* Icon configuration */
       icons: {
         android: {
           hdpi: 'unpackage/res/icons/72x72.png',
@@ -115,14 +115,14 @@ export default defineManifestConfig({
       },
     },
   },
-  /* 快应用特有相关 */
+  /* Quick App specific */
   'quickapp': {},
-  /* 小程序特有相关 */
+  /* Mini program specific */
   'mp-weixin': {
     appid: VITE_WX_APPID,
     setting: {
       urlCheck: false,
-      // 是否启用 ES6 转 ES5
+      // Whether to enable ES6 to ES5 transpilation
       es6: true,
       minified: true,
     },
@@ -133,7 +133,7 @@ export default defineManifestConfig({
     // __usePrivacyCheck__: true,
     permission: {
       'scope.userLocation': {
-        desc: 'WiFi配网功能需要获取位置权限',
+        desc: 'The Wi-Fi provisioning feature requires location permission',
       },
     },
     requiredPrivateInfos: ['getLocation'],

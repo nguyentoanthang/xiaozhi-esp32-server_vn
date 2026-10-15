@@ -1,7 +1,7 @@
 {
   "globalStyle": {
     "navigationStyle": "default",
-    "navigationBarTitleText": "小智",
+    "navigationBarTitleText": "Xiaozhi",
     "navigationBarBackgroundColor": "#f8f8f8",
     "navigationBarTextStyle": "black",
     "backgroundColor": "#FFFFFF"
@@ -29,7 +29,7 @@
         "iconPath": "static/tabbar/robot.png",
         "selectedIconPath": "static/tabbar/robot_activate.png",
         "pagePath": "pages/index/index",
-        "text": "首页",
+        "text": "Home",
         "icon": "home",
         "iconType": "uiLib"
       },
@@ -37,7 +37,7 @@
         "iconPath": "static/tabbar/network.png",
         "selectedIconPath": "static/tabbar/network_activate.png",
         "pagePath": "pages/device-config/index",
-        "text": "配网",
+        "text": "Network Setup",
         "icon": "i-carbon-network-3",
         "iconType": "uiLib"
       },
@@ -45,7 +45,7 @@
         "iconPath": "static/tabbar/system.png",
         "selectedIconPath": "static/tabbar/system_activate.png",
         "pagePath": "pages/settings/index",
-        "text": "系统",
+        "text": "System",
         "icon": "i-carbon-settings",
         "iconType": "uiLib"
       }
@@ -58,7 +58,7 @@
       "layout": "tabbar",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "首页"
+        "navigationBarTitleText": "Home"
       }
     },
     {
@@ -70,7 +70,7 @@
       "type": "page",
       "layout": "default",
       "style": {
-        "navigationBarTitleText": "智能体",
+        "navigationBarTitleText": "Agent",
         "navigationStyle": "custom"
       }
     },
@@ -79,7 +79,7 @@
       "type": "page",
       "layout": "default",
       "style": {
-        "navigationBarTitleText": "编辑源",
+        "navigationBarTitleText": "Edit Source",
         "navigationStyle": "custom"
       }
     },
@@ -88,7 +88,7 @@
       "type": "page",
       "layout": "default",
       "style": {
-        "navigationBarTitleText": "语音设置",
+        "navigationBarTitleText": "Voice Settings",
         "navigationStyle": "custom"
       }
     },
@@ -97,7 +97,7 @@
       "type": "page",
       "layout": "default",
       "style": {
-        "navigationBarTitleText": "编辑功能",
+        "navigationBarTitleText": "Edit Functions",
         "navigationStyle": "custom"
       }
     },
@@ -107,7 +107,7 @@
       "layout": "default",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "聊天详情"
+        "navigationBarTitleText": "Chat Details"
       }
     },
     {
@@ -122,7 +122,7 @@
       "path": "pages/device-config/index",
       "type": "page",
       "style": {
-        "navigationBarTitleText": "设备配置",
+        "navigationBarTitleText": "Device Configuration",
         "navigationStyle": "custom"
       }
     },
@@ -154,15 +154,6 @@
       }
     },
     {
-      "path": "pages/login/privacy-policy-zh",
-      "type": "page",
-      "layout": "default",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTitleText": "隐私政策"
-      }
-    },
-    {
       "path": "pages/login/user-agreement-en",
       "type": "page",
       "layout": "default",
@@ -172,21 +163,12 @@
       }
     },
     {
-      "path": "pages/login/user-agreement-zh",
-      "type": "page",
-      "layout": "default",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTitleText": "用户协议"
-      }
-    },
-    {
       "path": "pages/register/index",
       "type": "page",
       "layout": "default",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "注册"
+        "navigationBarTitleText": "Register"
       }
     },
     {
@@ -194,7 +176,7 @@
       "type": "page",
       "layout": "default",
       "style": {
-        "navigationBarTitleText": "设置",
+        "navigationBarTitleText": "Settings",
         "navigationStyle": "custom"
       }
     },
@@ -212,7 +194,7 @@
           "type": "page",
           "layout": "default",
           "style": {
-            "navigationBarTitleText": "分包页面"
+            "navigationBarTitleText": "Subpackage Page"
           }
         }
       ]

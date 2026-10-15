@@ -2,7 +2,7 @@
 {
   "layout": "default",
   "style": {
-    "navigationBarTitleText": "分包页面"
+    "navigationBarTitleText": "Subpackage Page"
   }
 }
 </route>
@@ -17,7 +17,7 @@
       http://localhost:9000/#/pages-sub/demo/index
     </view>
     <view class="text-green-500">
-      分包页面demo
+      Subpackage page demo
     </view>
   </view>
 </template>

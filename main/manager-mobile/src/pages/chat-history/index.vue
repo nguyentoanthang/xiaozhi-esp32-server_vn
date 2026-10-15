@@ -13,12 +13,12 @@ const props = withDefaults(defineProps<Props>(), {
   agentId: 'default',
 })
 
-// 接收props
+// Receive props
 interface Props {
   agentId?: string
 }
 
-// 获取屏幕边界到安全区域距离
+// Get the distance from the screen edge to the safe area
 let safeAreaInsets: any
 let systemInfo: any
 
@@ -39,7 +39,7 @@ systemInfo = uni.getSystemInfoSync()
 safeAreaInsets = systemInfo.safeAreaInsets
 // #endif
 
-// 聊天会话数据
+// Chat session data
 const sessionList = ref<ChatSession[]>([])
 const loading = ref(false)
 const loadingMore = ref(false)
@@ -47,15 +47,15 @@ const hasMore = ref(true)
 const currentPage = ref(0)
 const pageSize = 10
 
-// 使用传入的智能体ID
+// Use the agent ID passed in
 const currentAgentId = computed(() => {
   return props.agentId
 })
 
-// 加载聊天会话列表
+// Load the chat session list
 async function loadChatSessions(page = 1, isUpdate = false) {
   try {
-    // 检查是否有当前选中的智能体
+    // Check whether there is a currently selected agent
     if (!currentAgentId.value) {
       console.warn(t('chatHistory.noSelectedAgent'))
       sessionList.value = []
@@ -84,7 +84,7 @@ async function loadChatSessions(page = 1, isUpdate = false) {
       sessionList.value.push(...(response.list || []))
     }
 
-    // 更新分页信息
+    // Update pagination info
     hasMore.value = (response.list?.length || 0) === pageSize
     currentPage.value = page
   }
@@ -100,14 +100,14 @@ async function loadChatSessions(page = 1, isUpdate = false) {
   }
 }
 
-// 暴露给父组件的刷新方法
+// Refresh method exposed to the parent component
 async function refresh() {
   currentPage.value = 1
   hasMore.value = true
   await loadChatSessions(1, true)
 }
 
-// 暴露给父组件的加载更多方法
+// Load-more method exposed to the parent component
 async function loadMore() {
   if (!hasMore.value || loadingMore.value) {
     return
@@ -115,47 +115,47 @@ async function loadMore() {
   await loadChatSessions(currentPage.value + 1)
 }
 
-// 格式化时间
+// Format time
 function formatTime(timeStr: string) {
   if (!timeStr)
     return t('chatHistory.unknownTime')
 
-  // 处理时间字符串，确保格式正确
-  const date = new Date(timeStr.replace(' ', 'T')) // 转换为ISO格式
+  // Process the time string to ensure the format is correct
+  const date = new Date(timeStr.replace(' ', 'T')) // Convert to ISO format
   const now = new Date()
 
-  // 检查日期是否有效
+  // Check whether the date is valid
   if (Number.isNaN(date.getTime())) {
-    return timeStr // 如果解析失败，直接返回原字符串
+    return timeStr // If parsing fails, return the original string directly
   }
 
   const diff = now.getTime() - date.getTime()
 
-  // 小于1分钟
+  // Less than 1 minute
   if (diff < 60000)
     return t('chatHistory.justNow')
 
-  // 小于1小时
+  // Less than 1 hour
   if (diff < 3600000)
     return t('chatHistory.minutesAgo', { minutes: Math.floor(diff / 60000) })
 
-  // 小于1天（24小时）
+  // Less than 1 day (24 hours)
   if (diff < 86400000)
     return t('chatHistory.hoursAgo', { hours: Math.floor(diff / 3600000) })
 
-  // 小于7天
+  // Less than 7 days
   if (diff < 604800000) {
     const days = Math.floor(diff / 86400000)
     return t('chatHistory.daysAgo', { days })
   }
 
-  // 超过7天，显示具体日期
+  // More than 7 days, show the specific date
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   const currentYear = now.getFullYear()
 
-  // 如果是当前年份，不显示年份
+  // If it is the current year, do not show the year
   if (year === currentYear) {
     return `${month}-${day}`
   }
@@ -163,7 +163,7 @@ function formatTime(timeStr: string) {
   return `${year}-${month}-${day}`
 }
 
-// 进入聊天详情
+// Enter chat details
 function goToChatDetail(session: ChatSession) {
   uni.navigateTo({
     url: `/pages/chat-history/detail?sessionId=${session.sessionId}&agentId=${currentAgentId.value}`,
@@ -171,7 +171,7 @@ function goToChatDetail(session: ChatSession) {
 }
 
 onMounted(async () => {
-  // 智能体已简化为默认
+  // The agent has been simplified to the default
   loadChatSessions(1)
 })
 
@@ -181,7 +181,7 @@ onShow(() => {
   }
 })
 
-// 暴露方法给父组件
+// Expose methods to the parent component
 defineExpose({
   refresh,
   loadMore,
@@ -190,7 +190,7 @@ defineExpose({
 
 <template>
   <view class="chat-history-container" style="background: #f5f7fb; min-height: 100%;">
-    <!-- 加载状态 -->
+    <!-- Loading state -->
     <view v-if="loading && sessionList.length === 0" class="loading-container">
       <wd-loading color="#336cff" />
       <text class="loading-text">
@@ -198,9 +198,9 @@ defineExpose({
       </text>
     </view>
 
-    <!-- 会话列表 -->
+    <!-- Session list -->
     <view v-else-if="sessionList.length > 0" class="session-container">
-      <!-- 聊天会话列表 -->
+      <!-- Chat session list -->
       <view class="session-list">
         <view
           v-for="session in sessionList"
@@ -229,7 +229,7 @@ defineExpose({
         </view>
       </view>
 
-      <!-- 加载更多状态 -->
+      <!-- Load more state -->
       <view v-if="loadingMore" class="loading-more">
         <wd-loading color="#336cff" size="24" />
         <text class="loading-more-text">
@@ -237,7 +237,7 @@ defineExpose({
         </text>
       </view>
 
-      <!-- 没有更多数据 -->
+      <!-- No more data -->
       <view v-else-if="!hasMore && sessionList.length > 0" class="no-more">
         <text class="no-more-text">
           {{ t('chatHistory.noMoreData') }}
@@ -245,7 +245,7 @@ defineExpose({
       </view>
     </view>
 
-    <!-- 空状态 -->
+    <!-- Empty state -->
     <view v-else-if="!loading" class="empty-state">
       <wd-icon name="chat" custom-class="empty-icon" />
       <text class="empty-text">

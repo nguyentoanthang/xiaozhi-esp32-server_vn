@@ -18,7 +18,7 @@ import xiaozhi.common.exception.RenException;
 
 /**
  * Http
- * Copyright (c) 人人开源 All rights reserved.
+ * Copyright (c) Renren Open Source All rights reserved.
  * Website: https://www.renren.io
  */
 public class HttpContextUtils {
@@ -71,22 +71,22 @@ public class HttpContextUtils {
     }
 
     public static String getLanguage() {
-        // 默认语言
-        String defaultLanguage = "zh-CN";
+        // Default language
+        String defaultLanguage = "en-US";
         // request
         HttpServletRequest request = getHttpServletRequest();
         if (request == null) {
             return defaultLanguage;
         }
 
-        // 请求语言
+        // Request language
         defaultLanguage = request.getHeader(HttpHeaders.ACCEPT_LANGUAGE);
 
         return defaultLanguage;
     }
 
     /**
-     * 获取客户端的唯一标识
+     * Get the client's unique identifier
      *
      * @return
      */

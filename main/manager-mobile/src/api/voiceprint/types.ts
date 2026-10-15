@@ -1,4 +1,4 @@
-// 声纹信息响应类型
+// Voiceprint info response type
 export interface VoicePrint {
   id: string
   audioId: string
@@ -7,13 +7,13 @@ export interface VoicePrint {
   createDate: string
 }
 
-// 语音对话记录类型
+// Voice conversation record type
 export interface ChatHistory {
   content: string
   audioId: string
 }
 
-// 创建说话人数据类型
+// Create speaker data type
 export interface CreateSpeakerData {
   agentId: string
   audioId: string
@@ -21,7 +21,7 @@ export interface CreateSpeakerData {
   introduce: string
 }
 
-// 通用响应类型
+// Generic response type
 export interface ApiResponse<T = any> {
   code: number
   msg: string

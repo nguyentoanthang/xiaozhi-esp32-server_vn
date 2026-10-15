@@ -73,7 +73,7 @@ pytestmark = pytest.mark.filterwarnings("ignore")
 # ------------------------------------------------------------------ gating / key lookup
 def _looks_placeholder(value) -> bool:
     text = str(value or "").strip().lower()
-    return (not text or text == "none" or "你" in text or "placeholder" in text
+    return (not text or text == "none" or "your_" in text or "placeholder" in text
             or "your_api_key" in text or text.startswith("xxx") or text.startswith("sk-xxx"))
 
 

@@ -12,7 +12,7 @@ class LLMProvider(LLMProviderBase):
         self.model_name = config.get("model_name")
         self.base_url = config.get("base_url", "http://localhost:9997")
         # Initialize OpenAI client with Xinference base URL
-        # 如果没有v1，增加v1
+        # If there is no v1, add v1
         if not self.base_url.endswith("/v1"):
             self.base_url = f"{self.base_url}/v1"
 

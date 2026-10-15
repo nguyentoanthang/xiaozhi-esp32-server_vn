@@ -21,17 +21,17 @@ public class KnowledgeManagerServiceImpl implements KnowledgeManagerService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteDatasetWithFiles(String datasetId) {
-        log.info("=== 级联删除开始: datasetId={} ===", datasetId);
+        log.info("=== Cascade deletion started: datasetId={} ===", datasetId);
 
-        // 1. 先调用文件服务，清理该数据集下的所有文档记录 (含 RAGFlow 端)
-        log.info("Step 1: 清理关联文档...");
+        // 1. First call the file service to clean up all document records under this dataset (including the RAGFlow side)
+        log.info("Step 1: Cleaning up associated documents...");
         knowledgeFilesService.deleteDocumentsByDatasetId(datasetId);
 
-        // 2. 再调用知识库服务，彻底注销数据集 (含 RAGFlow 端)
-        log.info("Step 2: 删除数据集主体...");
+        // 2. Then call the knowledge base service to fully deregister the dataset (including the RAGFlow side)
+        log.info("Step 2: Deleting the dataset itself...");
         knowledgeBaseService.deleteByDatasetId(datasetId);
 
-        log.info("=== 级联删除成功: datasetId={} ===", datasetId);
+        log.info("=== Cascade deletion succeeded: datasetId={} ===", datasetId);
     }
 
     @Override
@@ -39,7 +39,7 @@ public class KnowledgeManagerServiceImpl implements KnowledgeManagerService {
     public void batchDeleteDatasetsWithFiles(List<String> datasetIds) {
         if (datasetIds == null || datasetIds.isEmpty())
             return;
-        log.info("=== 批量级联删除开始: count={} ===", datasetIds.size());
+        log.info("=== Batch cascade deletion started: count={} ===", datasetIds.size());
         for (String id : datasetIds) {
             deleteDatasetWithFiles(id);
         }

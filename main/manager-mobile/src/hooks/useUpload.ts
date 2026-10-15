@@ -33,7 +33,7 @@ export default function useUpload<T extends TfileType>(options: TOptions<T> = {}
   const handleFileChoose = ({ tempFilePath, size }: { tempFilePath: string, size: number }) => {
     if (size > maxSize) {
       uni.showToast({
-        title: `文件大小不能超过 ${maxSize / 1024 / 1024}MB`,
+        title: `File size cannot exceed ${maxSize / 1024 / 1024}MB`,
         icon: 'none',
       })
       return
@@ -44,7 +44,7 @@ export default function useUpload<T extends TfileType>(options: TOptions<T> = {}
 
     // if (!isTypeValid) {
     //   uni.showToast({
-    //     title: `仅支持 ${accept.join(', ')} 格式的文件`,
+    //     title: `Only ${accept.join(', ')} formats are supported`,
     //     icon: 'none',
     //   })
     //   return
@@ -57,7 +57,7 @@ export default function useUpload<T extends TfileType>(options: TOptions<T> = {}
       onSuccess: (res) => {
         const { data: _data } = JSON.parse(res)
         data.value = _data
-        // console.log('上传成功', res)
+        // console.log('upload succeeded', res)
         success?.(_data)
       },
       onError: (err) => {
@@ -71,17 +71,17 @@ export default function useUpload<T extends TfileType>(options: TOptions<T> = {}
   }
 
   const run = () => {
-    // 微信小程序从基础库 2.21.0 开始， wx.chooseImage 停止维护，请使用 uni.chooseMedia 代替。
-    // 微信小程序在2023年10月17日之后，使用本API需要配置隐私协议
+    // Since base library 2.21.0, WeChat Mini Program no longer maintains wx.chooseImage, please use uni.chooseMedia instead.
+    // After October 17, 2023, WeChat Mini Program requires a privacy agreement to be configured to use this API
     const chooseFileOptions = {
       count: 1,
       success: (res: any) => {
         console.log('File selected successfully:', res)
-        // 小程序中res:{errMsg: "chooseImage:ok", tempFiles: [{fileType: "image", size: 48976, tempFilePath: "http://tmp/5iG1WpIxTaJf3ece38692a337dc06df7eb69ecb49c6b.jpeg"}]}
-        // h5中res:{errMsg: "chooseImage:ok", tempFilePaths: "blob:http://localhost:9000/f74ab6b8-a14d-4cb6-a10d-fcf4511a0de5", tempFiles: [File]}
-        // h5的File有以下字段：{name: "girl.jpeg", size: 48976, type: "image/jpeg"}
-        // App中res:{errMsg: "chooseImage:ok", tempFilePaths: "file:///Users/feige/xxx/gallery/1522437259-compressed-IMG_0006.jpg", tempFiles: [File]}
-        // App的File有以下字段：{path: "file:///Users/feige/xxx/gallery/1522437259-compressed-IMG_0006.jpg", size: 48976}
+        // In mini programs res:{errMsg: "chooseImage:ok", tempFiles: [{fileType: "image", size: 48976, tempFilePath: "http://tmp/5iG1WpIxTaJf3ece38692a337dc06df7eb69ecb49c6b.jpeg"}]}
+        // In h5 res:{errMsg: "chooseImage:ok", tempFilePaths: "blob:http://localhost:9000/f74ab6b8-a14d-4cb6-a10d-fcf4511a0de5", tempFiles: [File]}
+        // The h5 File has the following fields:{name: "girl.jpeg", size: 48976, type: "image/jpeg"}
+        // In App res:{errMsg: "chooseImage:ok", tempFilePaths: "file:///Users/feige/xxx/gallery/1522437259-compressed-IMG_0006.jpg", tempFiles: [File]}
+        // The App File has the following fields:{path: "file:///Users/feige/xxx/gallery/1522437259-compressed-IMG_0006.jpg", size: 48976}
         let tempFilePath = ''
         let size = 0
         // #ifdef MP-WEIXIN

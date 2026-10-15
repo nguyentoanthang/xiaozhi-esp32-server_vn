@@ -31,10 +31,10 @@ export default {
   // McpToolCallDialog component text
   'mcpToolCall.title': 'Gọi công cụ',
   'mcpToolCall.execute': 'Thực thi',
-  'mcpToolCall.chooseFunction': '1、Chọn chức năng',
+  'mcpToolCall.chooseFunction': '1. Chọn chức năng',
   'mcpToolCall.searchFunction': 'Tìm kiếm chức năng',
   'mcpToolCall.noResults': 'Không tìm thấy chức năng phù hợp',
-  'mcpToolCall.settings': '2、Cài đặt tham số',
+  'mcpToolCall.settings': '2. Cài đặt tham số',
   'mcpToolCall.inputPlaceholder': 'Vui lòng nhập {label}',
   'mcpToolCall.valueRange': 'Phạm vi giá trị: {min} - {max}',
   'mcpToolCall.selectPlaceholder': 'Vui lòng chọn {label}',
@@ -46,7 +46,7 @@ export default {
   'mcpToolCall.minValue': 'Giá trị tối thiểu là {value}',
   'mcpToolCall.maxValue': 'Giá trị tối đa là {value}',
   'mcpToolCall.selectTool': 'Vui lòng chọn một công cụ để thực thi',
-  'mcpToolCall.executionResult': '3、Kết quả thực thi',
+  'mcpToolCall.executionResult': '3. Kết quả thực thi',
   'mcpToolCall.copyResult': 'Sao chép kết quả',
   'mcpToolCall.noResultYet': 'Chưa có kết quả',
   'mcpToolCall.loadingToolList': 'Đang tải danh sách công cụ...',
@@ -499,7 +499,6 @@ export default {
   'device.bindWithCode': 'Liên kết bằng mã xác minh 6 chữ số',
   'device.manualAdd': 'Thêm thủ công',
   'device.unbind': 'Hủy liên kết',
-  'device.deviceThemeGeneration': 'Tạo chủ đề thiết bị',
   'device.toolCall': 'Gọi công cụ',
   'device.selectAtLeastOne': 'Vui lòng chọn ít nhất một bản ghi',
   'device.confirmBatchUnbind': 'Bạn có chắc chắn muốn hủy liên kết {count} thiết bị đã chọn?',
@@ -714,8 +713,6 @@ export default {
   'common.copyAddress': 'Sao chép địa chỉ',
 
   // Language switch
-  'language.zhCN': '中文简体',
-  'language.zhTW': '中文繁體',
   'language.en': 'English',
   'language.de': 'Deutsch',
   'language.vi': 'Tiếng Việt',

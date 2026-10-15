@@ -1,29 +1,29 @@
--- 标签表
+-- Tag table
 CREATE TABLE IF NOT EXISTS ai_agent_tag (
-    id VARCHAR(32) NOT NULL COMMENT '主键',
-    tag_name VARCHAR(64) NOT NULL COMMENT '标签名称',
-    sort INT UNSIGNED DEFAULT 0 COMMENT '排序',
-    creator BIGINT COMMENT '创建者',
-    created_at DATETIME COMMENT '创建时间',
-    updater BIGINT COMMENT '更新者',
-    updated_at DATETIME COMMENT '更新时间',
-    deleted TINYINT DEFAULT 0 COMMENT '删除标记',
+    id VARCHAR(32) NOT NULL COMMENT 'Primary key',
+    tag_name VARCHAR(64) NOT NULL COMMENT 'Tag name',
+    sort INT UNSIGNED DEFAULT 0 COMMENT 'Sort order',
+    creator BIGINT COMMENT 'Creator',
+    created_at DATETIME COMMENT 'Creation time',
+    updater BIGINT COMMENT 'Updater',
+    updated_at DATETIME COMMENT 'Update time',
+    deleted TINYINT DEFAULT 0 COMMENT 'Deletion flag',
     PRIMARY KEY (id),
     UNIQUE KEY uk_tag_name (tag_name),
     INDEX idx_sort (sort)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='智能体标签表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Agent tag table';
 
--- 智能体标签关联表
+-- Agent tag relation table
 CREATE TABLE IF NOT EXISTS ai_agent_tag_relation (
-    id VARCHAR(32) NOT NULL COMMENT '主键',
-    agent_id VARCHAR(32) NOT NULL COMMENT '智能体ID',
-    tag_id VARCHAR(32) NOT NULL COMMENT '标签ID',
-    creator BIGINT COMMENT '创建者',
-    created_at DATETIME COMMENT '创建时间',
-    updater BIGINT COMMENT '更新者',
-    updated_at DATETIME COMMENT '更新时间',
+    id VARCHAR(32) NOT NULL COMMENT 'Primary key',
+    agent_id VARCHAR(32) NOT NULL COMMENT 'Agent ID',
+    tag_id VARCHAR(32) NOT NULL COMMENT 'Tag ID',
+    creator BIGINT COMMENT 'Creator',
+    created_at DATETIME COMMENT 'Creation time',
+    updater BIGINT COMMENT 'Updater',
+    updated_at DATETIME COMMENT 'Update time',
     PRIMARY KEY (id),
     UNIQUE KEY uk_agent_tag (agent_id, tag_id),
     INDEX idx_agent_id (agent_id),
     INDEX idx_tag_id (tag_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='智能体标签关联表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Agent tag relation table';

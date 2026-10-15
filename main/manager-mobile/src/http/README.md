@@ -1,34 +1,34 @@
-# 请求库
+# Request Library
 
-当前项目使用 Alova 作为唯一的 HTTP 请求库：
+The project currently uses Alova as the only HTTP request library:
 
-## 使用方式
+## Usage
 
-- **Alova HTTP**：路径（src/http/request/alova.ts）
-- **示例代码**：src/api/foo-alova.ts 和 src/api/foo.ts
-- **API文档**：https://alova.js.org/
+- **Alova HTTP**: path (src/http/request/alova.ts)
+- **Example code**: src/api/foo-alova.ts and src/api/foo.ts
+- **API docs**: https://alova.js.org/
 
-## 配置说明
+## Configuration
 
-Alova 实例已配置：
-- 自动 Token 认证和刷新
-- 统一错误处理和提示
-- 支持动态域名切换
-- 内置请求/响应拦截器
+The Alova instance is configured with:
+- Automatic token authentication and refresh
+- Unified error handling and prompts
+- Dynamic domain switching
+- Built-in request/response interceptors
 
-## 使用示例
+## Examples
 
 ```typescript
 import { http } from '@/http/request/alova'
 
-// GET 请求
+// GET request
 http.Get<ResponseType>('/api/path', {
   params: { id: 1 },
   headers: { 'Custom-Header': 'value' },
-  meta: { toast: false } // 关闭错误提示
+  meta: { toast: false } // Disable error toast
 })
 
-// POST 请求  
+// POST request
 http.Post<ResponseType>('/api/path', data, {
   params: { query: 'param' },
   headers: { 'Content-Type': 'application/json' }

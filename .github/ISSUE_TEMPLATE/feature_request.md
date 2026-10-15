@@ -1,19 +1,19 @@
 ---
-name: 功能请求（Feature Request）
-about: 提出新的功能或改进建议
-title: "[Feature] 简短描述功能"
+name: Feature Request
+about: Suggest a new feature or improvement
+title: "[Feature] Briefly describe the feature"
 labels: enhancement
 assignees: ''
 ---
 
-## 🚀 需求描述
-<!-- 清晰简洁地描述你希望发生什么 -->
+## 🚀 Requirement Description
+<!-- Describe clearly and concisely what you want to happen -->
 
-## 🎯 解决方案
-<!-- 描述你认为可行的解决方案或实现方式 -->
+## 🎯 Proposed Solution
+<!-- Describe the solution or implementation you think is feasible -->
 
-## 📝 备选方案
-<!-- 描述你考虑过的替代方案或功能 -->
+## 📝 Alternatives
+<!-- Describe any alternative solutions or features you have considered -->
 
-## 📋 其他信息
-<!-- 在此添加关于需求的任何其他上下文信息 -->
+## 📋 Additional Information
+<!-- Add any other context about the requirement here -->

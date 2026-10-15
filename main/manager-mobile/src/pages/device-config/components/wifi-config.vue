@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { t } from '@/i18n'
 import { toast } from '@/utils/toast'
 
-// 类型定义
+// Type definitions
 interface WiFiNetwork {
   ssid: string
   rssi: number
@@ -19,10 +19,10 @@ interface Props {
 
 const props = defineProps<Props>()
 
-// 响应式数据
+// Reactive data
 const configuring = ref(false)
 
-// 计算属性
+// Computed properties
 const canSubmit = computed(() => {
   if (!props.selectedNetwork)
     return false
@@ -31,7 +31,7 @@ const canSubmit = computed(() => {
   return true
 })
 
-// ESP32连接检查
+// ESP32 connection check
 async function checkESP32Connection() {
   try {
     const response = await uni.request({
@@ -47,12 +47,12 @@ async function checkESP32Connection() {
   }
 }
 
-// 提交配网
+// Submit provisioning
 async function submitConfig() {
   if (!props.selectedNetwork)
     return
 
-  // 检查ESP32连接
+  // Check the ESP32 connection
   const connected = await checkESP32Connection()
   if (!connected) {
     toast.error(t('deviceConfig.connectXiaozhiHotspot'))
@@ -76,11 +76,11 @@ async function submitConfig() {
       timeout: 15000,
     })
 
-    console.log('WiFi配网响应:', response)
+    console.log('WiFi provisioning response:', response)
 
     if (response.statusCode === 200 && (response.data as any)?.success) {
       toast.success(`${t('deviceConfig.configSuccess')}！${t('deviceConfig.deviceWillConnectTo')} ${props.selectedNetwork.ssid}，${t('deviceConfig.deviceWillRestart')}。${t('deviceConfig.pleaseDisconnectXiaozhiHotspot')}`)
-      // 设备退出配网模式
+      // The device exits provisioning mode
       setTimeout(() => {
         uni.request({
           url: 'http://192.168.4.1/exit',
@@ -106,7 +106,7 @@ async function submitConfig() {
 
 <template>
   <view class="wifi-config">
-    <!-- 选中的网络信息 -->
+    <!-- Selected network info -->
     <view v-if="props.selectedNetwork" class="selected-network">
       <view class="network-info">
         <view class="network-name">
@@ -123,7 +123,7 @@ async function submitConfig() {
       </view>
     </view>
 
-    <!-- 配网按钮 -->
+    <!-- Provisioning button -->
     <view class="submit-section">
       <wd-button
         type="primary"
@@ -137,7 +137,7 @@ async function submitConfig() {
       </wd-button>
     </view>
 
-    <!-- 使用说明 -->
+    <!-- Usage instructions -->
     <view class="help-section">
       <view class="help-title">
         {{ t('deviceConfig.wifiConfigInstructions') }}

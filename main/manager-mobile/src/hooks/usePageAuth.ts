@@ -8,15 +8,15 @@ function isLogined() {
   const userStore = useUserStore()
   return !!userStore.userInfo.username
 }
-// 检查当前页面是否需要登录
+// Check whether the current page requires login
 export function usePageAuth() {
   onLoad((options) => {
-    // 获取当前页面路径
+    // Get the current page path
     const pages = getCurrentPages()
     const currentPage = pages[pages.length - 1]
     const currentPath = `/${currentPage.route}`
 
-    // 获取需要登录的页面列表
+    // Get the list of pages that require login
     let needLoginPages: string[] = []
     if (isDev) {
       needLoginPages = getNeedLoginPages()
@@ -25,7 +25,7 @@ export function usePageAuth() {
       needLoginPages = _needLoginPages
     }
 
-    // 检查当前页面是否需要登录
+    // Check whether the current page requires login
     const isNeedLogin = needLoginPages.includes(currentPath)
     if (!isNeedLogin) {
       return
@@ -36,7 +36,7 @@ export function usePageAuth() {
       return true
     }
 
-    // 构建重定向URL
+    // Build the redirect URL
     const queryString = Object.entries(options || {})
       .map(([key, value]) => `${key}=${encodeURIComponent(String(value))}`)
       .join('&')
@@ -44,7 +44,7 @@ export function usePageAuth() {
     const currentFullPath = queryString ? `${currentPath}?${queryString}` : currentPath
     const redirectRoute = `${loginRoute}?redirect=${encodeURIComponent(currentFullPath)}`
 
-    // 重定向到登录页
+    // Redirect to the login page
     uni.redirectTo({ url: redirectRoute })
   })
 }

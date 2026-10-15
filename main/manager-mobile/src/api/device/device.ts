@@ -2,15 +2,15 @@ import type { Device, FirmwareType } from './types'
 import { http } from '@/http/request/alova'
 
 /**
- * 获取设备类型列表
+ * Get device type list
  */
 export function getFirmwareTypes() {
   return http.Get<FirmwareType[]>('/admin/dict/data/type/FIRMWARE_TYPE')
 }
 
 /**
- * 获取绑定设备列表
- * @param agentId 智能体ID
+ * Get bound device list
+ * @param agentId agent ID
  */
 export function getBindDevices(agentId: string) {
   return http.Get<Device[]>(`/device/bind/${agentId}`, {
@@ -25,20 +25,20 @@ export function getBindDevices(agentId: string) {
 }
 
 /**
- * 添加设备
- * @param agentId 智能体ID
- * @param code 验证码
+ * Add device
+ * @param agentId agent ID
+ * @param code verification code
  */
 export function bindDevice(agentId: string, code: string) {
   return http.Post(`/device/bind/${agentId}/${code}`, null)
 }
 
 /**
- * 手动添加设备
- * @param agentId 智能体ID
- * @param board 设备类型
- * @param appVersion 固件版本
- * @param macAddress MAC地址
+ * Manually add device
+ * @param agentId agent ID
+ * @param board device type
+ * @param appVersion firmware version
+ * @param macAddress MAC address
  */
 export function bindDeviceManual(data: {
   agentId: string
@@ -50,9 +50,9 @@ export function bindDeviceManual(data: {
 }
 
 /**
- * 设置设备OTA升级开关
- * @param deviceId 设备ID (MAC地址)
- * @param autoUpdate 是否自动升级 0|1
+ * Set the device OTA upgrade switch
+ * @param deviceId device ID (MAC address)
+ * @param autoUpdate whether to auto-upgrade 0|1
  */
 export function updateDeviceAutoUpdate(deviceId: string, autoUpdate: number) {
   return http.Put(`/device/update/${deviceId}`, {
@@ -61,8 +61,8 @@ export function updateDeviceAutoUpdate(deviceId: string, autoUpdate: number) {
 }
 
 /**
- * 解绑设备
- * @param deviceId 设备ID (MAC地址)
+ * Unbind device
+ * @param deviceId device ID (MAC address)
  */
 export function unbindDevice(deviceId: string) {
   return http.Post('/device/unbind', {

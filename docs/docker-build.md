@@ -1,74 +1,74 @@
-# 本地编译docker镜像方法
+# How to Build Docker Images Locally
 
-现在本项目已经使用`github`的`自动编译docker镜像`功能，如果您拉取的是项目发行的镜像，您没有自己编译镜像的需求，那就忽略本文档。
+This project now uses `github`'s `automatic docker image build` feature. If you pull the images released by the project, you have no need to build images yourself, so you can ignore this document.
 
-如果您修改了源码，然后想采用`docker`的方式部署运行，可以参照以下步骤操作：
+If you have modified the source code and want to deploy and run it with `docker`, follow the steps below:
 
-## 1、环境准备
+## 1. Prepare the environment
 
-安装docker：
+Install docker:
 ```bash
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
-## 2、编译镜像
+## 2. Build the images
 
-当你修改好代码后，需要编译新的镜像时，需要按照以下步骤操作：
+After you have modified the code and need to build new images, follow these steps:
 
-准备好你的`你的用户名`和`新的版本号`。
-- 这个`你的用户名`是你在`docker hub`注册的用户名，例如`xiaozhi`。当然，如果你不需要推送到`docker hub`，你可以自由定义。
-- 这个`新的版本号`是你编译的镜像版本，例如`1.2.3`，你可以根据需要自定义或者使用日期格式（例如`20260609`）主要是方便和现在运行的版本号做区分，同时也方便下次回忆你是什么时候构建的，不要和现在你本机运行的版本号相同。
+Get your `your username` and `new version number` ready.
+- The `your username` is the username you registered on `docker hub`, for example `xiaozhi`. Of course, if you do not need to push to `docker hub`, you can define it freely.
+- The `new version number` is the version of the image you build, for example `1.2.3`. You can customize it or use a date format (for example `20260609`). The main purpose is to distinguish it from the version currently running and to help you remember later when you built it. Do not use the same version number as the one currently running on your machine.
 
-进入`xiaozhi-esp32-server`项目根目录，编译 server 和 web 两个镜像：
+Go to the root directory of the `xiaozhi-esp32-server` project and build the server and web images:
 
 ```bash
-cd 项目根目录
+cd <project root directory>
 
-# 编译server镜像
-docker build -f Dockerfile-server -t 你的用户名/xiaozhi-esp32-server:新的版本号 .
+# Build the server image
+docker build -f Dockerfile-server -t your-username/xiaozhi-esp32-server:new-version .
 
-# 编译web镜像
-docker build -f Dockerfile-web -t 你的用户名/xiaozhi-esp32-server-web:新的版本号 .
+# Build the web image
+docker build -f Dockerfile-web -t your-username/xiaozhi-esp32-server-web:new-version .
 
 ```
 
-## 3、修改docker-compose配置
+## 3. Modify the docker-compose configuration
 
 ```bash
 cd main/xiaozhi-server
 ```
 
-编辑 `docker-compose_all.yml` 文件，将镜像版本替换为你刚才编译的版本：
+Edit the `docker-compose_all.yml` file and replace the image versions with the ones you just built:
 
 ```yaml
 services:
   xiaozhi-esp32-server:
-    image: 你的用户名/xiaozhi-esp32-server:新的版本号   # 修改为你的镜像地址
+    image: your-username/xiaozhi-esp32-server:new-version   # Change to your image address
     ...
 
   xiaozhi-esp32-server-web:
-    image: 你的用户名/xiaozhi-esp32-server-web:新的版本号   #修改为你的镜像地址
+    image: your-username/xiaozhi-esp32-server-web:new-version   # Change to your image address
     ...
 ```
 
-## 4、重启服务
+## 4. Restart the services
 
 ```bash
-# 停止旧容器
+# Stop the old containers
 docker compose -f docker-compose_all.yml down
 
-# 启动新容器
+# Start the new containers
 docker compose -f docker-compose_all.yml up -d
 ```
 
-## 5、验证
+## 5. Verify
 
-查看日志确认服务启动正常：
+Check the logs to confirm that the services started normally:
 
 ```bash
-# 查看server日志
+# View the server logs
 docker logs -f -n 50 xiaozhi-esp32-server
 
-# 查看web日志
+# View the web logs
 docker logs -f -n 50 xiaozhi-esp32-server-web
 ```

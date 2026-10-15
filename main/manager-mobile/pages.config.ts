@@ -4,7 +4,7 @@ import { tabBar } from './src/layouts/fg-tabbar/tabbarList'
 export default defineUniPages({
   globalStyle: {
     navigationStyle: 'default',
-    navigationBarTitleText: '小智',
+    navigationBarTitleText: 'Xiaozhi',
     navigationBarBackgroundColor: '#f8f8f8',
     navigationBarTextStyle: 'black',
     backgroundColor: '#FFFFFF',
@@ -18,6 +18,6 @@ export default defineUniPages({
         'z-paging/components/z-paging$1/z-paging$1.vue',
     },
   },
-  // tabbar 的配置统一在 "./src/layouts/fg-tabbar/tabbarList.ts" 文件中
+  // The tabbar configuration lives in "./src/layouts/fg-tabbar/tabbarList.ts"
   tabBar: tabBar as any,
 })

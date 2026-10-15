@@ -1,23 +1,22 @@
 [![Banners](docs/images/banner1.png)](https://github.com/xinnan-tech/xiaozhi-esp32-server)
 
-<h1 align="center">小智后端服务xiaozhi-esp32-server</h1>
+<h1 align="center">Xiaozhi Backend Service: xiaozhi-esp32-server</h1>
 
 <p align="center">
-本项目基于人机共生智能理论和技术研发智能终端软硬件体系<br/>为开源智能硬件项目
-<a href="https://github.com/78/xiaozhi-esp32">xiaozhi-esp32</a>提供后端服务<br/>
-根据<a href="https://ccnphfhqs21z.feishu.cn/wiki/M0XiwldO9iJwHikpXD5cEx71nKh">小智通信协议</a>使用Python、Java、Vue实现<br/>
-支持MQTT+UDP协议、Websocket协议、MCP接入点、声纹识别、知识库
+This project develops a software and hardware system for smart terminals based on human-machine symbiotic intelligence theory and technology.<br/>It provides backend services for the open-source smart hardware project
+<a href="https://github.com/78/xiaozhi-esp32">xiaozhi-esp32</a><br/>
+Implemented in Python, Java, and Vue according to the <a href="https://ccnphfhqs21z.feishu.cn/wiki/M0XiwldO9iJwHikpXD5cEx71nKh">Xiaozhi communication protocol</a><br/>
+Supports the MQTT+UDP protocol, the WebSocket protocol, MCP endpoints, voiceprint recognition, and a knowledge base
 </p>
 
 <p align="center">
-<a href="./docs/FAQ.md">常见问题</a>
-· <a href="https://github.com/xinnan-tech/xiaozhi-esp32-server/issues">反馈问题</a>
-· <a href="./README.md#%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3">部署文档</a>
-· <a href="https://github.com/xinnan-tech/xiaozhi-esp32-server/releases">更新日志</a>
+<a href="./docs/FAQ.md">FAQ</a>
+· <a href="https://github.com/xinnan-tech/xiaozhi-esp32-server/issues">Report Issues</a>
+· <a href="./README.md#deployment-documentation">Deployment Documentation</a>
+· <a href="https://github.com/xinnan-tech/xiaozhi-esp32-server/releases">Changelog</a>
 </p>
 
 <p align="center">
-  <a href="./README.md"><img alt="简体中文版自述文件" src="https://img.shields.io/badge/简体中文-DBEDFA"></a>
   <a href="./docs/readme/README_en.md"><img alt="README in English" src="https://img.shields.io/badge/English-DFE0E5"></a>
   <a href="./docs/readme/README_vi.md"><img alt="Tiếng Việt" src="https://img.shields.io/badge/Tiếng Việt-DFE0E5"></a>
   <a href="./docs/readme/README_de.md"><img alt="Deutsch" src="https://img.shields.io/badge/Deutsch-DFE0E5"></a>
@@ -36,50 +35,50 @@
 <p align="center">
 Spearheaded by Professor Siyuan Liu's Team (South China University of Technology)
 </br>
-刘思源教授团队主导研发（华南理工大学）
+Led by Professor Siyuan Liu's team (South China University of Technology)
 </br>
-<img src="./docs/images/hnlg.jpg" alt="华南理工大学" width="50%">
+<img src="./docs/images/hnlg.jpg" alt="South China University of Technology" width="50%">
 </p>
 
 ---
 
-## 适用人群 👥
+## Target Audience 👥
 
-本项目需要配合 ESP32 硬件设备使用。如果您已经购买了 ESP32 相关硬件，且成功对接过虾哥部署的后端服务，并希望独立搭建自己的
-`xiaozhi-esp32` 后端服务，那么本项目非常适合您。
+This project is meant to be used with ESP32 hardware devices. If you have purchased ESP32-related hardware, have successfully connected it to the backend service deployed by Brother Xia (the xiaozhi-esp32 author), and want to build your own
+`xiaozhi-esp32` backend service, this project is a great fit for you.
 
-想看使用效果？请猛戳视频 🎥
+Want to see it in action? Check out the videos 🎥
 
 <table>
   <tr>
     <td>
       <a href="https://www.bilibili.com/video/BV1FMFyejExX" target="_blank">
         <picture>
-          <img alt="响应速度感受" src="docs/images/demo9.png" /></picture>
+          <img alt="Response speed demo" src="docs/images/demo9.png" /></picture>
       </a>
     </td>
     <td>
       <a href="https://www.bilibili.com/video/BV1vchQzaEse" target="_blank">
         <picture>
-          <img alt="速度优化秘诀" src="docs/images/demo6.png" /></picture>
+          <img alt="Speed optimization tips" src="docs/images/demo6.png" /></picture>
       </a>
     </td>
     <td>
       <a href="https://www.bilibili.com/video/BV1WEcxzFEAT" target="_blank">
         <picture>
-          <img alt="小智数字人 支持语音唤醒" src="docs/images/demo8.png" /></picture>
+          <img alt="Xiaozhi digital human with voice wake-up" src="docs/images/demo8.png" /></picture>
       </a>
     </td>
     <td>
       <a href="https://www.bilibili.com/video/BV1CKVz6UEuB" target="_blank">
         <picture>
-          <img alt="设备呼叫设备，打电话" src="docs/images/demo0.png" /></picture>
+          <img alt="Device-to-device calling" src="docs/images/demo0.png" /></picture>
       </a>
     </td>
     <td>
       <a href="https://www.bilibili.com/video/BV1C1tCzUEZh" target="_blank">
         <picture>
-          <img alt="复杂医疗场景" src="docs/images/demo1.png" /></picture>
+          <img alt="Complex medical scenario" src="docs/images/demo1.png" /></picture>
       </a>
     </td>
   </tr>
@@ -87,31 +86,31 @@ Spearheaded by Professor Siyuan Liu's Team (South China University of Technology
     <td>
       <a href="https://www.bilibili.com/video/BV1VC96Y5EMH" target="_blank">
         <picture>
-          <img alt="播放音乐查询天气播报新闻" src="docs/images/demo7.png" /></picture>
+          <img alt="Playing music, checking weather, and broadcasting news" src="docs/images/demo7.png" /></picture>
       </a>
     </td>
     <td>
       <a href="https://www.bilibili.com/video/BV12J7WzBEaH" target="_blank">
         <picture>
-          <img alt="实时打断" src="docs/images/demo10.png" /></picture>
+          <img alt="Real-time interruption" src="docs/images/demo10.png" /></picture>
       </a>
     </td>
     <td>
       <a href="https://www.bilibili.com/video/BV1Co76z7EvK" target="_blank">
         <picture>
-          <img alt="拍照识物品" src="docs/images/demo12.png" /></picture>
+          <img alt="Take a photo to identify objects" src="docs/images/demo12.png" /></picture>
       </a>
     </td>
     <td>
       <a href="https://www.bilibili.com/video/BV1pNXWYGEx1" target="_blank">
         <picture>
-          <img alt="控制家电开关" src="docs/images/demo5.png" /></picture>
+          <img alt="Controlling home appliance switches" src="docs/images/demo5.png" /></picture>
       </a>
     </td>
     <td>
       <a href="https://www.bilibili.com/video/BV1TJ7WzzEo6" target="_blank">
         <picture>
-          <img alt="多指令任务" src="docs/images/demo11.png" /></picture>
+          <img alt="Multi-command tasks" src="docs/images/demo11.png" /></picture>
       </a>
     </td>
   </tr>
@@ -119,31 +118,31 @@ Spearheaded by Professor Siyuan Liu's Team (South China University of Technology
     <td>
       <a href="https://www.bilibili.com/video/BV1ZQKUzYExM" target="_blank">
         <picture>
-          <img alt="MCP接入点" src="docs/images/demo13.png" /></picture>
+          <img alt="MCP endpoint" src="docs/images/demo13.png" /></picture>
       </a>
     </td>
     <td>
       <a href="https://www.bilibili.com/video/BV1zUW5zJEkq" target="_blank">
         <picture>
-          <img alt="MQTT指令下发" src="docs/images/demo4.png" /></picture>
+          <img alt="MQTT command delivery" src="docs/images/demo4.png" /></picture>
       </a>
     </td>
     <td>
       <a href="https://www.bilibili.com/video/BV1Exu3zqEDe" target="_blank">
         <picture>
-          <img alt="声纹识别" src="docs/images/demo14.png" /></picture>
+          <img alt="Voiceprint recognition" src="docs/images/demo14.png" /></picture>
       </a>
     </td>
     <td>
       <a href="https://www.bilibili.com/video/BV1CDKWemEU6" target="_blank">
         <picture>
-          <img alt="自定义音色" src="docs/images/demo2.png" /></picture>
+          <img alt="Custom voice" src="docs/images/demo2.png" /></picture>
       </a>
     </td>
     <td>
       <a href="https://www.bilibili.com/video/BV12yA2egEaC" target="_blank">
         <picture>
-          <img alt="使用粤语交流" src="docs/images/demo3.png" /></picture>
+          <img alt="Talking in Cantonese" src="docs/images/demo3.png" /></picture>
       </a>
     </td>
   </tr>
@@ -151,207 +150,207 @@ Spearheaded by Professor Siyuan Liu's Team (South China University of Technology
 
 ---
 
-## 警告 ⚠️
+## Warning ⚠️
 
-1、本项目为开源软件，本软件与对接的任何第三方API服务商（包括但不限于语音识别、大模型、语音合成等平台）均不存在商业合作关系，不为其服务质量及资金安全提供任何形式的担保。
-建议使用者优先选择持有相关业务牌照的服务商，并仔细阅读其服务协议及隐私政策。本软件不托管任何账户密钥、不参与资金流转、不承担充值资金损失风险。
+1. This project is open-source software. It has no commercial partnership with any third-party API service provider it connects to (including but not limited to speech recognition, large language model, and speech synthesis platforms), and does not provide any form of guarantee for their service quality or the security of funds.
+Users are advised to give priority to providers that hold the relevant business licenses, and to read their service agreements and privacy policies carefully. This software does not host any account keys, does not participate in fund transfers, and does not bear the risk of losses on top-up funds.
 
-2、本项目功能未完善，且未通过网络安全测评，请勿在生产环境中使用。 如果您在公网环境中部署学习本项目，请务必做好必要的防护。
+2. The features of this project are incomplete and it has not passed a network security assessment, so do not use it in a production environment. If you deploy this project on a public network for learning purposes, be sure to put the necessary protections in place.
 
 ---
 
-## 部署文档
+## Deployment Documentation
 
 ![Banners](docs/images/banner2.png)
 
-本项目提供两种部署方式，请根据您的具体需求选择：
+This project provides two deployment methods. Please choose according to your needs:
 
-#### 🚀 部署方式选择
-| 部署方式 | 特点 | 适用场景 | 部署文档 | 配置要求 | 视频教程 | 
+#### 🚀 Choosing a Deployment Method
+| Deployment Method | Features | Use Cases | Deployment Docs | Requirements | Video Tutorial | 
 |---------|------|---------|---------|---------|---------|
-| **最简化安装** | 智能对话、单智能体管理 | 低配置环境，数据存储在配置文件，无需数据库 | [①Docker版](./docs/Deployment.md#%E6%96%B9%E5%BC%8F%E4%B8%80docker%E5%8F%AA%E8%BF%90%E8%A1%8Cserver) / [②源码部署](./docs/Deployment.md#%E6%96%B9%E5%BC%8F%E4%BA%8C%E6%9C%AC%E5%9C%B0%E6%BA%90%E7%A0%81%E5%8F%AA%E8%BF%90%E8%A1%8Cserver)| 如果使用`FunASR`要2核4G，如果全API，要2核2G | - | 
-| **全模块安装** | 智能对话、多用户管理、多智能体管理、智控台界面操作 | 完整功能体验，数据存储在数据库 |[①Docker版](./docs/Deployment_all.md#%E6%96%B9%E5%BC%8F%E4%B8%80docker%E8%BF%90%E8%A1%8C%E5%85%A8%E6%A8%A1%E5%9D%97) / [②源码部署](./docs/Deployment_all.md#%E6%96%B9%E5%BC%8F%E4%BA%8C%E6%9C%AC%E5%9C%B0%E6%BA%90%E7%A0%81%E8%BF%90%E8%A1%8C%E5%85%A8%E6%A8%A1%E5%9D%97) / [③源码部署自动更新教程](./docs/dev-ops-integration.md) | 如果使用`FunASR`要4核8G，如果全API，要2核4G| [本地源码启动视频教程](https://www.bilibili.com/video/BV1wBJhz4Ewe) | 
+| **Minimal Installation** | Intelligent conversation, single-agent management | Low-spec environments; data is stored in the config file, no database needed | [①Docker version](./docs/Deployment.md#method-1-docker-runs-only-the-server) / [②Source deployment](./docs/Deployment.md#method-2-run-only-the-server-from-local-source)| 2 cores 4 GB if using `FunASR`; 2 cores 2 GB if using all APIs | - | 
+| **Full-Module Installation** | Intelligent conversation, multi-user management, multi-agent management, Control Panel UI | Full-featured experience; data is stored in a database |[①Docker version](./docs/Deployment_all.md#method-1-run-all-modules-with-docker) / [②Source deployment](./docs/Deployment_all.md#method-2-run-all-modules-from-local-source) / [③Source deployment auto-update guide](./docs/dev-ops-integration.md) | 4 cores 8 GB if using `FunASR`; 2 cores 4 GB if using all APIs| [Local source startup video tutorial](https://www.bilibili.com/video/BV1wBJhz4Ewe) | 
 
-常见问题及相关教程，可参考[这个链接](./docs/FAQ.md)
+For FAQs and related tutorials, see [this link](./docs/FAQ.md)
 
-> 💡 提示：以下是按最新代码部署后的测试平台，有需要可烧录测试，并发为6个，每天会清空数据，
+> 💡 Tip: The following is a test platform deployed from the latest code. You can flash a device to test it if needed. It supports 6 concurrent connections, and data is cleared every day.
 
 ```
-智控台地址: https://2662r3426b.vicp.fun
-智控台(h5版): https://2662r3426b.vicp.fun/h5/index.html
+Control Panel URL: https://2662r3426b.vicp.fun
+Control Panel (H5 version): https://2662r3426b.vicp.fun/h5/index.html
 
-服务测试工具： https://2662r3426b.vicp.fun/test/
-OTA接口地址: https://2662r3426b.vicp.fun/xiaozhi/ota/
-Websocket接口地址: wss://2662r3426b.vicp.fun/xiaozhi/v1/
+Service test tool: https://2662r3426b.vicp.fun/test/
+OTA API URL: https://2662r3426b.vicp.fun/xiaozhi/ota/
+WebSocket API URL: wss://2662r3426b.vicp.fun/xiaozhi/v1/
 ```
 
-#### 🚩 配置说明和推荐
+#### 🚩 Configuration Notes and Recommendations
 > [!Note]
-> 本项目提供两种配置方案：
+> This project provides two configuration options:
 > 
-> 1. `入门全免费`配置：适合个人家庭使用，所有组件均采用免费方案，无需额外付费。
+> 1. `Entry-level, fully free` configuration: suitable for personal and home use. All components use free options, with no extra cost.
 > 
-> 2. `流式配置`：适合演示、培训、超过2个并发等场景，采用流式处理技术，响应速度更快，体验更佳。
+> 2. `Streaming` configuration: suitable for demos, training, more than 2 concurrent connections, and similar scenarios. It uses streaming processing for faster responses and a better experience.
 > 
-> 自`0.5.2`版本起，项目支持流式配置，相比早期版本，响应速度提升约`2.5秒`，显著改善用户体验。
+> Since version `0.5.2`, the project supports the streaming configuration. Compared with earlier versions, response time is reduced by about `2.5 seconds`, significantly improving the user experience.
 
-| 模块名称 | 入门全免费设置 | 流式配置 |
+| Module | Entry-level Fully Free Setup | Streaming Configuration |
 |:---:|:---:|:---:|
-| ASR(语音识别) | FunASR(本地) | 👍XunfeiStreamASR(讯飞流式) |
-| LLM(大模型) | glm-4-flash(智谱) | 👍qwen-flash(阿里百炼) |
-| VLLM(视觉大模型) | glm-4v-flash(智谱) | 👍qwen3.5-flash(阿里百炼) |
-| TTS(语音合成) | EdgeTTS(微软) | 👍HuoshanDoubleStreamTTS(火山流式) |
-| Intent(意图识别) | function_call(函数调用) | function_call(函数调用) |
-| Memory(记忆功能) | mem_local_short(本地短期记忆） | mem_local_short（本地短期记忆） |
+| ASR (speech recognition) | FunASR (local) | 👍XunfeiStreamASR (iFlytek streaming) |
+| LLM (large language model) | glm-4-flash (Zhipu) | 👍qwen-flash (Alibaba Bailian) |
+| VLLM (vision large model) | glm-4v-flash (Zhipu) | 👍qwen3.5-flash (Alibaba Bailian) |
+| TTS (speech synthesis) | EdgeTTS (Microsoft) | 👍HuoshanDoubleStreamTTS (Volcano Engine streaming) |
+| Intent (intent recognition) | function_call (function calling) | function_call (function calling) |
+| Memory (memory feature) | mem_local_short (local short-term memory) | mem_local_short (local short-term memory) |
 
-如果您关心各组件的耗时，请查阅[小智各组件性能测试报告](https://github.com/xinnan-tech/xiaozhi-performance-research)，可按报告中的测试方法在您的环境中实际测试。
+If you care about the latency of each component, see the [Xiaozhi component performance test report](https://github.com/xinnan-tech/xiaozhi-performance-research); you can follow the test method in the report to test in your own environment.
 
-#### 🔧 测试工具
-本项目提供以下测试工具，帮助您验证系统和选择合适的模型：
+#### 🔧 Test Tools
+This project provides the following test tools to help you verify the system and choose suitable models:
 
-| 工具名称 | 位置 | 使用方法 | 功能说明 |
+| Tool | Location | Usage | Description |
 |:---:|:---|:---:|:---:|
-| 音频交互测试工具 | main》digital-human》index.html | 在 `main/digital-human` 执行 `python start.py` 后访问 `http://127.0.0.1:8006/index.html` | 测试音频播放和接收功能，验证Python端音频处理是否正常 |
-| 模型响应测试工具 | main》xiaozhi-server》performance_tester.py | 执行 `python performance_tester.py` | 测试ASR(语音识别)、LLM(大模型)、VLLM(视觉模型)、TTS(语音合成)三个核心模块的响应速度 |
+| Audio interaction test tool | main > digital-human > index.html | Run `python start.py` in `main/digital-human`, then visit `http://127.0.0.1:8006/index.html` | Tests audio playback and reception, and verifies that Python-side audio processing works correctly |
+| Model response test tool | main > xiaozhi-server > performance_tester.py | Run `python performance_tester.py` | Tests the response speed of the core modules: ASR (speech recognition), LLM (large language model), VLLM (vision model), and TTS (speech synthesis) |
 
-> 💡 提示：测试模型速度时，只会测试配置了密钥的模型。
+> 💡 Tip: When testing model speed, only models with a configured key are tested.
 
 ---
-## 功能清单 ✨
-### 已实现 ✅
-![请参考-全模块安装架构图](docs/images/deploy2.png)
-| 功能模块 | 描述 |
+## Feature List ✨
+### Implemented ✅
+![See: full-module installation architecture diagram](docs/images/deploy2.png)
+| Feature | Description |
 |:---:|:---|
-| 核心架构 | 基于[MQTT+UDP网关](https://github.com/xinnan-tech/xiaozhi-esp32-server/blob/main/docs/mqtt-gateway-integration.md)、WebSocket、HTTP服务器，提供完整的控制台管理和认证系统 |
-| 语音交互 | 支持流式ASR(语音识别)、流式TTS(语音合成)、VAD(语音活动检测)，支持多语言识别和语音处理 |
-| 声纹识别 | 支持多用户声纹注册、管理和识别，与ASR并行处理，实时识别说话人身份并传递给LLM进行个性化回应 |
-| 智能对话 | 支持多种LLM(大语言模型)，实现智能对话 |
-| 视觉感知 | 支持多种VLLM(视觉大模型)，实现多模态交互 |
-| 意图识别 | 支持外挂的大模型意图识别、大模型自主函数调用，提供插件化意图处理机制 |
-| 记忆系统 | 支持本地短期记忆、mem0ai接口记忆、PowerMem智能记忆，具备记忆总结功能 |
-| 知识库 | 支持RAGFlow知识库，让大模型判断需要调度知识库后再回答 |
-| 工具调用 | 支持客户端IOT协议、客户MCP协议、服务端MCP协议、MCP接入点协议、自定义工具函数 |
-| 指令下发 | 依托MQTT协议，支持从智控台将MCP指令下发到ESP32设备 |
-| 管理后台 | 提供Web管理界面，支持用户管理、系统配置和设备管理；界面支持中文简体、中文繁体、英文显示 |
-| 测试工具 | 提供性能测试工具、视觉模型测试工具和音频交互测试工具 |
-| 部署支持 | 支持Docker部署和本地部署，提供完整的配置文件管理 |
-| 插件系统 | 支持功能插件扩展、自定义插件开发和插件热加载 |
+| Core architecture | Based on the [MQTT+UDP gateway](https://github.com/xinnan-tech/xiaozhi-esp32-server/blob/main/docs/mqtt-gateway-integration.md), WebSocket, and HTTP server, with a complete console management and authentication system |
+| Voice interaction | Supports streaming ASR (speech recognition), streaming TTS (speech synthesis), and VAD (voice activity detection), with multilingual recognition and speech processing |
+| Voiceprint recognition | Supports multi-user voiceprint registration, management, and recognition. Runs in parallel with ASR, identifies the speaker in real time, and passes the identity to the LLM for personalized responses |
+| Intelligent conversation | Supports multiple LLMs (large language models) for intelligent conversation |
+| Visual perception | Supports multiple VLLMs (vision large models) for multimodal interaction |
+| Intent recognition | Supports external LLM intent recognition and autonomous LLM function calling, with a pluggable intent-handling mechanism |
+| Memory system | Supports local short-term memory, mem0ai API memory, and PowerMem intelligent memory, with memory summarization |
+| Knowledge base | Supports the RAGFlow knowledge base; the LLM decides whether to query the knowledge base before answering |
+| Tool calling | Supports the client IoT protocol, client MCP protocol, server MCP protocol, MCP endpoint protocol, and custom tool functions |
+| Command delivery | Built on the MQTT protocol, supports delivering MCP commands from the Control Panel to ESP32 devices |
+| Admin console | Provides a web management interface supporting user management, system configuration, and device management; the UI supports Simplified Chinese, Traditional Chinese, and English |
+| Test tools | Provides a performance test tool, a vision model test tool, and an audio interaction test tool |
+| Deployment support | Supports Docker deployment and local deployment, with complete configuration file management |
+| Plugin system | Supports feature plugin extensions, custom plugin development, and hot plugin loading |
 
-### 正在开发 🚧
+### In Development 🚧
 
-想了解具体开发计划进度，[请点击这里](https://github.com/users/xinnan-tech/projects/3)。常见问题及相关教程，可参考[这个链接](./docs/FAQ.md)
+To see the detailed development plan and progress, [click here](https://github.com/users/xinnan-tech/projects/3). For FAQs and related tutorials, see [this link](./docs/FAQ.md)
 
-如果你是一名软件开发者，这里有一份[《致开发者的公开信》](docs/contributor_open_letter.md)，欢迎加入！
-
----
-
-## 产品生态 👬
-小智是一个生态，当你使用这个产品时，也可以看看其他在这个生态圈的[优秀项目](https://github.com/78/xiaozhi-esp32/blob/main/README_zh.md#%E7%9B%B8%E5%85%B3%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE)
+If you are a software developer, here is an [Open Letter to Developers](docs/contributor_open_letter.md). You are welcome to join!
 
 ---
 
-## 本项目支持的平台/组件列表 📋
-### LLM 语言模型
+## Product Ecosystem 👬
+Xiaozhi is an ecosystem. While using this product, you can also check out other [excellent projects](https://github.com/78/xiaozhi-esp32/blob/main/README_zh.md#%E7%9B%B8%E5%85%B3%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE)
 
-| 使用方式 | 支持平台 | 免费平台 |
+---
+
+## Platforms and Components Supported by This Project 📋
+### LLM (Language Models)
+
+| Usage | Supported Platforms | Free Platforms |
 |:---:|:---:|:---:|
-| openai 接口调用 | 阿里百炼、火山引擎、DeepSeek、智谱、Gemini、科大讯飞 | 智谱、Gemini |
-| ollama 接口调用 | Ollama | - |
-| openrouter 接口调用 | OpenRouter | - |
-| dify 接口调用 | Dify | - |
-| fastgpt 接口调用 | Fastgpt | - |
-| coze 接口调用 | Coze | - |
-| xinference 接口调用 | Xinference | - |
-| homeassistant 接口调用 | HomeAssistant | - |
+| openai API call | Alibaba Bailian, Volcano Engine, DeepSeek, Zhipu, Gemini, iFlytek | Zhipu, Gemini |
+| ollama API call | Ollama | - |
+| openrouter API call | OpenRouter | - |
+| dify API call | Dify | - |
+| fastgpt API call | Fastgpt | - |
+| coze API call | Coze | - |
+| xinference API call | Xinference | - |
+| homeassistant API call | HomeAssistant | - |
 
-实际上，任何支持 openai 接口调用的 LLM 均可接入使用。
+In fact, any LLM that supports the openai API can be connected and used.
 
 ---
 
-### VLLM 视觉模型
+### VLLM (Vision Models)
 
-| 使用方式 | 支持平台 | 免费平台 |
+| Usage | Supported Platforms | Free Platforms |
 |:---:|:---:|:---:|
-| openai 接口调用 | 阿里百炼、智谱ChatGLMVLLM | 智谱ChatGLMVLLM |
+| openai API call | Alibaba Bailian, Zhipu ChatGLMVLLM | Zhipu ChatGLMVLLM |
 
-实际上，任何支持 openai 接口调用的 VLLM 均可接入使用。
+In fact, any VLLM that supports the openai API can be connected and used.
 
 ---
 
-### TTS 语音合成
+### TTS (Speech Synthesis)
 
-| 使用方式 | 支持平台 | 免费平台 |
+| Usage | Supported Platforms | Free Platforms |
 |:---:|:---:|:---:|
-| 接口调用 | EdgeTTS、科大讯飞、火山引擎、腾讯云、阿里云及百炼、CosyVoiceSiliconflow、TTS302AI、CozeCnTTS、GizwitsTTS、ACGNTTS、OpenAITTS、灵犀流式TTS、MinimaxTTS | 灵犀流式TTS、EdgeTTS、CosyVoiceSiliconflow(部分) |
-| 本地服务 | FishSpeech、GPT_SOVITS_V2、GPT_SOVITS_V3、Index-TTS、PaddleSpeech | Index-TTS、PaddleSpeech、FishSpeech、GPT_SOVITS_V2、GPT_SOVITS_V3 |
+| API call | EdgeTTS, iFlytek, Volcano Engine, Tencent Cloud, Alibaba Cloud and Bailian, CosyVoiceSiliconflow, TTS302AI, CozeCnTTS, GizwitsTTS, ACGNTTS, OpenAITTS, Lingxi Streaming TTS, MinimaxTTS | Lingxi Streaming TTS, EdgeTTS, CosyVoiceSiliconflow (partial) |
+| Local service | FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3, Index-TTS, PaddleSpeech | Index-TTS, PaddleSpeech, FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3 |
 
 ---
 
-### VAD 语音活动检测
+### VAD (Voice Activity Detection)
 
-| 类型  |   平台名称    | 使用方式 | 收费模式 | 备注 |
+| Type  |   Platform    | Usage | Pricing | Notes |
 |:---:|:---------:|:----:|:----:|:--:|
-| VAD | SileroVAD | 本地使用 |  免费  |    |
+| VAD | SileroVAD | Local |  Free  |    |
 
 ---
 
-### ASR 语音识别
+### ASR (Speech Recognition)
 
-| 使用方式 | 支持平台 | 免费平台 |
+| Usage | Supported Platforms | Free Platforms |
 |:---:|:---:|:---:|
-| 本地使用 | FunASR、SherpaASR | FunASR、SherpaASR |
-| 接口调用 | FunASRServer、火山引擎、科大讯飞、腾讯云、阿里云、百度云、OpenAI ASR | FunASRServer |
+| Local | FunASR, SherpaASR | FunASR, SherpaASR |
+| API call | FunASRServer, Volcano Engine, iFlytek, Tencent Cloud, Alibaba Cloud, Baidu Cloud, OpenAI ASR | FunASRServer |
 
 ---
 
-### Voiceprint 声纹识别
+### Voiceprint (Voiceprint Recognition)
 
-| 使用方式 | 支持平台 | 免费平台 |
+| Usage | Supported Platforms | Free Platforms |
 |:---:|:---:|:---:|
-| 本地使用 | 3D-Speaker | 3D-Speaker |
+| Local | 3D-Speaker | 3D-Speaker |
 
 ---
 
-### Memory 记忆存储
+### Memory (Memory Storage)
 
-|   类型   |      平台名称       | 使用方式 |   收费模式    | 备注 |
+|   Type   |      Platform       | Usage |   Pricing    | Notes |
 |:------:|:---------------:|:----:|:---------:|:--:|
-| Memory |     mem0ai      | 接口调用 | 1000次/月额度 |    |
-| Memory |     [powermem](./docs/powermem-integration.md)    | 本地总结 | 取决于LLM和DB |  OceanBase开源，支持智能检索  |
-| Memory | mem_local_short | 本地总结 |    免费     |    |
-| Memory |     nomem       | 无记忆模式 |    免费     |    |
+| Memory |     mem0ai      | API call | 1000 calls/month quota |    |
+| Memory |     [powermem](./docs/powermem-integration.md)    | Local summarization | Depends on the LLM and DB |  Open-sourced by OceanBase, supports intelligent retrieval  |
+| Memory | mem_local_short | Local summarization |    Free     |    |
+| Memory |     nomem       | No-memory mode |    Free     |    |
 
 ---
 
-### Intent 意图识别
+### Intent (Intent Recognition)
 
-|   类型   |     平台名称      | 使用方式 |  收费模式   |          备注           |
+|   Type   |     Platform      | Usage |  Pricing   |          Notes           |
 |:------:|:-------------:|:----:|:-------:|:---------------------:|
-| Intent |  intent_llm   | 接口调用 | 根据LLM收费 |    通过大模型识别意图，通用性强     |
-| Intent | function_call | 接口调用 | 根据LLM收费 | 通过大模型函数调用完成意图，速度快，效果好 |
-| Intent |    nointent   | 无意图模式 |    免费     |    不进行意图识别，直接返回对话结果     |
+| Intent |  intent_llm   | API call | Depends on the LLM |    Recognizes intent via the LLM, highly general     |
+| Intent | function_call | API call | Depends on the LLM | Completes intents through LLM function calling; fast and effective |
+| Intent |    nointent   | No-intent mode |    Free     |    No intent recognition; returns the conversation result directly     |
 
 ---
 
-### Rag 检索增强生成
+### Rag (Retrieval-Augmented Generation)
 
-|   类型   |     平台名称      | 使用方式 |  收费模式   |          备注           |
+|   Type   |     Platform      | Usage |  Pricing   |          Notes           |
 |:------:|:-------------:|:----:|:-------:|:---------------------:|
-| Rag |  ragflow   | 接口调用 | 根据切片、分词消耗的token收费 |    借助RagFlow的检索增强生成功能，提供更准确的对话回复     |
+| Rag |  ragflow   | API call | Charged by tokens consumed in chunking and tokenization |    Uses RagFlow's retrieval-augmented generation to provide more accurate conversation replies     |
 
 ---
 
-## 鸣谢 🙏
+## Acknowledgments 🙏
 
-| Logo | 项目/公司 | 说明 |
+| Logo | Project/Company | Description |
 |:---:|:---:|:---|
-| <img src="./docs/images/logo_bailing.png" width="160"> | [百聆语音对话机器人](https://github.com/wwbin2017/bailing) | 本项目受[百聆语音对话机器人](https://github.com/wwbin2017/bailing)启发，并在其基础上实现 |
-| <img src="./docs/images/logo_tenclass.png" width="160"> | [十方融海](https://www.tenclass.com/) | 感谢[十方融海](https://www.tenclass.com/)为小智生态制定了标准的通讯协议、多设备兼容性方案及高并发场景实践示范；为本项目提供了全链路技术文档支持 |
-| <img src="./docs/images/logo_xuanfeng.png" width="160"> | [玄凤科技](https://github.com/Eric0308) | 感谢[玄凤科技](https://github.com/Eric0308)贡献函数调用框架、MCP通信协议及插件化调用机制的实现代码，通过标准化的指令调度体系与动态扩展能力，显著提升了前端设备(IoT)的交互效率和功能延展性 |
-| <img src="./docs/images/logo_junsen.png" width="160"> | [huangjunsen](https://github.com/huangjunsen0406) | 感谢[huangjunsen](https://github.com/huangjunsen0406) 贡献`智控台移动端`模块，实现了跨平台移动设备的高效控制与实时交互，大幅提升了系统在移动场景下的操作便捷性和管理效率 |
-| <img src="./docs/images/logo_huiyuan.png" width="160"> | [汇远设计](http://ui.kwd988.net/) | 感谢[汇远设计](http://ui.kwd988.net/)为本项目提供专业视觉解决方案，用其服务超千家企业的设计实战经验，赋能本项目产品用户体验 |
-| <img src="./docs/images/logo_qinren.png" width="160"> | [西安勤人信息科技](https://www.029app.com/) | 感谢[西安勤人信息科技](https://www.029app.com/)深化本项目视觉体系，确保整体设计风格在多场景应用中的一致性和扩展性 |
-| <img src="./docs/images/logo_contributors.png" width="160"> | [代码贡献者](https://github.com/xinnan-tech/xiaozhi-esp32-server/graphs/contributors) | 感谢[所有代码贡献者](https://github.com/xinnan-tech/xiaozhi-esp32-server/graphs/contributors)贡献者，你们的付出让项目更加健壮和强大。 |
+| <img src="./docs/images/logo_bailing.png" width="160"> | [Bailing voice dialogue robot](https://github.com/wwbin2017/bailing) | This project was inspired by the [Bailing voice dialogue robot](https://github.com/wwbin2017/bailing) and built on top of it |
+| <img src="./docs/images/logo_tenclass.png" width="160"> | [Tenclass](https://www.tenclass.com/) | Thanks to [Tenclass](https://www.tenclass.com/) for establishing the standard communication protocol, multi-device compatibility solutions, and high-concurrency practice examples for the Xiaozhi ecosystem, and for providing end-to-end technical documentation for this project |
+| <img src="./docs/images/logo_xuanfeng.png" width="160"> | [Xuanfeng Technology](https://github.com/Eric0308) | Thanks to [Xuanfeng Technology](https://github.com/Eric0308) for contributing the implementation of the function-calling framework, the MCP communication protocol, and the pluggable invocation mechanism. Through a standardized command scheduling system and dynamic extensibility, it significantly improves the interaction efficiency and functional extensibility of front-end (IoT) devices |
+| <img src="./docs/images/logo_junsen.png" width="160"> | [huangjunsen](https://github.com/huangjunsen0406) | Thanks to [huangjunsen](https://github.com/huangjunsen0406) for contributing the `Control Panel mobile` module, which enables efficient control of and real-time interaction with cross-platform mobile devices and greatly improves the system's usability and management efficiency in mobile scenarios |
+| <img src="./docs/images/logo_huiyuan.png" width="160"> | [Huiyuan Design](http://ui.kwd988.net/) | Thanks to [Huiyuan Design](http://ui.kwd988.net/) for providing professional visual design solutions for this project, bringing its design experience from serving over a thousand companies to improve the product's user experience |
+| <img src="./docs/images/logo_qinren.png" width="160"> | [Xi'an Qinren Information Technology](https://www.029app.com/) | Thanks to [Xi'an Qinren Information Technology](https://www.029app.com/) for deepening the visual system of this project, ensuring consistency and extensibility of the overall design style across scenarios |
+| <img src="./docs/images/logo_contributors.png" width="160"> | [Code contributors](https://github.com/xinnan-tech/xiaozhi-esp32-server/graphs/contributors) | Thanks to [all code contributors](https://github.com/xinnan-tech/xiaozhi-esp32-server/graphs/contributors). Your efforts make the project more robust and powerful. |
 
 
 <a href="https://www.star-history.com/?repos=xinnan-tech%2Fxiaozhi-esp32-server&type=date&legend=top-left">

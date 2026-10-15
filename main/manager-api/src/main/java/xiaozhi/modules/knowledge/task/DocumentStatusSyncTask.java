@@ -8,13 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import xiaozhi.modules.knowledge.service.KnowledgeFilesService;
 
 /**
- * 知识库文档状态同步定时任务
+ * Scheduled task for syncing knowledge base document status
  * 
- * 作用：
- * 1. 自动扫描处于 "RUNNING" (解析中) 状态的文档
- * 2. 调用 RAGFlow 接口获取最新状态
- * 3. 状态翻转 (RUNNING -> SUCCESS/FAIL) 时，同步更新数据库
- * 4. [关键] 解析成功时，补偿更新知识库的统计信息 (TokenCount)
+ * Purpose:
+ * 1. Automatically scan documents in the "RUNNING" (parsing) state
+ * 2. Call the RAGFlow API to get the latest status
+ * 3. When the status flips (RUNNING -> SUCCESS/FAIL), update the database synchronously
+ * 4. [Key] When parsing succeeds, compensate by updating the knowledge base statistics (TokenCount)
  */
 @Component
 @AllArgsConstructor
@@ -24,16 +24,16 @@ public class DocumentStatusSyncTask {
     private final KnowledgeFilesService knowledgeFilesService;
 
     /**
-     * 每 30 秒执行一次同步
-     * 采用 fixedDelay，确保上一次执行完 30 秒后才开始下一次，防止积压
+     * Run the sync once every 30 seconds
+     * Uses fixedDelay to ensure the next run starts 30 seconds after the previous one finishes, preventing a backlog
      */
     @Scheduled(fixedDelay = 30000)
     public void syncRunningDocuments() {
         try {
-            // log.debug("开始执行文档状态同步任务...");
+            // log.debug("Start executing the document status sync task...");
             knowledgeFilesService.syncRunningDocuments();
         } catch (Exception e) {
-            log.error("文档状态同步任务异常", e);
+            log.error("Document status sync task error", e);
         }
     }
 }

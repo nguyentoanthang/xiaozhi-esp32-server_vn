@@ -3,8 +3,6 @@ const path = require('path');
 
 const rootDir = path.resolve(__dirname, '..');
 const locales = [
-  { name: 'zh_CN', file: 'src/i18n/zh_CN.js' },
-  { name: 'zh_TW', file: 'src/i18n/zh_TW.js' },
   { name: 'en', file: 'src/i18n/en.js' },
   { name: 'de', file: 'src/i18n/de.js' },
   { name: 'vi', file: 'src/i18n/vi.js' },
@@ -57,7 +55,7 @@ function formatKeyList(keys) {
 
 function main() {
   const results = locales.map(readLocale);
-  const base = results.find((locale) => locale.name === 'zh_CN');
+  const base = results.find((locale) => locale.name === 'en');
   const errors = [];
 
   results.forEach((locale) => {

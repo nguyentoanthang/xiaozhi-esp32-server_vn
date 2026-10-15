@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { useToast } from 'wot-design-uni/components/wd-toast'
 import { t } from '@/i18n'
 
-// 类型定义
+// Type definitions
 interface WiFiNetwork {
   ssid: string
   rssi: number
@@ -19,10 +19,10 @@ interface Props {
 
 const props = defineProps<Props>()
 
-// Toast 实例
+// Toast instance
 const toast = useToast()
 
-// 响应式数据
+// Reactive data
 const generating = ref(false)
 const playing = ref(false)
 const audioGenerated = ref(false)
@@ -30,15 +30,15 @@ const autoLoop = ref(true)
 const audioFilePath = ref('')
 const audioContext = ref<any>(null)
 
-// AFSK调制参数 - 参考HTML文件
-const MARK = 1800 // 二进制1的频率 (Hz)
-const SPACE = 1500 // 二进制0的频率 (Hz)
-const SAMPLE_RATE = 44100 // 采样率
-const BIT_RATE = 100 // 比特率 (bps)
-const START_BYTES = [0x01, 0x02] // 起始标记
-const END_BYTES = [0x03, 0x04] // 结束标记
+// AFSK modulation parameters - see the HTML file
+const MARK = 1800 // Frequency of binary 1 (Hz)
+const SPACE = 1500 // Frequency of binary 0 (Hz)
+const SAMPLE_RATE = 44100 // Sample rate
+const BIT_RATE = 100 // Bit rate (bps)
+const START_BYTES = [0x01, 0x02] // Start marker
+const END_BYTES = [0x03, 0x04] // End marker
 
-// 计算属性
+// Computed properties
 const canGenerate = computed(() => {
   if (!props.selectedNetwork)
     return false
@@ -49,7 +49,7 @@ const canGenerate = computed(() => {
 
 const audioLengthText = computed(() => {
   if (!props.selectedNetwork)
-    return '0秒'
+    return '0s'
   const dataStr = `${props.selectedNetwork.ssid}\n${props.password}`
   const textBytes = stringToBytes(dataStr)
   const totalBits = (START_BYTES.length + textBytes.length + 1 + END_BYTES.length) * 8
@@ -57,7 +57,7 @@ const audioLengthText = computed(() => {
   return `${t('deviceConfig.about')}${duration}${t('deviceConfig.seconds')}`
 })
 
-// 字符串转字节数组 - uniapp兼容版本
+// String to byte array - uniapp compatible version
 function stringToBytes(str: string): number[] {
   const bytes: number[] = []
   for (let i = 0; i < str.length; i++) {
@@ -75,7 +75,7 @@ function stringToBytes(str: string): number[] {
       bytes.push(0x80 | (code & 0x3F))
     }
     else {
-      // 代理对处理
+      // Surrogate pair handling
       i++
       const hi = code
       const lo = str.charCodeAt(i)
@@ -89,12 +89,12 @@ function stringToBytes(str: string): number[] {
   return bytes
 }
 
-// 校验和计算 - 参考HTML文件
+// Checksum calculation - see the HTML file
 function checksum(data: number[]): number {
   return data.reduce((sum, b) => (sum + b) & 0xFF, 0)
 }
 
-// 字节转比特位 - 参考HTML文件
+// Bytes to bits - see the HTML file
 function toBits(byte: number): number[] {
   const bits: number[] = []
   for (let i = 7; i >= 0; i--) {
@@ -103,7 +103,7 @@ function toBits(byte: number): number[] {
   return bits
 }
 
-// AFSK调制 - 参考HTML文件算法
+// AFSK modulation - algorithm from the HTML file
 function afskModulate(bits: number[]): Float32Array {
   const samplesPerBit = SAMPLE_RATE / BIT_RATE
   const totalSamples = Math.floor(bits.length * samplesPerBit)
@@ -120,7 +120,7 @@ function afskModulate(bits: number[]): Float32Array {
   return buffer
 }
 
-// 浮点转16位PCM - 参考HTML文件
+// Float to 16-bit PCM - see the HTML file
 function floatTo16BitPCM(floatSamples: Float32Array): Uint8Array {
   const buffer = new Uint8Array(floatSamples.length * 2)
   for (let i = 0; i < floatSamples.length; i++) {
@@ -132,10 +132,10 @@ function floatTo16BitPCM(floatSamples: Float32Array): Uint8Array {
   return buffer
 }
 
-// base64编码表
+// base64 encoding table
 const base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
-// 兼容的base64编码实现
+// Compatible base64 encoding implementation
 function base64Encode(bytes: Uint8Array): string {
   let result = ''
   let i = 0
@@ -156,11 +156,11 @@ function base64Encode(bytes: Uint8Array): string {
   return result
 }
 
-// 数组转base64编码 - 兼容版本
+// Array to base64 encoding - compatible version
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer)
 
-  // 尝试使用原生btoa，如果不存在则使用自定义实现
+  // Try the native btoa, use the custom implementation if it does not exist
   if (typeof btoa !== 'undefined') {
     let binary = ''
     for (let i = 0; i < bytes.byteLength; i++) {
@@ -173,7 +173,7 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   }
 }
 
-// 构建WAV文件 - 返回ArrayBuffer而不是Blob
+// Build the WAV file - returns an ArrayBuffer instead of a Blob
 function buildWav(pcm: Uint8Array): ArrayBuffer {
   const wavHeader = new Uint8Array(44)
   const dataLen = pcm.length
@@ -211,7 +211,7 @@ function buildWav(pcm: Uint8Array): ArrayBuffer {
   writeStr(36, 'data')
   write32(40, dataLen)
 
-  // 合并header和数据
+  // Merge the header and data
   const result = new ArrayBuffer(44 + dataLen)
   const resultView = new Uint8Array(result)
   resultView.set(wavHeader)
@@ -220,7 +220,7 @@ function buildWav(pcm: Uint8Array): ArrayBuffer {
   return result
 }
 
-// 生成并播放声波 - 主要功能函数
+// Generate and play the sound wave - main function
 async function generateAndPlay() {
   if (!canGenerate.value || !props.selectedNetwork)
     return
@@ -230,7 +230,7 @@ async function generateAndPlay() {
   try {
     console.log(`${t('deviceConfig.generatingUltrasonicConfigAudio')}...`)
 
-    // 准备配网数据 - 参考HTML文件格式
+    // Prepare provisioning data - see the HTML file format
     const dataStr = `${props.selectedNetwork.ssid}\n${props.password}`
     const textBytes = stringToBytes(dataStr)
     const fullBytes = [...START_BYTES, ...textBytes, checksum(textBytes), ...END_BYTES]
@@ -238,7 +238,7 @@ async function generateAndPlay() {
     console.log(`${t('deviceConfig.configData')}:`, { ssid: props.selectedNetwork.ssid, password: props.password })
     console.log(`${t('deviceConfig.dataBytesLength')}:`, textBytes.length)
 
-    // 转换为比特流
+    // Convert to a bitstream
     let bits: number[] = []
     fullBytes.forEach((b) => {
       bits = bits.concat(toBits(b))
@@ -246,8 +246,8 @@ async function generateAndPlay() {
 
     console.log(`${t('deviceConfig.bitStreamLength')}:`, bits.length)
 
-    // AFSK调制 - 减少采样率降低文件大小
-    const reducedSampleRate = 22050 // 降低采样率
+    // AFSK modulation - reduce the sample rate to reduce the file size
+    const reducedSampleRate = 22050 // Reduced sample rate
     const samplesPerBit = reducedSampleRate / BIT_RATE
     const totalSamples = Math.floor(bits.length * samplesPerBit)
     const floatBuf = new Float32Array(totalSamples)
@@ -256,35 +256,35 @@ async function generateAndPlay() {
       const freq = bits[i] ? MARK : SPACE
       for (let j = 0; j < samplesPerBit; j++) {
         const t = (i * samplesPerBit + j) / reducedSampleRate
-        floatBuf[i * samplesPerBit + j] = Math.sin(2 * Math.PI * freq * t) * 0.5 // 降低音量
+        floatBuf[i * samplesPerBit + j] = Math.sin(2 * Math.PI * freq * t) * 0.5 // Reduce the volume
       }
     }
 
     const pcmBuf = floatTo16BitPCM(floatBuf)
 
-    // 生成WAV文件 - 使用降低的采样率
+    // Generate the WAV file - using the reduced sample rate
     const wavBuffer = buildWavOptimized(pcmBuf, reducedSampleRate)
     const base64 = arrayBufferToBase64(wavBuffer)
     const dataUri = `data:audio/wav;base64,${base64}`
 
     console.log(`${t('deviceConfig.base64Length')}:`, base64.length, t('deviceConfig.about'), Math.round(base64.length / 1024), 'KB')
 
-    // 检查数据大小
-    if (base64.length > 1024 * 1024) { // 超过1MB
+    // Check the data size
+    if (base64.length > 1024 * 1024) { // Exceeds 1MB
       throw new Error(t('deviceConfig.audioFileTooLarge'))
     }
 
     audioFilePath.value = dataUri
     audioGenerated.value = true
 
-    console.log(`${t('deviceConfig.audioGenerationSuccess')}，比特流长度:`, bits.length, `${t('deviceConfig.samplePoints')}:`, floatBuf.length)
+    console.log(`${t('deviceConfig.audioGenerationSuccess')}, bitstream length:`, bits.length, `${t('deviceConfig.samplePoints')}:`, floatBuf.length)
 
     toast.success(t('deviceConfig.soundWaveGenerationSuccess'))
 
-    // 延迟播放
+    // Delayed playback
     setTimeout(async () => {
       await playAudio()
-    }, 800) // 增加延迟时间
+    }, 800) // Increased delay time
   }
   catch (error) {
     console.error(`${t('deviceConfig.audioGenerationFailed')}:`, error)
@@ -295,7 +295,7 @@ async function generateAndPlay() {
   }
 }
 
-// 优化的WAV构建函数
+// Optimized WAV building function
 function buildWavOptimized(pcm: Uint8Array, sampleRate: number): ArrayBuffer {
   const wavHeader = new Uint8Array(44)
   const dataLen = pcm.length
@@ -326,14 +326,14 @@ function buildWavOptimized(pcm: Uint8Array, sampleRate: number): ArrayBuffer {
   write32(16, 16)
   write16(20, 1)
   write16(22, 1)
-  write32(24, sampleRate) // 使用传入的采样率
+  write32(24, sampleRate) // Use the passed-in sample rate
   write32(28, sampleRate * 2)
   write16(32, 2)
   write16(34, 16)
   writeStr(36, 'data')
   write32(40, dataLen)
 
-  // 合并header和数据
+  // Merge the header and data
   const result = new ArrayBuffer(44 + dataLen)
   const resultView = new Uint8Array(result)
   resultView.set(wavHeader)
@@ -342,7 +342,7 @@ function buildWavOptimized(pcm: Uint8Array, sampleRate: number): ArrayBuffer {
   return result
 }
 
-// 播放音频
+// Play audio
 async function playAudio() {
   if (!audioFilePath.value) {
     toast.error(t('deviceConfig.pleaseGenerateAudioFirst'))
@@ -350,26 +350,26 @@ async function playAudio() {
   }
 
   try {
-    // 强制清理所有旧的音频实例
+    // Forcibly clean up all old audio instances
     await cleanupAudio()
 
-    // 等待一下确保清理完成
+    // Wait a moment to ensure cleanup is complete
     await new Promise(resolve => setTimeout(resolve, 200))
 
     playing.value = true
     console.log(t('deviceConfig.startPlayingUltrasonicConfigAudio'))
 
-    // 创建新的音频上下文
+    // Create a new audio context
     const innerAudioContext = uni.createInnerAudioContext()
     audioContext.value = innerAudioContext
 
-    // 最简化的音频设置
+    // Minimal audio settings
     innerAudioContext.src = audioFilePath.value
     innerAudioContext.loop = autoLoop.value
     innerAudioContext.volume = 0.8
     innerAudioContext.autoplay = false
 
-    // 简化的事件监听
+    // Simplified event listeners
     innerAudioContext.onPlay(() => {
       console.log(t('deviceConfig.ultrasonicAudioStartedPlaying'))
       toast.success(t('deviceConfig.startPlayingConfigSoundWave'))
@@ -404,14 +404,14 @@ async function playAudio() {
     })
 
     innerAudioContext.onStop(() => {
-      console.log('音频播放停止')
+      console.log('Audio playback stopped')
       playing.value = false
     })
 
-    // 延迟播放
+    // Delayed playback
     setTimeout(() => {
       if (audioContext.value) {
-        console.log('尝试播放音频，src长度:', audioFilePath.value.length)
+        console.log('Trying to play audio, src length:', audioFilePath.value.length)
         audioContext.value.play()
       }
     }, 300)
@@ -424,7 +424,7 @@ async function playAudio() {
   }
 }
 
-// 清理音频资源
+// Clean up audio resources
 async function cleanupAudio() {
   if (audioContext.value) {
     try {
@@ -441,7 +441,7 @@ async function cleanupAudio() {
   }
 }
 
-// 停止播放
+// Stop playback
 async function stopAudio() {
   playing.value = false
   await cleanupAudio()
@@ -453,7 +453,7 @@ async function stopAudio() {
 
 <template>
   <view class="ultrasonic-config">
-    <!-- 选中的网络信息 -->
+    <!-- Selected network info -->
     <view v-if="props.selectedNetwork" class="selected-network">
       <view class="network-info">
         <view class="network-name">
@@ -473,7 +473,7 @@ async function stopAudio() {
       </view>
     </view>
 
-    <!-- 超声波配网操作 -->
+    <!-- Ultrasonic provisioning actions -->
     <view class="submit-section">
       <wd-button
         type="primary"
@@ -508,7 +508,7 @@ async function stopAudio() {
       </wd-button>
     </view>
 
-    <!-- 音频控制选项 -->
+    <!-- Audio control options -->
     <view v-if="audioGenerated" class="audio-options">
       <view class="option-item">
         <wd-checkbox v-model="autoLoop">
@@ -517,7 +517,7 @@ async function stopAudio() {
       </view>
     </view>
 
-    <!-- 音频播放器 -->
+    <!-- Audio player -->
     <view v-if="audioGenerated" class="audio-player">
       <view class="player-info">
         <text class="audio-title">
@@ -529,7 +529,7 @@ async function stopAudio() {
       </view>
     </view>
 
-    <!-- 使用说明 -->
+    <!-- Usage instructions -->
     <view class="help-section">
       <view class="help-title">
         {{ t('deviceConfig.ultrasonicConfigInstructions') }}

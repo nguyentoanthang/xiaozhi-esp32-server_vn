@@ -2,7 +2,7 @@
 {
   "layout": "default",
   "style": {
-    "navigationBarTitleText": "智能体",
+    "navigationBarTitleText": "Agent",
     "navigationStyle": "custom"
   }
 }
@@ -22,7 +22,7 @@ defineOptions({
   name: 'AgentIndex',
 })
 
-// 获取屏幕边界到安全区域距离
+// Get the distance from the screen edge to the safe area
 let safeAreaInsets: any
 let systemInfo: any
 
@@ -43,27 +43,27 @@ systemInfo = uni.getSystemInfoSync()
 safeAreaInsets = systemInfo.safeAreaInsets
 // #endif
 
-// 智能体ID
+// Agent ID
 const currentAgentId = ref('default')
 
-// 当前 tab
+// Current tab
 const currentTab = ref('agent-config')
 
-// 刷新和加载状态
+// Refresh and loading state
 const refreshing = ref(false)
 const refresherEnabled = ref(false)
 
-// 子组件引用
+// Child component refs
 const deviceRef = ref()
 const chatRef = ref()
 const voiceprintRef = ref()
 
-// 更新刷新器状态
+// Update the refresher state
 function updateRefresherEnabled(value: boolean) {
   refresherEnabled.value = value
 }
 
-// Tab 配置
+// Tab configuration
 const tabList = [
   {
     label: t('agent.roleConfig'),
@@ -91,19 +91,19 @@ const tabList = [
   },
 ]
 
-// 返回上一页
+// Go back to the previous page
 function goBack() {
   uni.navigateBack()
 }
 
-// 处理 tab 切换
+// Handle tab switching
 function handleTabChange(item: any) {
   console.log('Tab changed:', item)
 }
 
-// 下拉刷新
+// Pull to refresh
 async function onRefresh() {
-  // 角色编辑页面不需要刷新
+  // The role edit page does not need refreshing
   if (currentTab.value === 'agent-config') {
     return
   }
@@ -130,16 +130,16 @@ async function onRefresh() {
     }
   }
   catch (error) {
-    console.error('刷新失败:', error)
+    console.error('Refresh failed:', error)
   }
   finally {
     refreshing.value = false
   }
 }
 
-// 触底加载更多
+// Load more on reaching the bottom
 async function onLoadMore() {
-  // 只有聊天记录需要加载更多
+  // Only the chat history needs to load more
   if (currentTab.value === 'chat-history' && chatRef.value?.loadMore) {
     await chatRef.value.loadMore()
   }
@@ -149,36 +149,36 @@ watch(() => currentTab.value, (newTab) => {
   updateRefresherEnabled(newTab !== 'agent-config')
 })
 
-// 接收页面参数
+// Receive page parameters
 onLoad((options) => {
   if (options?.agentId) {
     currentAgentId.value = options.agentId
-    console.log('接收到智能体ID:', options.agentId)
+    console.log('Received agent ID:', options.agentId)
   }
 })
 
 onMounted(async () => {
-  // 页面初始化
+  // Page initialization
 })
 </script>
 
 <template>
   <view class="h-screen flex flex-col bg-[#f5f7fb]">
-    <!-- 导航栏 -->
+    <!-- Navigation bar -->
     <wd-navbar :title="t('agent.pageTitle')" safe-area-inset-top>
       <template #left>
         <wd-icon name="arrow-left" size="18" @click="goBack" />
       </template>
     </wd-navbar>
 
-    <!-- 自定义 Tabs -->
+    <!-- Custom Tabs -->
     <CustomTabs
       v-model="currentTab"
       :tab-list="tabList"
       @change="handleTabChange"
     />
 
-    <!-- 主内容滚动区域 -->
+    <!-- Main content scroll area -->
     <scroll-view
       scroll-y
       :style="{ height: `calc(100vh - ${safeAreaInsets?.top || 0}px - 180rpx)` }"
@@ -189,7 +189,7 @@ onMounted(async () => {
       @refresherrefresh="onRefresh"
       @scrolltolower="onLoadMore"
     >
-      <!-- Tab 内容 -->
+      <!-- Tab content -->
       <view class="flex-1">
         <AgentEdit
           v-if="currentTab === 'agent-config'"

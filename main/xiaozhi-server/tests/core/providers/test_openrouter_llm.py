@@ -457,7 +457,7 @@ def test_placeholder_key_is_reported(monkeypatch):
             pass
 
     monkeypatch.setattr(orp, "logger", FakeLogger())
-    LLMProvider({"model_name": "m", "api_key": "你的key"})
+    LLMProvider({"model_name": "m", "api_key": "your_key"})
     assert errors_logged
 
 

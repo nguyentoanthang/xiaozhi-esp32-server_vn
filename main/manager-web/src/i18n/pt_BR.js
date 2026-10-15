@@ -31,10 +31,10 @@ export default {
   // Texto do componente McpToolCallDialog
   'mcpToolCall.title': 'Chamada de Ferramenta',
   'mcpToolCall.execute': 'Executar',
-  'mcpToolCall.chooseFunction': '1、Escolher Função',
+  'mcpToolCall.chooseFunction': '1. Escolher Função',
   'mcpToolCall.searchFunction': 'Pesquisar Função',
   'mcpToolCall.noResults': 'Nenhuma função correspondente encontrada',
-  'mcpToolCall.settings': '2、Configuração de Parâmetros',
+  'mcpToolCall.settings': '2. Configuração de Parâmetros',
   'mcpToolCall.inputPlaceholder': 'Por favor, insira {label}',
   'mcpToolCall.valueRange': 'Faixa de valores: {min} - {max}',
   'mcpToolCall.selectPlaceholder': 'Por favor, selecione {label}',
@@ -46,7 +46,7 @@ export default {
   'mcpToolCall.minValue': 'O valor mínimo é {value}',
   'mcpToolCall.maxValue': 'O valor máximo é {value}',
   'mcpToolCall.selectTool': 'Por favor, selecione uma ferramenta para executar',
-  'mcpToolCall.executionResult': '3、Resultado da Execução',
+  'mcpToolCall.executionResult': '3. Resultado da Execução',
   'mcpToolCall.copyResult': 'Copiar Resultado',
   'mcpToolCall.noResultYet': 'Nenhum resultado ainda',
   'mcpToolCall.loadingToolList': 'Carregando lista de ferramentas...',
@@ -499,7 +499,6 @@ export default {
   'device.bindWithCode': 'Vincular com Código de 6 Dígitos',
   'device.manualAdd': 'Adicionar Manualmente',
   'device.unbind': 'Desvincular',
-  'device.deviceThemeGeneration': 'Geração de tema do dispositivo',
   'device.toolCall': 'Chamada de Ferramenta',
   'device.selectAtLeastOne': 'Por favor, selecione pelo menos um registro',
   'device.confirmBatchUnbind': 'Tem certeza de que deseja desvincular {count} dispositivos selecionados?',
@@ -714,8 +713,6 @@ export default {
   'common.copyAddress': 'Copiar endereço',
 
   // Troca de idioma
-  'language.zhCN': '中文简体',
-  'language.zhTW': '中文繁體',
   'language.en': 'English',
   'language.de': 'Deutsch',
   'language.vi': 'Tiếng Việt',

@@ -1,43 +1,43 @@
-# PowerMem 记忆组件集成指南
+# PowerMem Memory Component Integration Guide
 
-## 简介
+## Introduction
 
-[PowerMem](https://www.powermem.ai/) 是由 OceanBase 开源的 Agent 记忆组件，通过本地 LLM 进行记忆总结和智能检索，为 AI 代理提供高效的记忆管理功能。
+[PowerMem](https://www.powermem.ai/) is an Agent memory component open-sourced by OceanBase. It uses a local LLM for memory summarization and intelligent retrieval, providing efficient memory management for AI agents.
 
-费用说明：PowerMem 本身开源免费，实际费用取决于您选择的 LLM 和数据库：
-- 使用 SQLite + 免费 LLM（如智谱 glm-4-flash）= **完全免费**
-- 使用云端 LLM 或云端数据库 = 按对应服务收费
+Pricing: PowerMem itself is open-source and free; the actual cost depends on the LLM and database you choose:
+- Using SQLite + a free LLM (such as Zhipu glm-4-flash) = **completely free**
+- Using a cloud LLM or a cloud database = charged by the corresponding service
 
-> 💡 **最佳性能提示**：PowerMem 配合 OceanBase 使用可实现最大性能释放，SQLite 仅建议在资源不足的情况下使用。
+> 💡 **Best performance tip**: PowerMem delivers its maximum performance when used with OceanBase. SQLite is recommended only when resources are limited.
 
 - **GitHub**: https://github.com/oceanbase/powermem
-- **官网**: https://www.powermem.ai/
-- **使用示例**: https://github.com/oceanbase/powermem/tree/main/examples
+- **Website**: https://www.powermem.ai/
+- **Usage examples**: https://github.com/oceanbase/powermem/tree/main/examples
 
-## 功能特性
+## Features
 
-- **本地总结**：通过 LLM 在本地进行记忆总结和提取
-- **用户画像**：通过 `UserMemory` 自动提取用户信息（姓名、职业、兴趣等），持续更新用户画像
-- **智能遗忘**：基于艾宾浩斯遗忘曲线，自动"遗忘"过时噪声信息
-- **多种存储后端**：支持 OceanBase（推荐，最佳性能）、SeekDB（推荐，AI应用存储一体）、PostgreSQL、SQLite（轻量备选）
-- **多种 LLM 支持**：通义千问、智谱（glm-4-flash 免费）、OpenAI 等
-- **智能检索**：基于向量搜索的语义检索能力
-- **私有部署**：完全支持本地私有化部署
-- **异步操作**：高效的异步记忆管理
+- **Local summarization**: summarizes and extracts memories locally through an LLM
+- **User profile**: automatically extracts user information (name, occupation, interests, etc.) through `UserMemory` and continuously updates the user profile
+- **Intelligent forgetting**: based on the Ebbinghaus forgetting curve, automatically "forgets" outdated noisy information
+- **Multiple storage backends**: supports OceanBase (recommended, best performance), SeekDB (recommended, all-in-one storage for AI applications), PostgreSQL, and SQLite (lightweight alternative)
+- **Multiple LLM support**: Qwen, Zhipu (glm-4-flash is free), OpenAI, etc.
+- **Intelligent retrieval**: semantic retrieval based on vector search
+- **Private deployment**: fully supports local private deployment
+- **Async operations**: efficient asynchronous memory management
 
-## 安装
+## Installation
 
-PowerMem 已添加到项目依赖中，如果需要手动安装：
+PowerMem has been added to the project dependencies. If you need to install it manually:
 
 ```bash
 pip install powermem
 ```
 
-## 配置说明
+## Configuration
 
-### 基础配置
+### Basic Configuration
 
-在 `config.yaml` 中配置 PowerMem：
+Configure PowerMem in `config.yaml`:
 
 ```yaml
 selected_module:
@@ -46,76 +46,76 @@ selected_module:
 Memory:
   powermem:
     type: powermem
-    # 是否启用用户画像功能
-    # 用户画像支持: oceanbase、seekdb、sqlite (powermem 0.3.0+)
+    # Whether to enable the user profile feature
+    # User profile supported on: oceanbase, seekdb, sqlite (powermem 0.3.0+)
     enable_user_profile: true
     
-    # ========== LLM 配置 ==========
+    # ========== LLM Configuration ==========
     llm:
-      provider: openai  # 可选: qwen, openai, zhipu 等
+      provider: openai  # Options: qwen, openai, zhipu, etc.
       config:
-        api_key: 你的LLM API密钥
+        api_key: your LLM API key
         model: qwen-plus
-        # openai_base_url: https://api.openai.com/v1  # 可选，自定义服务地址
+        # openai_base_url: https://api.openai.com/v1  # Optional, custom service address
     
-    # ========== Embedding 配置 ==========
+    # ========== Embedding Configuration ==========
     embedder:
-      provider: openai  # 可选: qwen, openai 等
+      provider: openai  # Options: qwen, openai, etc.
       config:
-        api_key: 你的嵌入模型API密钥
+        api_key: your embedding model API key
         model: text-embedding-v4
         openai_base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
-        # embedding_dims: 1024  # 向量维度，非1536时需配置
+        # embedding_dims: 1024  # Vector dimension; configure it if it is not 1536
     
-    # ========== Database 配置 ==========
+    # ========== Database Configuration ==========
     vector_store:
-      provider: sqlite  # 可选: oceanbase(推荐), seekdb(推荐), postgres, sqlite(轻量)
-      config: {}  # SQLite 无需额外配置
+      provider: sqlite  # Options: oceanbase (recommended), seekdb (recommended), postgres, sqlite (lightweight)
+      config: {}  # SQLite needs no extra configuration
 ```
 
-### 配置参数详解
+### Configuration Parameters in Detail
 
-#### LLM 配置
+#### LLM Configuration
 
-| 参数 | 说明 | 可选值 |
+| Parameter | Description | Options |
 |------|------|--------|
-| `llm.provider` | LLM 提供商 | `qwen`, `openai`, `zhipu` 等 |
-| `llm.config.api_key` | API 密钥 | - |
-| `llm.config.model` | 模型名称 | 根据提供商选择 |
-| `llm.config.openai_base_url` | 自定义服务地址（可选） | - |
+| `llm.provider` | LLM provider | `qwen`, `openai`, `zhipu`, etc. |
+| `llm.config.api_key` | API key | - |
+| `llm.config.model` | Model name | Depends on the provider |
+| `llm.config.openai_base_url` | Custom service address (optional) | - |
 
-#### Embedding 配置
+#### Embedding Configuration
 
-| 参数 | 说明 | 可选值 |
+| Parameter | Description | Options |
 |------|------|--------|
-| `embedder.provider` | 嵌入模型提供商 | `qwen`, `openai` 等 |
-| `embedder.config.api_key` | API 密钥 | - |
-| `embedder.config.model` | 模型名称 | 根据提供商选择 |
-| `embedder.config.openai_base_url` | 自定义服务地址（可选） | - |
+| `embedder.provider` | Embedding model provider | `qwen`, `openai`, etc. |
+| `embedder.config.api_key` | API key | - |
+| `embedder.config.model` | Model name | Depends on the provider |
+| `embedder.config.openai_base_url` | Custom service address (optional) | - |
 
-#### Database 配置
+#### Database Configuration
 
-| 参数 | 说明 | 可选值 |
+| Parameter | Description | Options |
 |------|------|--------|
-| `vector_store.provider` | 存储后端类型 | `oceanbase`(推荐), `seekdb`(推荐), `postgres`, `sqlite`(轻量) |
-| `vector_store.config` | 数据库连接配置 | 根据 provider 设置 |
+| `vector_store.provider` | Storage backend type | `oceanbase` (recommended), `seekdb` (recommended), `postgres`, `sqlite` (lightweight) |
+| `vector_store.config` | Database connection configuration | Set according to the provider |
 
-### 记忆模式说明
+### Memory Modes
 
-PowerMem 支持两种记忆模式：
+PowerMem supports two memory modes:
 
-| 模式 | 配置 | 功能 | 存储要求 |
+| Mode | Configuration | Function | Storage Requirement |
 |------|------|------|----------|
-| **普通记忆** | `enable_user_profile: false` | 对话记忆存储与检索 | 支持所有数据库 |
-| **用户画像** | `enable_user_profile: true` | 记忆 + 自动提取用户画像 | oceanbase、seekdb、sqlite |
+| **Regular memory** | `enable_user_profile: false` | Conversation memory storage and retrieval | All databases supported |
+| **User profile** | `enable_user_profile: true` | Memory + automatic user profile extraction | oceanbase, seekdb, sqlite |
 
-> 📌 **版本说明**：PowerMem 0.3.0+ 版本，用户画像功能支持 OceanBase、SeekDB、SQLite 三种存储后端。
+> 📌 **Version note**: In PowerMem 0.3.0+, the user profile feature supports three storage backends: OceanBase, SeekDB, and SQLite.
 
-### 使用通义千问（推荐）
+### Using Qwen (Recommended)
 
-1. 访问 [阿里云百炼平台](https://bailian.console.aliyun.com/) 注册账号
-2. 在 [API Key 管理](https://bailian.console.aliyun.com/?apiKey=1#/api-key) 页面获取 API 密钥
-3. 配置如下：
+1. Visit the [Alibaba Cloud Bailian platform](https://bailian.console.aliyun.com/) and register an account
+2. Get an API key on the [API Key management](https://bailian.console.aliyun.com/?apiKey=1#/api-key) page
+3. Configure as follows:
 
 ```yaml
 Memory:
@@ -138,13 +138,13 @@ Memory:
       config: {}
 ```
 
-### 使用智谱免费 LLM（完全免费方案）
+### Using the Free Zhipu LLM (Completely Free Option)
 
-智谱提供免费的 glm-4-flash 模型，配合 SQLite 可实现完全免费使用：
+Zhipu provides the free glm-4-flash model, which combined with SQLite gives completely free usage:
 
-1. 访问 [智谱AI开放平台](https://bigmodel.cn/) 注册账号
-2. 在 [API Keys](https://bigmodel.cn/usercenter/proj-mgmt/apikeys) 页面获取 API 密钥
-3. 配置如下：
+1. Visit the [Zhipu AI open platform](https://bigmodel.cn/) and register an account
+2. Get an API key on the [API Keys](https://bigmodel.cn/usercenter/proj-mgmt/apikeys) page
+3. Configure as follows:
 
 ```yaml
 Memory:
@@ -152,7 +152,7 @@ Memory:
     type: powermem
     enable_user_profile: true
     llm:
-      provider: openai  # 使用 openai 兼容模式
+      provider: openai  # Use the openai-compatible mode
       config:
         api_key: xxxxxxxxxxxxxxxx.xxxxxxxxxxxxxxxx
         model: glm-4-flash
@@ -168,7 +168,7 @@ Memory:
       config: {}
 ```
 
-### 使用 OpenAI
+### Using OpenAI
 
 ```yaml
 Memory:
@@ -192,14 +192,14 @@ Memory:
       config: {}
 ```
 
-### 使用 OceanBase（最佳性能方案）
+### Using OceanBase (Best Performance Option)
 
-OceanBase 是 PowerMem 的最佳搭档，可实现最大性能释放：
+OceanBase is PowerMem's best partner and delivers maximum performance:
 
-1. 部署 OceanBase 数据库（支持开源本地部署或使用云服务）
-   - 开源部署：https://github.com/oceanbase/oceanbase
-   - 云服务：https://www.oceanbase.com/
-2. 配置如下：
+1. Deploy an OceanBase database (open-source local deployment or a cloud service is supported)
+   - Open-source deployment: https://github.com/oceanbase/oceanbase
+   - Cloud service: https://www.oceanbase.com/
+2. Configure as follows:
 
 ```yaml
 Memory:
@@ -225,33 +225,33 @@ Memory:
         user: root@test
         password: your_password
         db_name: powermem
-        collection_name: memories  # 默认值
-        embedding_model_dims: 1536  # 嵌入向量维度，必需参数
+        collection_name: memories  # Default value
+        embedding_model_dims: 1536  # Embedding vector dimension, required
 ```
 
-## 设备记忆隔离
+## Device Memory Isolation
 
-PowerMem 会自动使用设备 ID（`device_id`）作为 `user_id` 进行记忆隔离。这意味着：
+PowerMem automatically uses the device ID (`device_id`) as the `user_id` for memory isolation. This means:
 
-- 每个设备拥有独立的记忆空间
-- 不同设备之间的记忆完全隔离
-- 同一设备的多次对话可以共享记忆上下文
+- Each device has its own memory space
+- Memories of different devices are completely isolated
+- Multiple conversations on the same device can share the memory context
 
-## 用户画像（UserMemory）
+## User Profile (UserMemory)
 
-PowerMem 提供 `UserMemory` 类，可自动从对话中提取用户画像信息。
+PowerMem provides the `UserMemory` class, which automatically extracts user profile information from conversations.
 
-> 📌 **版本说明**：PowerMem 0.3.0+ 版本，用户画像功能支持 OceanBase、SeekDB、SQLite 三种存储后端。
+> 📌 **Version note**: In PowerMem 0.3.0+, the user profile feature supports three storage backends: OceanBase, SeekDB, and SQLite.
 
-### 启用用户画像
+### Enabling the User Profile
 
-在配置中设置 `enable_user_profile: true` 即可启用：
+Set `enable_user_profile: true` in the configuration to enable it:
 
 ```yaml
 Memory:
   powermem:
     type: powermem
-    enable_user_profile: true  # 启用用户画像
+    enable_user_profile: true  # Enable the user profile
     llm:
       provider: qwen
       config:
@@ -264,82 +264,82 @@ Memory:
         model: text-embedding-v4
         openai_base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
     vector_store:
-      provider: sqlite  # 用户画像支持: oceanbase、seekdb、sqlite
+      provider: sqlite  # User profile supported on: oceanbase, seekdb, sqlite
       config: {}
 ```
 
-### 用户画像能力
+### User Profile Capabilities
 
-| 能力 | 说明 |
+| Capability | Description |
 |------|------|
-| **信息提取** | 自动从对话中提取姓名、年龄、职业、兴趣等 |
-| **持续更新** | 随着对话进行，不断完善用户画像 |
-| **画像检索** | 将用户画像与记忆搜索结合，提升检索相关性 |
-| **智能遗忘** | 基于艾宾浩斯遗忘曲线，淡化过时信息 |
+| **Information extraction** | Automatically extracts name, age, occupation, interests, etc. from conversations |
+| **Continuous updates** | Keeps refining the user profile as conversations go on |
+| **Profile retrieval** | Combines the user profile with memory search to improve retrieval relevance |
+| **Intelligent forgetting** | Based on the Ebbinghaus forgetting curve, fades outdated information |
 
-### 工作原理
+### How It Works
 
-启用用户画像后，小智在查询记忆时会自动返回：
-1. **用户画像**：用户的基本信息、兴趣爱好等
-2. **相关记忆**：与当前对话相关的历史记忆
+After the user profile is enabled, Xiaozhi automatically returns the following when querying memory:
+1. **User profile**: the user's basic information, interests, etc.
+2. **Related memories**: historical memories relevant to the current conversation
 
-> ✅ **版本说明**：PowerMem 0.3.0+ 版本，用户画像功能支持 OceanBase、SeekDB、SQLite 三种存储后端。
+> ✅ **Version note**: In PowerMem 0.3.0+, the user profile feature supports three storage backends: OceanBase, SeekDB, and SQLite.
 
-## 与其他记忆组件的对比
+## Comparison with Other Memory Components
 
-| 特性 | PowerMem | mem0ai | mem_local_short |
+| Feature | PowerMem | mem0ai | mem_local_short |
 |------|----------|--------|-----------------|
-| 工作方式 | 本地总结 | 云端接口 | 本地总结 |
-| 存储位置 | 本地/云端DB | 云端 | 本地YAML |
-| 费用 | 取决于LLM和DB | 1000次/月免费 | 完全免费 |
-| 智能检索 | ✅ 向量搜索 | ✅ 向量搜索 | ❌ 全量返回 |
-| 用户画像 | ✅ UserMemory | ❌ | ❌ |
-| 智能遗忘 | ✅ 遗忘曲线 | ❌ | ❌ |
-| 私有部署 | ✅ 支持 | ❌ 仅云端 | ✅ 支持 |
-| 数据库支持 | OceanBase(推荐)/SeekDB/PostgreSQL/SQLite | - | YAML 文件 |
+| How it works | Local summarization | Cloud API | Local summarization |
+| Storage location | Local/cloud DB | Cloud | Local YAML |
+| Cost | Depends on LLM and DB | 1000 calls/month free | Completely free |
+| Intelligent retrieval | ✅ Vector search | ✅ Vector search | ❌ Returns everything |
+| User profile | ✅ UserMemory | ❌ | ❌ |
+| Intelligent forgetting | ✅ Forgetting curve | ❌ | ❌ |
+| Private deployment | ✅ Supported | ❌ Cloud only | ✅ Supported |
+| Database support | OceanBase (recommended)/SeekDB/PostgreSQL/SQLite | - | YAML file |
 
-## 常见问题
+## FAQ
 
-### 1. API 密钥错误
+### 1. API Key Error
 
-如果出现 `API key is required` 错误，请检查：
-- `llm_api_key` 和 `embedding_api_key` 是否正确填写
-- API 密钥是否有效
+If you get the `API key is required` error, check:
+- Whether `llm_api_key` and `embedding_api_key` are filled in correctly
+- Whether the API keys are valid
 
-### 2. 模型不存在
+### 2. Model Does Not Exist
 
-如果出现模型不存在的错误，请确认：
-- `llm_model` 和 `embedding_model` 名称是否正确
-- 对应的模型服务是否已开通
+If you get a "model does not exist" error, confirm:
+- Whether the `llm_model` and `embedding_model` names are correct
+- Whether the corresponding model service has been activated
 
-### 3. 连接超时
+### 3. Connection Timeout
 
-如果出现连接超时，可以尝试：
-- 检查网络连接
-- 如果使用代理，配置 `llm_base_url` 和 `embedding_base_url`
+If you get a connection timeout, you can try:
+- Checking the network connection
+- If you use a proxy, configuring `llm_base_url` and `embedding_base_url`
 
-## 测试验证
+## Testing and Verification
 
-可以在虚拟环境中测试 PowerMem 是否正常工作：
+You can test whether PowerMem works in the virtual environment:
 
 ```bash
-# 激活虚拟环境
+# Activate the virtual environment
 source .venv/bin/activate
 
-# 测试 PowerMem 导入
-python -c "from powermem import AsyncMemory; print('PowerMem 导入成功')"
+# Test the PowerMem import
+python -c "from powermem import AsyncMemory; print('PowerMem imported successfully')"
 
-# 测试 UserMemory 导入（用户画像功能）
-python -c "from powermem import UserMemory; print('UserMemory 导入成功')"
+# Test the UserMemory import (user profile feature)
+python -c "from powermem import UserMemory; print('UserMemory imported successfully')"
 ```
 
-## 更多资源
+## More Resources
 
-- [PowerMem 官方文档](https://www.powermem.ai/)
-- [PowerMem GitHub 仓库](https://github.com/oceanbase/powermem)
-- [PowerMem 使用示例](https://github.com/oceanbase/powermem/tree/main/examples)
-- [OceanBase 官网](https://www.oceanbase.com/)
+- [PowerMem official documentation](https://www.powermem.ai/)
+- [PowerMem GitHub repository](https://github.com/oceanbase/powermem)
+- [PowerMem usage examples](https://github.com/oceanbase/powermem/tree/main/examples)
+- [OceanBase website](https://www.oceanbase.com/)
 - [OceanBase GitHub](https://github.com/oceanbase/oceanbase)
-- [SeekDB GitHub](https://github.com/oceanbase/seekdb)（AI原生搜索数据库）
-- [阿里云百炼平台](https://bailian.console.aliyun.com/)
+- [SeekDB GitHub](https://github.com/oceanbase/seekdb) (AI-native search database)
+- [Alibaba Cloud Bailian platform](https://bailian.console.aliyun.com/)
 

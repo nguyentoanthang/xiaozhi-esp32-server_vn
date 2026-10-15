@@ -1,18 +1,18 @@
 export enum ResultEnum {
-  Success = 0, // 成功
-  Error = 400, // 错误
-  Unauthorized = 401, // 未授权
-  Forbidden = 403, // 禁止访问（原为forbidden）
-  NotFound = 404, // 未找到（原为notFound）
-  MethodNotAllowed = 405, // 方法不允许（原为methodNotAllowed）
-  RequestTimeout = 408, // 请求超时（原为requestTimeout）
-  InternalServerError = 500, // 服务器错误（原为internalServerError）
-  NotImplemented = 501, // 未实现（原为notImplemented）
-  BadGateway = 502, // 网关错误（原为badGateway）
-  ServiceUnavailable = 503, // 服务不可用（原为serviceUnavailable）
-  GatewayTimeout = 504, // 网关超时（原为gatewayTimeout）
-  HttpVersionNotSupported = 505, // HTTP版本不支持（原为httpVersionNotSupported）
-  MixedContent = 600, // 混合内容错误（HTTPS页面请求HTTP接口）
+  Success = 0, // Success
+  Error = 400, // Error
+  Unauthorized = 401, // Unauthorized
+  Forbidden = 403, // Forbidden (originally forbidden)
+  NotFound = 404, // Not found (originally notFound)
+  MethodNotAllowed = 405, // Method not allowed (originally methodNotAllowed)
+  RequestTimeout = 408, // Request timeout (originally requestTimeout)
+  InternalServerError = 500, // Server error (originally internalServerError)
+  NotImplemented = 501, // Not implemented (originally notImplemented)
+  BadGateway = 502, // Bad gateway (originally badGateway)
+  ServiceUnavailable = 503, // Service unavailable (originally serviceUnavailable)
+  GatewayTimeout = 504, // Gateway timeout (originally gatewayTimeout)
+  HttpVersionNotSupported = 505, // HTTP version not supported (originally httpVersionNotSupported)
+  MixedContent = 600, // Mixed content error (HTTPS page requesting an HTTP API)
 }
 export enum ContentTypeEnum {
   JSON = 'application/json;charset=UTF-8',
@@ -20,51 +20,51 @@ export enum ContentTypeEnum {
   FORM_DATA = 'multipart/form-data;charset=UTF-8',
 }
 /**
- * 根据状态码，生成对应的错误信息
- * @param {number|string} status 状态码
- * @returns {string} 错误信息
+ * Generate the corresponding error message from the status code
+ * @param {number|string} status status code
+ * @returns {string} error message
  */
 export function ShowMessage(status: number | string): string {
   let message: string
   switch (status) {
     case 400:
-      message = '请求错误(400)'
+      message = 'Bad request (400)'
       break
     case 401:
-      message = '未授权，请重新登录(401)'
+      message = 'Unauthorized, please log in again (401)'
       break
     case 403:
-      message = '拒绝访问(403)'
+      message = 'Access denied (403)'
       break
     case 404:
-      message = '请求出错(404)'
+      message = 'Request failed (404)'
       break
     case 408:
-      message = '请求超时(408)'
+      message = 'Request timeout (408)'
       break
     case 500:
-      message = '服务器错误(500)'
+      message = 'Server error (500)'
       break
     case 501:
-      message = '服务未实现(501)'
+      message = 'Service not implemented (501)'
       break
     case 502:
-      message = '网络错误(502)'
+      message = 'Network error (502)'
       break
     case 503:
-      message = '服务不可用(503)'
+      message = 'Service unavailable (503)'
       break
     case 504:
-      message = '网络超时(504)'
+      message = 'Network timeout (504)'
       break
     case 505:
-      message = 'HTTP版本不受支持(505)'
+      message = 'HTTP version not supported (505)'
       break
     case 600:
-      message = '混合内容错误(600)'
+      message = 'Mixed content error (600)'
       break
     default:
-      message = `连接出错(${status})!`
+      message = `Connection error (${status})!`
   }
-  return `${message}，请检查网络或联系管理员！`
+  return `${message}, please check the network or contact the administrator!`
 }

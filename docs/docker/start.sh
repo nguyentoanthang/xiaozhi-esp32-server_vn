@@ -1,5 +1,5 @@
 #!/bin/bash
-# 启动Java后端（docker内监听8003端口）
+# Start the Java backend (listens on port 8003 inside docker)
 java -jar /app/xiaozhi-esp32-api.jar \
   --server.port=8003 \
   --spring.datasource.druid.url=${SPRING_DATASOURCE_DRUID_URL} \
@@ -9,5 +9,5 @@ java -jar /app/xiaozhi-esp32-api.jar \
   --spring.data.redis.password=${SPRING_DATA_REDIS_PASSWORD} \
   --spring.data.redis.port=${SPRING_DATA_REDIS_PORT} &
 
-# 启动Nginx（前台运行保持容器存活）
+# Start Nginx (run in the foreground to keep the container alive)
 nginx -g 'daemon off;'

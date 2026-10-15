@@ -241,7 +241,7 @@ routing                                                         # snapshot: sort
    `sort`, creator/updater/dates like siblings.
 2. `INSERT` into `ai_model_config`: `id='LLM_OpenRouterLLM'`, `model_type='LLM'`, `model_code='OpenRouterLLM'`, `model_name='OpenRouter'`,
    `is_default=0`, `is_enabled=1`, `config_json` with `{"type":"openrouter","base_url":"https://openrouter.ai/api/v1","model_name":"openai/gpt-4o-mini","api_key":"your_api_key", ...}`.
-   Use an English placeholder key (the repo's `check_model_key` flags placeholders containing `你`). Pick `sort` after reading the current max.
+   Use an English placeholder key (the repo's `check_model_key` flags placeholders containing `your_`). Pick `sort` after reading the current max.
 3. `UPDATE ai_model_config SET doc_link=..., remark=...` as in `202602051017.sql:37`.
 4. Append the changeSet to `db.changelog-master.yaml` (author: your choice, file name = id).
 
@@ -422,7 +422,7 @@ in L10 and in the `routing_meta` variant of L4). Because of that risk `record_ro
 
 ## 14. Running in FULL mode, step by step (Windows, from source, no docker)
 
-Source for every step: `docs/Deployment_all.md` (section "方式二：本地源码运行全模块"), `main/manager-api/src/main/resources/application*.yml`,
+Source for every step: `docs/Deployment_all.md` (section "Method 2: Run all modules from local source"), `main/manager-api/src/main/resources/application*.yml`,
 `main/manager-web/vue.config.js`, `main/xiaozhi-server/config_from_api.yaml`.
 
 ### 14.1 Tools: what each one is for, and how to install it
@@ -622,7 +622,7 @@ Open `http://127.0.0.1:8001`, register: the form asks for username, password and
 
 ### 14.5 Console settings (super administrator)
 
-Menu names: zh `参数管理` = en "Params Management"; zh `模型配置` = en "Models"; zh `大语言模型` = en "Large Language Model".
+Menu names: "Params Management", "Models", "Large Language Model".
 
 1. **Params Management** → copy the value of `server.secret` (generated automatically; it changes on every from-scratch deployment).
 2. In the same page set (values from `Deployment_all.md`; use your PC's LAN IP):
@@ -668,7 +668,7 @@ Expected: a line like `Server is running at ws://<ip>:8000/xiaozhi/v1/` (Deploym
 
 ### 14.8 Select OpenRouter and talk
 
-1. Menu **Models** (`模型配置`) → left tab **Large Language Model** (`大语言模型`) → find the row **OpenRouter** (seeded: id
+1. Menu **Models** → left tab **Large Language Model** → find the row **OpenRouter** (seeded: id
    `LLM_OpenRouterLLM`, `model_code` `OpenRouterLLM`, enabled, not default, provider `SYSTEM_LLM_openrouter`, `provider_code` `openrouter`)
    → **Edit**.
 2. Fields (keys from the seeded provider `fields`): `api_key` (replace the placeholder `your_api_key`), `model_name` (default
@@ -679,7 +679,7 @@ Expected: a line like `Server is running at ws://<ip>:8000/xiaozhi/v1/` (Deploym
    `require_parameters true`, `zdr false`, `record_routing false`. Leave routing fields empty to not send them. Switch
    `record_routing` to `true` only after live test L10 passes (section 15.7).
 3. Create or edit an agent (home → **Add agent**) → role config: **Main language model (LLM)** = OpenRouter; **Intent recognition (Intent)**
-   = the function-calling option (`Intent_function_call`, "函数调用意图识别"). It is hidden unless the selected LLM `type` is
+   = the function-calling option (`Intent_function_call`, "Function-call intent recognition"). It is hidden unless the selected LLM `type` is
    `openai`, `ollama` or `openrouter` (`roleConfig.vue`, plan E5); save.
 4. Reconnect the device / test page (the config is fetched per connection) and speak.
 5. Look for usage lines. Full mode takes `log.*` from Params Management, so by default the file is **relative to the directory
@@ -702,11 +702,11 @@ Intent/memory LLM calls have an empty `session_id` but carry the `device_id`.
 | Function-call intent option missing | Dev server not restarted / old build without the `openrouter` entry in `roleConfig.vue`; the check uses the LLM's `config_json.type`. |
 | Java cannot connect to DB/Redis | credentials in `application-dev.yml` (14.2); database `xiaozhi_esp32_server` must exist. |
 | `app.py`: "Failed to fetch server config from API" | manager-api not running, wrong `url`, or wrong `secret` (secret must equal the current `server.secret`; it changes after a from-scratch deployment). |
-| 401 from OpenRouter in the log | wrong or still-placeholder `api_key` (the placeholder check in the code only flags values containing `你`, `your_api_key` is not caught). Error type appears as `UnauthorizedResponseError` / `error_status 401` in `llm_usage`. |
+| 401 from OpenRouter in the log | wrong or still-placeholder `api_key` (the placeholder check in the code only flags values containing `your_`, so a literal `your_api_key` placeholder IS caught). Error type appears as `UnauthorizedResponseError` / `error_status 401` in `llm_usage`. |
 | Device cannot connect | `server.websocket` must be the LAN IP (not 127.0.0.1) and reachable from the device; Windows firewall for ports 8000, 8002, 8003. |
 | Startup error about ffmpeg | `ffmpeg -version` must work in the same shell (`check_ffmpeg_installed`). |
 | `opuslib_next` import/DLL error | libopus missing; the docs use `conda install libopus`; plain-pip route on Windows not documented. |
-| `pytest` aborts with "FAIL: 检测到全模块部署" | conftest exit 2 because `data\.config.yaml` is in full mode; use `--noconftest` (section 15). |
+| `pytest` aborts with "FAIL: full-module deployment detected" | conftest exit 2 because `data\.config.yaml` is in full mode; use `--noconftest` (section 15). |
 
 ### 14.10 Minimal mode (YAML only) for quick iteration
 

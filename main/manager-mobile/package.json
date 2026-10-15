@@ -4,11 +4,11 @@
   "version": "3.4.0",
   "unibest-version": "3.4.0",
   "packageManager": "pnpm@10.10.0",
-  "description": "xiaozhi-esp32-server的移动端管理后台",
+  "description": "Mobile management console for xiaozhi-esp32-server",
   "generate-time": "2025-08-04",
   "author": {
     "name": "huangjunsen",
-    "zhName": "黄俊森",
+    "zhName": "Huang Junsen",
     "email": "huangjunsen@xiaozhi.com",
     "github": "https://github.com/huangjunsen0406",
     "gitee": "https://gitee.com/huang-jun-sen"

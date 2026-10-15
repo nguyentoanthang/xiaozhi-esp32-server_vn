@@ -1,13 +1,13 @@
 <template>
   <el-header class="header">
     <div class="header-container">
-      <!-- 左侧元素 -->
+      <!-- Left element -->
       <div class="header-left" @click="handleRouter('home')">
         <img loading="lazy" alt="" src="@/assets/xiaozhi-logo.png" class="logo-img" />
         <img loading="lazy" alt="" :src="xiaozhiAiIcon" class="brand-img" />
       </div>
 
-      <!-- 中间导航菜单 -->
+      <!-- Middle navigation menu -->
       <div class="header-center">
         <div class="equipment-management" :class="{
           'active-tab':
@@ -25,7 +25,7 @@
           }" />
           <span class="nav-text">{{ $t("header.smartManagement") }}</span>
         </div>
-        <!-- 普通用户显示音色克隆 -->
+        <!-- Show voice clone for regular users -->
         <div v-if="!userInfo.superAdmin && featureStatus.voiceClone" class="equipment-management"
           :class="{ 'active-tab': $route.path === '/voice-clone-management' }"
           @click="handleRouter('voiceCloneManagement')">
@@ -38,7 +38,7 @@
           <span class="nav-text">{{ $t("header.voiceCloneManagement") }}</span>
         </div>
 
-        <!-- 超级管理员显示音色克隆下拉菜单 -->
+        <!-- Show the voice clone dropdown menu for super administrators -->
         <el-dropdown v-if="userInfo.superAdmin && featureStatus.voiceClone" trigger="click"
           class="equipment-management more-dropdown" :class="{
             'active-tab':
@@ -154,11 +154,11 @@
         </el-dropdown>
       </div>
 
-      <!-- 右侧元素 -->
+      <!-- Right element -->
       <div class="header-right">
         <img loading="lazy" alt="" src="@/assets/home/avatar.png" class="avatar-img" @click="handleAvatarClick" />
         <span class="el-user-dropdown" @click="handleAvatarClick">
-          {{ userInfo.username || "加载中..." }}
+          {{ userInfo.username || "Loading..." }}
           <i class="el-icon-arrow-down el-icon--right" :class="{ 'rotate-down': userMenuVisible }"></i>
         </span>
         <el-cascader :options="userMenuOptions" trigger="click" :props="cascaderProps"
@@ -171,39 +171,39 @@
       </div>
     </div>
 
-    <!-- 修改密码弹窗 -->
+    <!-- Change password dialog -->
     <ChangePasswordDialog v-model="isChangePasswordDialogVisible" />
   </el-header>
 </template>
 
 <script>
 import i18n, { changeLanguage } from "@/i18n";
-import featureManager from "@/utils/featureManager"; // 引入功能管理工具类
+import featureManager from "@/utils/featureManager"; // import the feature management utility class
 import { mapActions, mapState } from "vuex";
-import ChangePasswordDialog from "./ChangePasswordDialog.vue"; // 引入修改密码弹窗组件
+import ChangePasswordDialog from "./ChangePasswordDialog.vue"; // import the change password dialog component
 
 export default {
   name: "HeaderBar",
   components: {
     ChangePasswordDialog,
   },
-  props: ["devices"], // 接收父组件设备列表
+  props: ["devices"], // receives the device list from the parent component
   data() {
     return {
       search: "",
-      isChangePasswordDialogVisible: false, // 控制修改密码弹窗的显示
+      isChangePasswordDialogVisible: false, // controls the display of the change password dialog
       paramDropdownVisible: false,
       voiceCloneDropdownVisible: false,
-      userMenuVisible: false, // 添加用户菜单可见状态
-      menuVisibleTimer: null, // 菜单显示定时器，防止够快触发
-      // Cascader 配置
+      userMenuVisible: false, // added user menu visibility state
+      menuVisibleTimer: null, // menu display timer, prevents overly fast triggering
+      // Cascader configuration
       cascaderProps: {
         expandTrigger: "click",
         value: "value",
         label: "label",
         children: "children",
       },
-      // 跳转页面配置
+      // Page navigation configuration
       routerPaths: {
         home: "/home",
         modelConfig: "/model-config",
@@ -226,24 +226,20 @@ export default {
   computed: {
     ...mapState({
       featureStatus: (state) => ({
-        voiceClone: state.pubConfig.systemWebMenu?.features?.voiceClone?.enabled, // 音色克隆功能状态
-        knowledgeBase: state.pubConfig.systemWebMenu?.features?.knowledgeBase?.enabled, // 知识库功能状态
-        addressBook: state.pubConfig.systemWebMenu?.features?.addressBook?.enabled, // 通讯录功能状态
+        voiceClone: state.pubConfig.systemWebMenu?.features?.voiceClone?.enabled, // voice clone feature status
+        knowledgeBase: state.pubConfig.systemWebMenu?.features?.knowledgeBase?.enabled, // knowledge base feature status
+        addressBook: state.pubConfig.systemWebMenu?.features?.addressBook?.enabled, // address book feature status
       }),
       userInfo: (state) => state.userInfo,
     }),
-    // 获取当前语言
+    // Get the current language
     currentLanguage() {
-      return i18n.locale || "zh_CN";
+      return i18n.locale || "en";
     },
-    // 获取当前语言显示文本
+    // Get the display text of the current language
     currentLanguageText() {
       const currentLang = this.currentLanguage;
       switch (currentLang) {
-        case "zh_CN":
-          return this.$t("language.zhCN");
-        case "zh_TW":
-          return this.$t("language.zhTW");
         case "en":
           return this.$t("language.en");
         case "de":
@@ -253,17 +249,13 @@ export default {
         case "pt_BR":
           return this.$t("language.ptBR");
         default:
-          return this.$t("language.zhCN");
+          return this.$t("language.en");
       }
     },
-    // 根据当前语言获取对应的xiaozhi-ai图标
+    // Get the xiaozhi-ai icon matching the current language
     xiaozhiAiIcon() {
       const currentLang = this.currentLanguage;
       switch (currentLang) {
-        case "zh_CN":
-          return require("@/assets/xiaozhi-ai.png");
-        case "zh_TW":
-          return require("@/assets/xiaozhi-ai_zh_TW.png");
         case "en":
           return require("@/assets/xiaozhi-ai_en.png");
         case "de":
@@ -273,24 +265,16 @@ export default {
         case "pt_BR":
           return require("@/assets/xiaozhi-ai_en.png");
         default:
-          return require("@/assets/xiaozhi-ai.png");
+          return require("@/assets/xiaozhi-ai_en.png");
       }
     },
-    // 用户菜单选项
+    // User menu options
     userMenuOptions() {
       return [
         {
           label: this.currentLanguageText,
           value: "language",
           children: [
-            {
-              label: this.$t("language.zhCN"),
-              value: "zh_CN",
-            },
-            {
-              label: this.$t("language.zhTW"),
-              value: "zh_TW",
-            },
             {
               label: this.$t("language.en"),
               value: "en",
@@ -321,52 +305,52 @@ export default {
     },
   },
   async mounted() {
-    // 等待featureManager初始化完成后再加载功能状态
+    // Wait for featureManager to finish initializing before loading the feature status
     await this.loadFeatureStatus();
   },
   methods: {
     handleRouter(type) {
       this.$router.push(this.routerPaths[type]);
     },
-    // 加载功能状态
+    // Load feature status
     async loadFeatureStatus() {
-      // 等待featureManager初始化完成
+      // Wait for featureManager to finish initializing
       await featureManager.waitForInitialization();
     },
-    // 显示修改密码弹窗
+    // Show the change password dialog
     showChangePasswordDialog() {
       this.isChangePasswordDialogVisible = true;
-      // 添加：显示修改密码弹窗后重置用户菜单可见状态
+      // Added: reset the user menu visibility state after showing the change password dialog
       this.userMenuVisible = false;
     },
-    // 退出登录
+    // Log out
     async handleLogout() {
       try {
-        // 调用 Vuex 的 logout action
+        // Call the Vuex logout action
         await this.logout();
         this.$message.success({
           message: this.$t("message.success"),
           showClose: true,
         });
       } catch (error) {
-        console.error("退出登录失败:", error);
+        console.error("Failed to log out:", error);
         this.$message.error({
           message: this.$t("message.error"),
           showClose: true,
         });
       }
     },
-    // 监听参数字典下拉菜单的可见状态变化
+    // Watch the visibility change of the parameter dictionary dropdown menu
     handleParamDropdownVisibleChange(visible) {
       this.paramDropdownVisible = visible;
     },
 
-    // 监听音色克隆下拉菜单的可见状态变化
+    // Watch the visibility change of the voice clone dropdown menu
     handleVoiceCloneDropdownVisibleChange(visible) {
       this.voiceCloneDropdownVisible = visible;
     },
-    // 在data中添加一个key用于强制重新渲染组件
-    // 处理 Cascader 选择变化
+    // Add a key in data to force the component to re-render
+    // Handle Cascader selection change
     handleCascaderChange(value) {
       if (!value || value.length === 0) {
         return;
@@ -374,11 +358,11 @@ export default {
 
       const action = value[value.length - 1];
 
-      // 处理语言切换
+      // Handle language switching
       if (value.length === 2 && value[0] === "language") {
         this.changeLanguage(action);
       } else {
-        // 处理其他操作
+        // Handle other actions
         switch (action) {
           case "changePassword":
             this.showChangePasswordDialog();
@@ -389,34 +373,34 @@ export default {
         }
       }
 
-      // 操作完成后立即清空选择
+      // Clear the selection immediately after the action completes
       setTimeout(() => {
         this.completeResetCascader();
       }, 300);
     },
 
-    // 切换语言
+    // Toggle language
     changeLanguage(lang) {
       changeLanguage(lang);
       this.$message.success({
         message: this.$t("message.success"),
         showClose: true,
       });
-      // 添加：切换语言后重置用户菜单可见状态
+      // Added: reset the user menu visibility state after switching language
       this.userMenuVisible = false;
     },
 
-    // 完全重置级联选择器
+    // Completely reset the cascader
     completeResetCascader() {
       if (this.$refs.userCascader) {
         try {
-          // 尝试所有可能的方法来清空选择
-          // 1. 尝试使用组件提供的clearValue方法
+          // Try every possible way to clear the selection
+          // 1. Try the clearValue method provided by the component
           if (this.$refs.userCascader.clearValue) {
             this.$refs.userCascader.clearValue();
           }
 
-          // 2. 直接清空内部属性
+          // 2. Clear the internal properties directly
           if (this.$refs.userCascader.$data) {
             this.$refs.userCascader.$data.selectedPaths = [];
             this.$refs.userCascader.$data.displayLabels = [];
@@ -425,7 +409,7 @@ export default {
             this.$refs.userCascader.$data.showAllLevels = false;
           }
 
-          // 3. 操作DOM清除选中状态
+          // 3. Manipulate the DOM to clear the selected state
           const menuElement = this.$refs.userCascader.$refs.menu;
           if (menuElement && menuElement.$el) {
             const activeItems = menuElement.$el.querySelectorAll(
@@ -441,28 +425,28 @@ export default {
 
           console.log("Cascader values cleared");
         } catch (error) {
-          console.error("清空选择值失败:", error);
+          console.error("Failed to clear the selected value:", error);
         }
       }
     },
 
-    // 点击头像触发cascader下拉菜单
+    // Clicking the avatar triggers the cascader dropdown menu
     handleAvatarClick() {
       if (this.$refs.userCascader) {
-        // 切换菜单可见状态
+        // Toggle menu visibility
         this.userMenuVisible = !this.userMenuVisible;
 
-        // 菜单收起时清空选择值
+        // Clear the selected value when the menu collapses
         if (!this.userMenuVisible) {
           this.completeResetCascader();
         }
 
-        // 直接设置菜单的显隐状态
+        // Set the menu's visibility directly
         try {
-          // 尝试使用toggleDropDownVisible方法
+          // Try the toggleDropDownVisible method
           this.$refs.userCascader.toggleDropDownVisible(this.userMenuVisible);
         } catch (error) {
-          // 如果toggle方法失败，尝试直接设置属性
+          // If the toggle method fails, try setting the property directly
           if (this.$refs.userCascader.$refs.menu) {
             this.$refs.userCascader.$refs.menu.showMenu(this.userMenuVisible);
           } else {
@@ -472,7 +456,7 @@ export default {
       }
     },
 
-    // 处理用户菜单可见性变化
+    // Handle user menu visibility changes
     handleUserMenuVisibleChange(visible) {
       if (this.menuVisibleTimer) return;
       this.menuVisibleTimer = setTimeout(() => {
@@ -481,13 +465,13 @@ export default {
         this.menuVisibleTimer = null;
       }, 100);
 
-      // 如果菜单关闭了，也要清空选择值
+      // If the menu has closed, also clear the selected value
       if (!visible) {
         this.completeResetCascader();
       }
     },
 
-    // 使用 mapActions 引入 Vuex 的 logout action
+    // Use mapActions to import the Vuex logout action
     ...mapActions(["logout"]),
   },
 };
@@ -595,7 +579,7 @@ export default {
   cursor: pointer;
 }
 
-/* 导航文本样式 - 支持中英文换行 */
+/* Navigation text style - supports line wrapping for Chinese and English */
 .nav-text {
   white-space: normal;
   text-align: center;
@@ -608,7 +592,7 @@ export default {
   gap: 7px;
 }
 
-/* 响应式调整 */
+/* Responsive adjustments */
 @media (max-width: 1200px) {
   .header-center {
     gap: 14px;
@@ -639,7 +623,7 @@ export default {
   white-space: nowrap;
 }
 
-/* 添加倒三角旋转样式 */
+/* Add the inverted triangle rotation style */
 .rotate-down {
   transform: rotate(180deg);
   transition: transform 0.3s ease;

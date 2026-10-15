@@ -7,17 +7,17 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 设备注册头信息
+ * Device registration header information
  * 
  * @author zjy
  * @since 2025-3-28
  */
 @Setter
 @Getter
-@Schema(description = "设备注册头信息")
+@Schema(description = "Device registration header information")
 public class DeviceRegisterDTO implements Serializable {
 
-    @Schema(description = "mac地址")
+    @Schema(description = "mac address")
     private String macAddress;
 
 }

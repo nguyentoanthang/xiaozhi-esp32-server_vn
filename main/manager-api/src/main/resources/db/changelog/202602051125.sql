@@ -1,2 +1,2 @@
--- 删除无用业务表ai_voiceprint
+-- Drop the unused business table ai_voiceprint
 DROP TABLE IF EXISTS ai_voiceprint;

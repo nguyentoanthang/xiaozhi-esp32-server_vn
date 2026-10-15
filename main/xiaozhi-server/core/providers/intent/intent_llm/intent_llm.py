@@ -23,35 +23,35 @@ class IntentProvider(IntentProviderBase):
         super().__init__(config)
         self.llm = None
         self.promot = ""
-        # 导入全局缓存管理器
+        # Import the global cache manager
         from core.utils.cache.manager import cache_manager, CacheType
 
         self.cache_manager = cache_manager
         self.CacheType = CacheType
-        self.history_count = 4  # 默认使用最近4条对话记录
+        self.history_count = 4  # Use the last 4 dialogue records by default
 
     def get_intent_system_prompt(self, functions_list: str) -> str:
         """
-        根据配置的意图选项和可用函数动态生成系统提示词
+        Dynamically generate the system prompt from the configured intent options and available functions
         Args:
-            functions: 可用的函数列表，JSON格式字符串
+            functions: list of available functions, as a JSON-format string
         Returns:
-            格式化后的系统提示词
+            the formatted system prompt
         """
 
-        # 构建函数说明部分
-        functions_desc = "可用的函数列表：\n"
+        # Build the function description section
+        functions_desc = "Available function list:\n"
         for func in functions_list:
             func_info = func.get("function", {})
             name = func_info.get("name", "")
             desc = func_info.get("description", "")
             params = func_info.get("parameters", {})
 
-            functions_desc += f"\n函数名: {name}\n"
-            functions_desc += f"描述: {desc}\n"
+            functions_desc += f"\nFunction name: {name}\n"
+            functions_desc += f"Description: {desc}\n"
 
             if params:
-                functions_desc += "参数:\n"
+                functions_desc += "Parameters:\n"
                 for param_name, param_info in params.get("properties", {}).items():
                     param_desc = param_info.get("description", "")
                     param_type = param_info.get("type", "")
@@ -60,75 +60,75 @@ class IntentProvider(IntentProviderBase):
             functions_desc += "---\n"
 
         prompt = (
-            "【严格格式要求】你必须只能返回JSON格式，绝对不能返回任何自然语言！\n\n"
-            "你是一个意图识别助手。请分析用户的最后一句话，判断用户意图并调用相应的函数。\n\n"
-            "【重要规则】以下类型的查询请直接返回result_for_context，无需调用函数：\n"
-            "- 询问当前时间（如：现在几点、当前时间、查询时间等）\n"
-            "- 询问今天日期（如：今天几号、今天星期几、今天是什么日期等）\n"
-            "- 询问今天农历（如：今天农历几号、今天什么节气等）\n"
-            "- 询问所在城市（如：我现在在哪里、你知道我在哪个城市吗等）"
-            "系统会根据上下文信息直接构建回答。\n\n"
-            "- 如果用户使用疑问词（如'怎么'、'为什么'、'如何'）询问退出相关的问题（例如'怎么退出了？'），注意这不是让你退出，请返回 {'function_call': {'name': 'continue_chat'}\n"
-            "- 仅当用户明确使用'退出系统'、'结束对话'、'我不想和你说话了'等指令时，才触发 handle_exit_intent\n\n"
+            "[STRICT FORMAT REQUIREMENT] You must return JSON format only. You must never return any natural language!\n\n"
+            "You are an intent recognition assistant. Analyze the user's last utterance, determine the user's intent, and call the corresponding function.\n\n"
+            "[IMPORTANT RULES] For the following types of queries, return result_for_context directly without calling a function:\n"
+            "- Asking the current time (e.g. what time is it now, current time, check the time)\n"
+            "- Asking today's date (e.g. what is today's date, what day of the week is it, what is the date today)\n"
+            "- Asking today's lunar calendar date (e.g. what is today's lunar date, what solar term is it today)\n"
+            "- Asking about the current city (e.g. where am I now, do you know which city I am in)"
+            "The system will build the answer directly from the context information.\n\n"
+            "- If the user uses an interrogative word (such as 'how', 'why') to ask a question about exiting (e.g. 'how did it exit?'), note that this is not a request for you to exit; return {'function_call': {'name': 'continue_chat'}\n"
+            "- Trigger handle_exit_intent only when the user explicitly uses commands such as 'exit the system', 'end the conversation', or 'I don't want to talk to you anymore'\n\n"
             f"{functions_desc}\n"
-            "处理步骤:\n"
-            "1. 分析用户输入，确定用户意图\n"
-            "2. 检查是否为上述基础信息查询（时间、日期等），如是则返回result_for_context\n"
-            "3. 从可用函数列表中选择最匹配的函数\n"
-            "4. 如果找到匹配的函数，生成对应的function_call 格式\n"
-            '5. 如果没有找到匹配的函数，返回{"function_call": {"name": "continue_chat"}}\n\n'
-            "返回格式要求：\n"
-            "1. 必须返回纯JSON格式，不要包含任何其他文字\n"
-            "2. 必须包含function_call字段\n"
-            "3. function_call必须包含name字段\n"
-            "4. 如果函数需要参数，必须包含arguments字段\n\n"
-            "示例：\n"
+            "Processing steps:\n"
+            "1. Analyze the user input and determine the user's intent\n"
+            "2. Check whether it is one of the basic information queries above (time, date, etc.); if so, return result_for_context\n"
+            "3. Select the best-matching function from the available function list\n"
+            "4. If a matching function is found, generate the corresponding function_call format\n"
+            '5. If no matching function is found, return {"function_call": {"name": "continue_chat"}}\n\n'
+            "Return format requirements:\n"
+            "1. Must return pure JSON format with no other text\n"
+            "2. Must include the function_call field\n"
+            "3. function_call must include the name field\n"
+            "4. If the function requires parameters, must include the arguments field\n\n"
+            "Examples:\n"
             "```\n"
-            "用户: 现在几点了？\n"
-            '返回: {"function_call": {"name": "result_for_context"}}\n'
-            "```\n"
-            "```\n"
-            "用户: 当前电池电量是多少？\n"
-            '返回: {"function_call": {"name": "get_battery_level", "arguments": {"response_success": "当前电池电量为{value}%", "response_failure": "无法获取Battery的当前电量百分比"}}}\n'
+            "User: What time is it now?\n"
+            'Return: {"function_call": {"name": "result_for_context"}}\n'
             "```\n"
             "```\n"
-            "用户: 当前屏幕亮度是多少？\n"
-            '返回: {"function_call": {"name": "self_screen_get_brightness"}}\n'
+            "User: What is the current battery level?\n"
+            'Return: {"function_call": {"name": "get_battery_level", "arguments": {"response_success": "The current battery level is {value}%", "response_failure": "Unable to get the current battery percentage"}}}\n'
             "```\n"
             "```\n"
-            "用户: 设置屏幕亮度为50%\n"
-            '返回: {"function_call": {"name": "self_screen_set_brightness", "arguments": {"brightness": 50}}}\n'
+            "User: What is the current screen brightness?\n"
+            'Return: {"function_call": {"name": "self_screen_get_brightness"}}\n'
             "```\n"
             "```\n"
-            "用户: 我想结束对话\n"
-            '返回: {"function_call": {"name": "handle_exit_intent", "arguments": {"say_goodbye": "goodbye"}}}\n'
+            "User: Set the screen brightness to 50%\n"
+            'Return: {"function_call": {"name": "self_screen_set_brightness", "arguments": {"brightness": 50}}}\n'
             "```\n"
             "```\n"
-            "用户: 你好啊\n"
-            '返回: {"function_call": {"name": "continue_chat"}}\n'
+            "User: I want to end the conversation\n"
+            'Return: {"function_call": {"name": "handle_exit_intent", "arguments": {"say_goodbye": "goodbye"}}}\n'
+            "```\n"
+            "```\n"
+            "User: Hello there\n"
+            'Return: {"function_call": {"name": "continue_chat"}}\n'
             "```\n\n"
-            "注意：\n"
-            "1. 只返回JSON格式，不要包含任何其他文字\n"
-            '2. 优先检查用户查询是否为基础信息（时间、日期等），如是则返回{"function_call": {"name": "result_for_context"}}，不需要arguments参数\n'
-            '3. 如果没有找到匹配的函数，返回{"function_call": {"name": "continue_chat"}}\n'
-            "4. 确保返回的JSON格式正确，包含所有必要的字段\n"
-            "5. result_for_context不需要任何参数，系统会自动从上下文获取信息\n"
-            "特殊说明：\n"
-            "- 当用户单次输入包含多个指令时（如'打开灯并且调高音量'）\n"
-            "- 请返回多个function_call组成的JSON数组\n"
-            "- 示例：{'function_calls': [{name:'light_on'}, {name:'volume_up'}]}\n\n"
-            "【最终警告】绝对禁止输出任何自然语言、表情符号或解释文字！只能输出有效JSON格式！违反此规则将导致系统错误！"
+            "Notes:\n"
+            "1. Return JSON format only, with no other text\n"
+            '2. First check whether the user query is basic information (time, date, etc.); if so, return {"function_call": {"name": "result_for_context"}} with no arguments parameter\n'
+            '3. If no matching function is found, return {"function_call": {"name": "continue_chat"}}\n'
+            "4. Make sure the returned JSON is well-formed and includes all required fields\n"
+            "5. result_for_context takes no parameters; the system obtains the information from the context automatically\n"
+            "Special notes:\n"
+            "- When a single user input contains multiple commands (e.g. 'turn on the light and turn up the volume')\n"
+            "- Return a JSON array composed of multiple function_call entries\n"
+            "- Example: {'function_calls': [{name:'light_on'}, {name:'volume_up'}]}\n\n"
+            "[FINAL WARNING] Outputting any natural language, emoji, or explanatory text is strictly forbidden! Output valid JSON only! Violating this rule will cause a system error!"
         )
         return prompt
 
     async def replyResult(self, text: str, original_text: str):
-        """使用 asyncio.to_thread 避免阻塞事件循环"""
+        """Use asyncio.to_thread to avoid blocking the event loop"""
         try:
             user_prompt = (
-                "请根据以上内容，像人类一样说话的口吻回复用户，要求简洁，请直接返回结果。用户现在说："
+                "Based on the above, reply to the user in a natural, human-like tone. Keep it concise and return the result directly. The user now says: "
                 + original_text
             )
-            # 使用 to_thread 将同步阻塞调用放到线程池中执行，不阻塞事件循环
+            # Use to_thread to run the synchronous blocking call in a thread pool without blocking the event loop
             llm_result = await asyncio.to_thread(
                 self.llm.response_no_stream,
                 system_prompt=text,
@@ -147,22 +147,22 @@ class IntentProvider(IntentProviderBase):
         if conn.func_handler is None:
             return '{"function_call": {"name": "continue_chat"}}'
 
-        # 记录整体开始时间
+        # Record the overall start time
         total_start_time = time.time()
 
-        # 打印使用的模型信息
+        # Log the model info in use
         model_info = getattr(self.llm, "model_name", str(self.llm.__class__.__name__))
-        logger.bind(tag=TAG).debug(f"使用意图识别模型: {model_info}")
+        logger.bind(tag=TAG).debug(f"Using intent recognition model: {model_info}")
 
-        # 计算缓存键
+        # Compute the cache key
         cache_key = hashlib.md5((conn.device_id + text).encode()).hexdigest()
 
-        # 检查缓存
+        # Check the cache
         cached_intent = self.cache_manager.get(self.CacheType.INTENT, cache_key)
         if cached_intent is not None:
             cache_time = time.time() - total_start_time
             logger.bind(tag=TAG).debug(
-                f"使用缓存的意图: {cache_key} -> {cached_intent}, 耗时: {cache_time:.4f}秒"
+                f"Using cached intent: {cache_key} -> {cached_intent}, elapsed: {cache_time:.4f}s"
             )
             return cached_intent
 
@@ -187,17 +187,17 @@ class IntentProvider(IntentProviderBase):
         else:
             devices = []
         if len(devices) > 0:
-            hass_prompt = "\n下面是我家智能设备列表（位置，设备名，entity_id），可以通过homeassistant控制\n"
+            hass_prompt = "\nBelow is the list of my home smart devices (location, device name, entity_id), which can be controlled through homeassistant\n"
             for device in devices:
                 hass_prompt += device + "\n"
             prompt_music += hass_prompt
 
         logger.bind(tag=TAG).debug(f"User prompt: {prompt_music}")
 
-        # 构建用户对话历史的提示
+        # Build the prompt for the user dialogue history
         msgStr = ""
 
-        # 获取最近的对话历史
+        # Get the most recent dialogue history
         start_idx = max(0, len(dialogue_history) - self.history_count)
         for i in range(start_idx, len(dialogue_history)):
             msgStr += f"{dialogue_history[i].role}: {dialogue_history[i].content}\n"
@@ -205,16 +205,16 @@ class IntentProvider(IntentProviderBase):
         msgStr += f"User: {text}\n"
         user_prompt = f"current dialogue:\n{msgStr}"
 
-        # 记录预处理完成时间
+        # Record the preprocessing completion time
         preprocess_time = time.time() - total_start_time
-        logger.bind(tag=TAG).debug(f"意图识别预处理耗时: {preprocess_time:.4f}秒")
+        logger.bind(tag=TAG).debug(f"Intent recognition preprocessing time: {preprocess_time:.4f}s")
 
-        # 使用LLM进行意图识别
+        # Use the LLM for intent recognition
         llm_start_time = time.time()
-        logger.bind(tag=TAG).debug(f"开始LLM意图识别调用, 模型: {model_info}")
+        logger.bind(tag=TAG).debug(f"Starting LLM intent recognition call, model: {model_info}")
 
         try:
-            # 使用 to_thread 将同步阻塞调用放到线程池中，避免阻塞事件循环
+            # Use to_thread to run the synchronous blocking call in a thread pool to avoid blocking the event loop
             intent = await asyncio.to_thread(
                 self.llm.response_no_stream,
                 system_prompt=prompt_music,
@@ -224,52 +224,52 @@ class IntentProvider(IntentProviderBase):
             logger.bind(tag=TAG).error(f"Error in intent detection LLM call: {e}")
             return '{"function_call": {"name": "continue_chat"}}'
 
-        # 记录LLM调用完成时间
+        # Record the LLM call completion time
         llm_time = time.time() - llm_start_time
         logger.bind(tag=TAG).debug(
-            f"外挂的大模型意图识别完成, 模型: {model_info}, 调用耗时: {llm_time:.4f}秒"
+            f"External LLM intent recognition completed, model: {model_info}, call time: {llm_time:.4f}s"
         )
 
-        # 记录后处理开始时间
+        # Record the postprocessing start time
         postprocess_start_time = time.time()
 
-        # 清理和解析响应
+        # Clean and parse the response
         intent = intent.strip()
-        # 尝试提取JSON部分
+        # Try to extract the JSON part
         match = re.search(r"\{.*\}", intent, re.DOTALL)
         if match:
             intent = match.group(0)
 
-        # 记录总处理时间
+        # Record the total processing time
         total_time = time.time() - total_start_time
         logger.bind(tag=TAG).debug(
-            f"【意图识别性能】模型: {model_info}, 总耗时: {total_time:.4f}秒, LLM调用: {llm_time:.4f}秒, 查询: '{text[:20]}...'"
+            f"[Intent recognition performance] model: {model_info}, total time: {total_time:.4f}s, LLM call: {llm_time:.4f}s, query: '{text[:20]}...'"
         )
 
-        # 尝试解析为JSON
+        # Try to parse as JSON
         try:
             intent_data = json.loads(intent)
-            # 如果包含function_call，则格式化为适合处理的格式
+            # If it contains function_call, format it into a form suitable for processing
             if "function_call" in intent_data:
                 function_data = intent_data["function_call"]
                 function_name = function_data.get("name")
                 function_args = function_data.get("arguments", {})
 
-                # 记录识别到的function call
+                # Log the recognized function call
                 logger.bind(tag=TAG).info(
-                    f"llm 识别到意图: {function_name}, 参数: {function_args}"
+                    f"llm recognized intent: {function_name}, arguments: {function_args}"
                 )
 
-                # 处理不同类型的意图
+                # Handle different types of intent
                 if function_name == "result_for_context":
-                    # 处理基础信息查询，直接从context构建结果
+                    # Handle basic information queries; build the result directly from the context
                     logger.bind(tag=TAG).info(
-                        "检测到result_for_context意图，将使用上下文信息直接回答"
+                        "Detected result_for_context intent; will answer directly using the context information"
                     )
 
                 elif function_name == "continue_chat":
-                    # 处理普通对话
-                    # 保留非工具相关的消息
+                    # Handle normal conversation
+                    # Keep messages not related to tools
                     clean_history = [
                         msg
                         for msg in conn.dialogue.dialogue
@@ -278,19 +278,19 @@ class IntentProvider(IntentProviderBase):
                     conn.dialogue.dialogue = clean_history
 
                 else:
-                    # 处理函数调用
-                    logger.bind(tag=TAG).info(f"检测到函数调用意图: {function_name}")
+                    # Handle function calls
+                    logger.bind(tag=TAG).info(f"Detected function call intent: {function_name}")
 
-            # 统一缓存处理和返回
+            # Unified cache handling and return
             self.cache_manager.set(self.CacheType.INTENT, cache_key, intent)
             postprocess_time = time.time() - postprocess_start_time
-            logger.bind(tag=TAG).debug(f"意图后处理耗时: {postprocess_time:.4f}秒")
+            logger.bind(tag=TAG).debug(f"Intent postprocessing time: {postprocess_time:.4f}s")
             return intent
         except json.JSONDecodeError:
-            # 后处理时间
+            # Postprocessing time
             postprocess_time = time.time() - postprocess_start_time
             logger.bind(tag=TAG).error(
-                f"无法解析意图JSON: {intent}, 后处理耗时: {postprocess_time:.4f}秒"
+                f"Unable to parse intent JSON: {intent}, postprocessing time: {postprocess_time:.4f}s"
             )
-            # 如果解析失败，默认返回继续聊天意图
+            # If parsing fails, return the continue-chatting intent by default
             return '{"function_call": {"name": "continue_chat"}}'

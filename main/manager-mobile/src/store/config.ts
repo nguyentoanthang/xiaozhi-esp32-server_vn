@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { getPublicConfig } from '@/api/auth'
 
-// 初始化状态
+// Initial state
 const initialConfigState: PublicConfig = {
   enableMobileRegister: false,
   version: '',
@@ -19,15 +19,15 @@ const initialConfigState: PublicConfig = {
 export const useConfigStore = defineStore(
   'config',
   () => {
-    // 定义全局配置
+    // Define the global configuration
     const config = ref<PublicConfig>({ ...initialConfigState })
 
-    // 设置配置信息
+    // Set the configuration
     const setConfig = (val: PublicConfig) => {
       config.value = val
     }
 
-    // 获取公共配置
+    // Get public configuration
     const fetchPublicConfig = async () => {
       try {
         const configData = await getPublicConfig()
@@ -37,12 +37,12 @@ export const useConfigStore = defineStore(
         return configData
       }
       catch (error) {
-        console.error('获取公共配置失败:', error)
+        console.error('Failed to get public configuration:', error)
         throw error
       }
     }
 
-    // 重置配置
+    // Reset the configuration
     const resetConfig = () => {
       config.value = { ...initialConfigState }
     }

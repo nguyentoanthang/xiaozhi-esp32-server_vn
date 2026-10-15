@@ -1,6 +1,6 @@
-# 规范约定：
-# id生成根据时间时分，文件名对应id，常变数据可以根据模块命名自定义
-# 每次对数据表进行改动时，只允许新建新对changeSet，不允许对上一个changeSet配置及文件进行修改
+# Conventions:
+# IDs are generated from the date/time (hour and minute); the file name matches the id; frequently changing data may be named by module
+# Every time a table is changed, only new changeSets may be created; the configuration and files of previous changeSets must not be modified
 databaseChangeLog:
   - changeSet:
       id: 202503141335

@@ -1,29 +1,29 @@
--- VLLM模型供应器
+-- VLLM Model provider
 delete from `ai_model_provider` where id = 'SYSTEM_VLLM_openai';
 INSERT INTO `ai_model_provider` (`id`, `model_type`, `provider_code`, `name`, `fields`, `sort`, `creator`, `create_date`, `updater`, `update_date`) VALUES
-('SYSTEM_VLLM_openai', 'VLLM', 'openai', 'OpenAI接口', '[{"key":"base_url","label":"基础URL","type":"string"},{"key":"model_name","label":"模型名称","type":"string"},{"key":"api_key","label":"API密钥","type":"string"}]', 9, 1, NOW(), 1, NOW());
+('SYSTEM_VLLM_openai', 'VLLM', 'openai', 'OpenAI interface', '[{"key":"base_url","label":"Base URL","type":"string"},{"key":"model_name","label":"Model name","type":"string"},{"key":"api_key","label":"API key","type":"string"}]', 9, 1, NOW(), 1, NOW());
 
--- VLLM模型配置
+-- VLLM Model configuration
 delete from `ai_model_config` where id = 'VLLM_ChatGLMVLLM';
-INSERT INTO `ai_model_config` VALUES ('VLLM_ChatGLMVLLM', 'VLLM', 'ChatGLMVLLM', '智谱视觉AI', 1, 1, '{\"type\": \"openai\", \"model_name\": \"glm-4v-flash\", \"base_url\": \"https://open.bigmodel.cn/api/paas/v4/\", \"api_key\": \"你的api_key\"}', NULL, NULL, 1, NULL, NULL, NULL, NULL);
+INSERT INTO `ai_model_config` VALUES ('VLLM_ChatGLMVLLM', 'VLLM', 'ChatGLMVLLM', 'Zhipu Vision AI', 1, 1, '{\"type\": \"openai\", \"model_name\": \"glm-4v-flash\", \"base_url\": \"https://open.bigmodel.cn/api/paas/v4/\", \"api_key\": \"your_api_key\"}', NULL, NULL, 1, NULL, NULL, NULL, NULL);
 
--- 更新文档
+-- Update documentation
 UPDATE `ai_model_config` SET 
 `doc_link` = 'https://bigmodel.cn/usercenter/proj-mgmt/apikeys',
-`remark` = '智谱视觉AI配置说明：
-1. 访问 https://bigmodel.cn/usercenter/proj-mgmt/apikeys
-2. 注册并获取API密钥
-3. 填入配置文件中' WHERE `id` = 'VLLM_ChatGLMVLLM';
+`remark` = 'Zhipu Vision AI configuration notes:
+1. Access https://bigmodel.cn/usercenter/proj-mgmt/apikeys
+2. Register and get the API key
+3. Fill them into the configuration file' WHERE `id` = 'VLLM_ChatGLMVLLM';
 
 
--- 添加参数
-INSERT INTO `sys_params` (id, param_code, param_value, value_type, param_type, remark) VALUES (113, 'server.http_port', '8003', 'number', 1, 'http服务的端口，用于启动视觉分析接口');
-INSERT INTO `sys_params` (id, param_code, param_value, value_type, param_type, remark) VALUES (114, 'server.vision_explain', 'null', 'string', 1, '视觉分析接口地址，用于下发到设备，多个用;分隔');
+-- Add parameters
+INSERT INTO `sys_params` (id, param_code, param_value, value_type, param_type, remark) VALUES (113, 'server.http_port', '8003', 'number', 1, 'Port of the HTTP service, used to start the vision analysis API');
+INSERT INTO `sys_params` (id, param_code, param_value, value_type, param_type, remark) VALUES (114, 'server.vision_explain', 'null', 'string', 1, 'Vision analysis API address, delivered to devices; separate multiple addresses with ;');
 
--- 智能体表增加VLLM模型配置
+-- Add VLLM model configuration to the agent table
 ALTER TABLE `ai_agent` 
-ADD COLUMN `vllm_model_id` varchar(32) NULL DEFAULT 'VLLM_ChatGLMVLLM' COMMENT '视觉模型标识' AFTER `llm_model_id`;
+ADD COLUMN `vllm_model_id` varchar(32) NULL DEFAULT 'VLLM_ChatGLMVLLM' COMMENT 'Vision model ID' AFTER `llm_model_id`;
 
--- 智能体模版表增加VLLM模型配置
+-- Add VLLM model configuration to the agent template table
 ALTER TABLE `ai_agent_template` 
-ADD COLUMN `vllm_model_id` varchar(32) NULL DEFAULT 'VLLM_ChatGLMVLLM' COMMENT '视觉模型标识' AFTER `llm_model_id`;
+ADD COLUMN `vllm_model_id` varchar(32) NULL DEFAULT 'VLLM_ChatGLMVLLM' COMMENT 'Vision model ID' AFTER `llm_model_id`;

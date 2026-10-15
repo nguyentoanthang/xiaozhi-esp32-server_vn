@@ -10,51 +10,51 @@ import xiaozhi.modules.sys.entity.SysDictTypeEntity;
 import xiaozhi.modules.sys.vo.SysDictTypeVO;
 
 /**
- * 数据字典
+ * Data dictionary
  */
 public interface SysDictTypeService extends BaseService<SysDictTypeEntity> {
 
     /**
-     * 分页查询字典类型信息
+     * Query dictionary type information (paginated)
      *
-     * @param params 查询参数，包含分页信息和查询条件
-     * @return 返回分页的字典类型数据
+     * @param params query parameters, including pagination info and query conditions
+     * @return the paginated dictionary type data
      */
     PageData<SysDictTypeVO> page(Map<String, Object> params);
 
     /**
-     * 根据ID获取字典类型信息
+     * Get dictionary type information by ID
      *
-     * @param id 字典类型ID
-     * @return 返回字典类型对象
+     * @param id Dictionary type ID
+     * @return the dictionary type object
      */
     SysDictTypeVO get(Long id);
 
     /**
-     * 保存字典类型信息
+     * Save dictionary type information
      *
-     * @param dto 字典类型数据传输对象
+     * @param dto dictionary type data transfer object
      */
     void save(SysDictTypeDTO dto);
 
     /**
-     * 更新字典类型信息
+     * Update dictionary type information
      *
-     * @param dto 字典类型数据传输对象
+     * @param dto dictionary type data transfer object
      */
     void update(SysDictTypeDTO dto);
 
     /**
-     * 删除字典类型信息
+     * Delete dictionary type information
      *
-     * @param ids 要删除的字典类型ID数组
+     * @param ids array of dictionary type IDs to delete
      */
     void delete(Long[] ids);
 
     /**
-     * 列出所有字典类型信息
+     * List all dictionary type information
      *
-     * @return 返回字典类型列表
+     * @return the dictionary type list
      */
     List<SysDictTypeVO> list(Map<String, Object> params);
 }

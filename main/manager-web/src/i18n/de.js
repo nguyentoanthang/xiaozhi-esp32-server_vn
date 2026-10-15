@@ -31,10 +31,10 @@ export default {
   // McpToolCallDialog component text
   'mcpToolCall.title': 'Werkzeugaufruf',
   'mcpToolCall.execute': 'Ausführen',
-  'mcpToolCall.chooseFunction': '1、Funktion auswählen',
+  'mcpToolCall.chooseFunction': '1. Funktion auswählen',
   'mcpToolCall.searchFunction': 'Funktion suchen',
   'mcpToolCall.noResults': 'Keine passenden Funktionen gefunden',
-  'mcpToolCall.settings': '2、Parametereinstellungen',
+  'mcpToolCall.settings': '2. Parametereinstellungen',
   'mcpToolCall.inputPlaceholder': 'Bitte {label} eingeben',
   'mcpToolCall.valueRange': 'Wertebereich: {min} - {max}',
   'mcpToolCall.selectPlaceholder': 'Bitte {label} auswählen',
@@ -46,7 +46,7 @@ export default {
   'mcpToolCall.minValue': 'Mindestwert ist {value}',
   'mcpToolCall.maxValue': 'Höchstwert ist {value}',
   'mcpToolCall.selectTool': 'Bitte wählen Sie ein Werkzeug zur Ausführung',
-  'mcpToolCall.executionResult': '3、Ausführungsergebnis',
+  'mcpToolCall.executionResult': '3. Ausführungsergebnis',
   'mcpToolCall.copyResult': 'Ergebnis kopieren',
   'mcpToolCall.noResultYet': 'Noch kein Ergebnis',
   'mcpToolCall.loadingToolList': 'Werkzeugliste wird geladen...',
@@ -499,7 +499,6 @@ export default {
   'device.bindWithCode': '6-stelliger Bestätigungscode-Bindung',
   'device.manualAdd': 'Manuell hinzufügen',
   'device.unbind': 'Bindung aufheben',
-  'device.deviceThemeGeneration': 'Gerätethema erstellen',
   'device.toolCall': 'Werkzeugaufruf',
   'device.selectAtLeastOne': 'Bitte wählen Sie mindestens einen Datensatz aus',
   'device.confirmBatchUnbind': 'Sind Sie sicher, dass Sie {count} ausgewählte Geräte entbinden möchten?',
@@ -714,8 +713,6 @@ export default {
   'common.copyAddress': 'Adresse kopieren',
 
   // Language switch
-  'language.zhCN': '中文简体',
-  'language.zhTW': '中文繁體',
   'language.en': 'English',
   'language.de': 'Deutsch',
   'language.vi': 'Tiếng Việt',

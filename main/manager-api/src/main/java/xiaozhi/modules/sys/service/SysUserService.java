@@ -9,7 +9,7 @@ import xiaozhi.modules.sys.entity.SysUserEntity;
 import xiaozhi.modules.sys.vo.AdminPageUserVO;
 
 /**
- * 系统用户
+ * System user
  */
 public interface SysUserService extends BaseService<SysUserEntity> {
 
@@ -20,56 +20,56 @@ public interface SysUserService extends BaseService<SysUserEntity> {
     void save(SysUserDTO dto);
 
     /**
-     * 删除指定用户，且有关联的数据设备和智能体
+     * Delete the specified user, along with the associated devices and agents
      * 
      * @param ids
      */
     void deleteById(Long ids);
 
     /**
-     * 验证是否允许修改密码更改
+     * Verify whether a password change is allowed
      * 
-     * @param userId      用户id
-     * @param passwordDTO 验证密码的参数
+     * @param userId      user ID
+     * @param passwordDTO password verification parameters
      */
     void changePassword(Long userId, PasswordDTO passwordDTO);
 
     /**
-     * 直接修改密码，不需要验证
+     * Change the password directly, without verification
      * 
-     * @param userId   用户id
-     * @param password 密码
+     * @param userId   user ID
+     * @param password Password
      */
     void changePasswordDirectly(Long userId, String password);
 
     /**
-     * 重置密码
+     * Reset password
      * 
-     * @param userId 用户id
-     * @return 随机生成符合规范的密码
+     * @param userId user ID
+     * @return a randomly generated password that meets the policy
      */
     String resetPassword(Long userId);
 
     /**
-     * 管理员分页用户信息
+     * Admin paginated user information
      * 
-     * @param dto 分页查找参数
-     * @return 用户列表分页数据
+     * @param dto pagination search parameters
+     * @return paginated user list data
      */
     PageData<AdminPageUserVO> page(AdminPageUserDTO dto);
 
     /**
-     * 批量修改用户状态
+     * Batch update user status
      * 
-     * @param status  用户状态
-     * @param userIds 用户ID数组
+     * @param status  User status
+     * @param userIds array of user IDs
      */
     void changeStatus(Integer status, String[] userIds);
 
     /**
-     * 获取是否允许用户注册
+     * Get whether user registration is allowed
      * 
-     * @return 是否允许用户注册
+     * @return whether user registration is allowed
      */
     boolean getAllowUserRegister();
 }

@@ -2,7 +2,7 @@
 {
   "layout": "default",
   "style": {
-    "navigationBarTitleText": "编辑功能",
+    "navigationBarTitleText": "Edit Functions",
     "navigationStyle": "custom"
   }
 }
@@ -22,19 +22,19 @@ const currentSegmented = ref(t('agent.tools.notSelected'))
 const notSelectedList = ref<any[]>([])
 const selectedList = ref<any[]>([])
 
-// 使用计算属性从store获取数据
+// Use computed properties to get data from the store
 const allFunctions = computed(() => pluginStore.allFunctions)
 const functions = computed(() => pluginStore.currentFunctions)
 const agentId = computed(() => pluginStore.currentAgentId)
 const mcpAddress = ref('')
 const mcpTools = ref<string[]>([])
 
-// 初始化时从本地存储加载MCP地址
+// Load the MCP address from local storage on initialization
 if (uni.getStorageSync(`cachedMcpAddress_${agentId.value}`)) {
   mcpAddress.value = uni.getStorageSync(`cachedMcpAddress_${agentId.value}`)
 }
 
-// 参数编辑相关
+// Parameter editing related
 const showParamDialog = ref(false)
 const currentFunction = ref<any>(null)
 const tempParams = ref<Record<string, any>>({})
@@ -71,38 +71,38 @@ async function mergeFunctions() {
     }
   })
 
-  // 未选的插件
+  // Unselected plugins
   notSelectedList.value = allFunctions.value.filter(
     item => !selectedList.value.some(f => f.id === item.id),
   )
 
   if (agentId.value) {
-    // 优先获取并显示MCP地址
+    // Fetch and display the MCP address first
     try {
       const address = await getMcpAddress(agentId.value)
       mcpAddress.value = address
-      // 缓存到本地存储，下次打开页面可以立即显示
+      // Cache to local storage so it can be shown immediately next time the page is opened
       uni.setStorageSync(`cachedMcpAddress_${agentId.value}`, address)
     }
     catch (error) {
       mcpAddress.value = error
-      console.error('获取MCP地址失败:', error)
+      console.error('Failed to get the MCP address:', error)
     }
 
-    // 异步获取MCP工具列表，不阻塞UI显示
+    // Fetch the MCP tool list asynchronously without blocking the UI
     try {
       const tools = await getMcpTools(agentId.value)
       mcpTools.value = tools || []
     }
     catch (error) {
-      console.error('获取MCP工具列表失败:', error)
+      console.error('Failed to get the MCP tool list:', error)
     }
   }
 }
 
-// 添加插件到已选
+// Add a plugin to the selected list
 function selectFunction(func: any) {
-  // 添加到已选列表
+  // Add to the selected list
   selectedList.value = [...selectedList.value, {
     id: func.id,
     name: func.name,
@@ -110,32 +110,32 @@ function selectFunction(func: any) {
     fieldsMeta: func.fieldsMeta,
   }]
 
-  // 从未选列表中移除
+  // Remove from the unselected list
   notSelectedList.value = notSelectedList.value.filter(
     item => item.id !== func.id,
   )
 }
 
-// 从已选中移除插件
+// Remove a plugin from the selected list
 function removeFunction(func: any) {
-  // 从已选列表中移除
+  // Remove from the selected list
   selectedList.value = selectedList.value.filter(item => item.id !== func.id)
 
-  // 添加回未选列表
+  // Add back to the unselected list
   const originalFunc = allFunctions.value.find(f => f.id === func.id)
   if (originalFunc) {
     notSelectedList.value.push(originalFunc)
   }
 }
 
-// 编辑插件参数
+// Edit plugin parameters
 function editFunction(func: any) {
   currentFunction.value = func
 
-  // 直接使用当前函数的参数
+  // Use the current function's parameters directly
   tempParams.value = normalizeFunctionParams(func.params)
 
-  // 初始化文本缓存
+  // Initialize the text cache
   if (func.fieldsMeta) {
     func.fieldsMeta.forEach((field: any) => {
       if (field.type === 'array') {
@@ -159,11 +159,11 @@ function editFunction(func: any) {
   showParamDialog.value = true
 }
 
-// 处理参数变化 - 实时保存
+// Handle parameter changes - save in real time
 function handleParamChange(key: string, value: any, field: any) {
   tempParams.value[key] = value
 
-  // 实时更新到 selectedList
+  // Update selectedList in real time
   if (currentFunction.value) {
     const index = selectedList.value.findIndex(
       f => f.id === currentFunction.value.id,
@@ -174,14 +174,14 @@ function handleParamChange(key: string, value: any, field: any) {
   }
 }
 
-// 处理数组类型参数变化 - 实时保存
+// Handle array parameter changes - save in real time
 function handleArrayChange(key: string, value: string, field: any) {
   arrayTextCache.value[key] = value
-  // 转换为数组存储
+  // Convert to array storage
   const arrayValue = value.split('\n').filter(Boolean)
   tempParams.value[key] = arrayValue
 
-  // 实时更新到 selectedList
+  // Update selectedList in real time
   if (currentFunction.value) {
     const index = selectedList.value.findIndex(
       f => f.id === currentFunction.value.id,
@@ -192,14 +192,14 @@ function handleArrayChange(key: string, value: string, field: any) {
   }
 }
 
-// 处理JSON类型参数变化 - 实时保存
+// Handle JSON parameter changes - save in real time
 function handleJsonChange(key: string, value: string, field: any) {
   jsonTextCache.value[key] = value
   try {
     const jsonValue = JSON.parse(value)
     tempParams.value[key] = jsonValue
 
-    // 实时更新到 selectedList
+    // Update selectedList in real time
     if (currentFunction.value) {
       const index = selectedList.value.findIndex(
         f => f.id === currentFunction.value.id,
@@ -214,7 +214,7 @@ function handleJsonChange(key: string, value: string, field: any) {
   }
 }
 
-// 关闭参数编辑弹窗
+// Close the parameter edit dialog
 function closeParamEdit() {
   showParamDialog.value = false
   tempParams.value = {}
@@ -222,12 +222,12 @@ function closeParamEdit() {
   jsonTextCache.value = {}
 }
 
-// 返回上一页并更新配置
+// Go back to the previous page and update the configuration
 function goBack() {
   uni.navigateBack()
 }
 
-// 复制MCP地址
+// Copy the MCP address
 function copyMcpAddress() {
   if (!mcpAddress.value) {
     message.alert(t('agent.tools.noMcpAddressToCopy'))
@@ -246,7 +246,7 @@ function copyMcpAddress() {
   })
 }
 
-// 渲染参数字段的辅助函数
+// Helper functions for rendering parameter fields
 function getFieldDisplayValue(field: any, value: any) {
   if (field.type === 'array') {
     return Array.isArray(value) ? value.join('\n') : value || ''
@@ -254,7 +254,7 @@ function getFieldDisplayValue(field: any, value: any) {
   return value || ''
 }
 
-// 字段说明
+// Field description
 function getFieldRemark(field: any) {
   let description = field.label || ''
   if (field.default) {
@@ -263,7 +263,7 @@ function getFieldRemark(field: any) {
   return description
 }
 
-// 监听已选列表变化，实时更新插件配置，避免用户不点击返回按钮导致配置丢失
+// Watch changes to the selected list and update the plugin configuration in real time, to avoid losing the configuration if the user does not click the back button
 watch(() => selectedList.value, (newSelectedList) => {
   const finalFunctions = newSelectedList.map(f => ({
     pluginId: f.id,
@@ -273,14 +273,14 @@ watch(() => selectedList.value, (newSelectedList) => {
 })
 
 onMounted(async () => {
-  // 直接从store获取数据并合并
+  // Get data directly from the store and merge it
   await mergeFunctions()
 })
 </script>
 
 <template>
   <view class="h-screen flex flex-col bg-[#f5f7fb]">
-    <!-- 头部导航 -->
+    <!-- Header navigation -->
     <wd-navbar
       title=""
       safe-area-inset-top
@@ -293,14 +293,14 @@ onMounted(async () => {
       </template>
     </wd-navbar>
 
-    <!-- 内容区域 -->
+    <!-- Content area -->
     <scroll-view
       scroll-y
       class="box-border flex-1 bg-transparent px-[20rpx]"
       :style="{ height: 'calc(100vh - 120rpx)' }"
       :scroll-with-animation="true"
     >
-      <!-- 内置插件区域 -->
+      <!-- Built-in plugin area -->
       <view class="mt-[20rpx] flex flex-1 flex-col">
         <view class="text-[32rpx] text-[#333] font-medium">
           {{ t('agent.tools.builtInPlugins') }}
@@ -308,15 +308,15 @@ onMounted(async () => {
         <view
           class="mt-[20rpx] box-border flex flex-1 flex-col rounded-[10rpx] bg-white p-[20rpx]"
         >
-          <!-- 分段控制器 -->
+          <!-- Segmented control -->
           <wd-segmented
             v-model:value="currentSegmented"
             :options="segmentedList"
           />
 
-          <!-- 插件列表 -->
+          <!-- Plugin list -->
           <view class="mt-[20rpx] flex-1 overflow-hidden">
-            <!-- 未选插件 -->
+            <!-- Unselected plugins -->
             <scroll-view
               v-if="currentSegmented === t('agent.tools.notSelected')"
               class="max-h-[600rpx] bg-transparent"
@@ -356,7 +356,7 @@ onMounted(async () => {
               </view>
             </scroll-view>
 
-            <!-- 已选插件 -->
+            <!-- Selected plugins -->
             <scroll-view v-else class="max-h-[600rpx] bg-transparent" scroll-y>
               <view
                 v-if="selectedList.length === 0"
@@ -382,7 +382,7 @@ onMounted(async () => {
                       </view>
                     </view>
                     <view class="flex space-x-[20rpx]">
-                      <!-- 配置按钮 -->
+                      <!-- Configure button -->
                       <view
                         class="h-[60rpx] w-[60rpx] flex items-center justify-center rounded-full bg-[#1677ff]"
                         @click="editFunction(func)"
@@ -391,7 +391,7 @@ onMounted(async () => {
                           ⚙
                         </text>
                       </view>
-                      <!-- 移除按钮 -->
+                      <!-- Remove button -->
                       <view
                         class="h-[60rpx] w-[60rpx] flex items-center justify-center rounded-full bg-[#ff4757]"
                         @click="removeFunction(func)"
@@ -409,7 +409,7 @@ onMounted(async () => {
         </view>
       </view>
 
-      <!-- MCP接入点区域 -->
+      <!-- MCP access point area -->
       <view class="mt-[20rpx] flex flex-1 flex-col">
         <view class="text-[32rpx] text-[#333] font-medium">
           {{ t('agent.tools.mcpEndpoint') }}
@@ -431,7 +431,7 @@ onMounted(async () => {
               {{ t('agent.tools.copy') }}
             </view>
           </view>
-          <!-- 工具列表 -->
+          <!-- Tool list -->
           <view class="mt-[20rpx] flex-1 overflow-hidden">
             <scroll-view class="max-h-[600rpx] bg-transparent" scroll-y>
               <view
@@ -457,7 +457,7 @@ onMounted(async () => {
       </view>
     </scroll-view>
 
-    <!-- 参数编辑弹窗 -->
+    <!-- Parameter edit dialog -->
     <wd-action-sheet
       v-model="showParamDialog"
       :title="`${t('agent.tools.parameterConfig')} - ${currentFunction?.name || ''}`"
@@ -470,7 +470,7 @@ onMounted(async () => {
         :style="{ height: 'calc(75vh - 60rpx)' }"
       >
         <view class="p-[30rpx] pb-[40rpx]">
-          <!-- 无参数提示 -->
+          <!-- No-parameter hint -->
           <view
             v-if="
               !currentFunction?.fieldsMeta
@@ -483,7 +483,7 @@ onMounted(async () => {
             </text>
           </view>
 
-          <!-- 参数表单 - 卡片式布局 -->
+          <!-- Parameter form - card layout -->
           <view v-else class="flex flex-col gap-[24rpx]">
             <view
               v-for="field in currentFunction.fieldsMeta"
@@ -491,7 +491,7 @@ onMounted(async () => {
               class="border border-[#eeeeee] rounded-[20rpx] bg-white p-[30rpx]"
               style="box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);"
             >
-              <!-- 字段信息 -->
+              <!-- Field info -->
               <view class="mb-[24rpx]">
                 <text class="mb-[8rpx] block text-[32rpx] text-[#232338] font-medium">
                   {{ field.label }}
@@ -501,9 +501,9 @@ onMounted(async () => {
                 </text>
               </view>
 
-              <!-- 输入控件 -->
+              <!-- Input control -->
               <view>
-                <!-- 字符串类型 -->
+                <!-- String type -->
                 <input
                   v-if="field.type === 'string'"
                   v-model="tempParams[field.key]"
@@ -515,7 +515,7 @@ onMounted(async () => {
                   "
                 >
 
-                <!-- 数组类型 -->
+                <!-- Array type -->
                 <view v-else-if="field.type === 'array'">
                   <text class="mb-[16rpx] block text-[24rpx] text-[#65686f]">
                     {{ t('agent.tools.eachLineOneItem') }}
@@ -530,7 +530,7 @@ onMounted(async () => {
                   />
                 </view>
 
-                <!-- JSON类型 -->
+                <!-- JSON type -->
                 <view v-else-if="field.type === 'json'">
                   <text class="mb-[16rpx] block text-[24rpx] text-[#65686f]">
                     {{ t('agent.tools.pleaseInputValidJson') }}
@@ -545,7 +545,7 @@ onMounted(async () => {
                   />
                 </view>
 
-                <!-- 数字类型 -->
+                <!-- Number type -->
                 <input
                   v-else-if="field.type === 'number'"
                   v-model="tempParams[field.key]"
@@ -561,7 +561,7 @@ onMounted(async () => {
                   "
                 >
 
-                <!-- 布尔类型 -->
+                <!-- Boolean type -->
                 <view
                   v-else-if="field.type === 'boolean' || field.type === 'bool'"
                   class="flex items-center justify-between py-[20rpx]"
@@ -582,7 +582,7 @@ onMounted(async () => {
                   />
                 </view>
 
-                <!-- 默认字符串类型 -->
+                <!-- Default string type -->
                 <input
                   v-else
                   v-model="tempParams[field.key]"

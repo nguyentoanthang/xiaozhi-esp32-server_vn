@@ -1001,7 +1001,7 @@ function formatLocalizedList(values: any[]) {
     }).format(items)
   }
   catch {
-    return items.join(getCurrentLanguage().startsWith('zh_') ? '、' : ', ')
+    return items.join(', ')
   }
 }
 

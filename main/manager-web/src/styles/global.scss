@@ -1,4 +1,4 @@
-// 覆盖 autofill 样式
+// Override autofill styles
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
@@ -14,7 +14,7 @@ select:-webkit-autofill:focus {
 }
 
 .el-footer {
-  height: 35px !important; /* 使用 !important 确保覆盖默认样式 */
+  height: 35px !important; /* Use !important to ensure the default style is overridden */
 }
 
 .el-icon-video-play, .el-icon-video-pause { 
@@ -45,18 +45,18 @@ select:-webkit-autofill:focus {
   }
 }
 
-// 大弹框宽度档位（表格档使用）
+// Large dialog width tiers (used by table tiers)
 :root {
   --dialog-table-max: 1280px;
 }
 
-/* 全局弹框遮罩 */
+/* Global dialog overlay */
 .v-modal {
   background: rgba(15, 23, 42, 0.55) !important;
   backdrop-filter: blur(2px);
 }
 
-/* 全局弹框 wrapper 居中 */
+/* Global dialog wrapper centering */
 .el-dialog__wrapper.custom-dialog {
   display: flex;
   align-items: center;
@@ -64,7 +64,7 @@ select:-webkit-autofill:focus {
   overflow: auto;
 }
 
-/* 首页删除智能体确认弹框 wrapper 居中（非 CustomDialog，需单独命中） */
+/* Centering of the confirmation dialog wrapper for deleting an agent on the home page (not CustomDialog, needs separate targeting) */
 .el-dialog__wrapper.delete-agent-dialog {
   display: flex;
   align-items: center;

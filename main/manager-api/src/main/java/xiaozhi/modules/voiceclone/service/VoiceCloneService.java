@@ -12,67 +12,67 @@ import xiaozhi.modules.voiceclone.dto.VoiceCloneResponseDTO;
 import xiaozhi.modules.voiceclone.entity.VoiceCloneEntity;
 
 /**
- * 声音克隆管理
+ * Voice clone management
  */
 public interface VoiceCloneService extends BaseService<VoiceCloneEntity> {
 
     /**
-     * 分页查询
+     * Paginated query
      */
     PageData<VoiceCloneEntity> page(Map<String, Object> params);
 
     /**
-     * 保存声音克隆
+     * Save voice clone
      */
     void save(VoiceCloneDTO dto);
 
     /**
-     * 批量删除
+     * Batch delete
      */
     void delete(String[] ids);
 
     /**
-     * 根据用户ID查询声音克隆列表
+     * Query the voice clone list by user ID
      * 
-     * @param userId 用户ID
-     * @return 声音克隆列表
+     * @param userId User ID
+     * @return the voice clone list
      */
     List<VoiceCloneEntity> getByUserId(Long userId);
 
     /**
-     * 分页查询带模型名称和用户名称的声音克隆列表
+     * Paginated query of voice clones with model name and username
      */
     PageData<VoiceCloneResponseDTO> pageWithNames(Map<String, Object> params);
 
     /**
-     * 根据ID查询带模型名称和用户名称的声音克隆信息
+     * Query voice clone information with model name and username by ID
      */
     VoiceCloneResponseDTO getByIdWithNames(String id);
 
     /**
-     * 根据用户ID查询带模型名称的声音克隆列表
+     * Query the voice clone list with model names by user ID
      */
     List<VoiceCloneResponseDTO> getByUserIdWithNames(Long userId);
 
     /**
-     * 上传音频文件
+     * Upload audio file
      */
     void uploadVoice(String id, MultipartFile voiceFile) throws Exception;
 
     /**
-     * 更新声音克隆名称
+     * Update the voice clone name
      */
     void updateName(String id, String name);
 
     /**
-     * 获取音频数据
+     * Get the audio data
      */
     byte[] getVoiceData(String id);
 
     /**
-     * 克隆音频，调用火山引擎进行语音复刻训练
+     * Clone audio by calling Volcano Engine for voice cloning training
      * 
-     * @param cloneId 语音克隆记录ID
+     * @param cloneId voice clone record ID
      */
     void cloneAudio(String cloneId);
 }

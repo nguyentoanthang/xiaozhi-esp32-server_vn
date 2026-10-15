@@ -7,7 +7,7 @@ const customTabbarEnable
 = selectedTabbarStrategy === TABBAR_MAP.CUSTOM_TABBAR_WITH_CACHE
   || selectedTabbarStrategy === TABBAR_MAP.CUSTOM_TABBAR_WITHOUT_CACHE
 
-/** tabbarList 里面的 path 从 pages.config.ts 得到 */
+/** The path in tabbarList comes from pages.config.ts */
 const tabbarList = _tabBarList.map(item => ({ ...item, path: `/${item.pagePath}` }))
 function selectTabBar({ value: index }: { value: number }) {
   const url = tabbarList[index].path
@@ -20,7 +20,7 @@ function selectTabBar({ value: index }: { value: number }) {
   }
 }
 onLoad(() => {
-  // 解决原生 tabBar 未隐藏导致有2个 tabBar 的问题
+  // Fix the issue of two tabBars appearing because the native tabBar is not hidden
   const hideRedundantTabbarEnable = selectedTabbarStrategy === TABBAR_MAP.CUSTOM_TABBAR_WITH_CACHE
   hideRedundantTabbarEnable
   && uni.hideTabBar({

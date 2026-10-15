@@ -1,9 +1,9 @@
 import type { Ref } from 'vue'
 
 interface IUseRequestOptions<T> {
-  /** 是否立即执行 */
+  /** Whether to execute immediately */
   immediate?: boolean
-  /** 初始化数据 */
+  /** Initial data */
   initialData?: T
 }
 
@@ -15,12 +15,12 @@ interface IUseRequestReturn<T> {
 }
 
 /**
- * useRequest是一个定制化的请求钩子，用于处理异步请求和响应。
- * @param func 一个执行异步请求的函数，返回一个包含响应数据的Promise。
- * @param options 包含请求选项的对象 {immediate, initialData}。
- * @param options.immediate 是否立即执行请求，默认为false。
- * @param options.initialData 初始化数据，默认为undefined。
- * @returns 返回一个对象{loading, error, data, run}，包含请求的加载状态、错误信息、响应数据和手动触发请求的函数。
+ * useRequest is a customized request hook for handling asynchronous requests and responses.
+ * @param func A function that performs an asynchronous request and returns a Promise containing the response data.
+ * @param options An object containing request options {immediate, initialData}.
+ * @param options.immediate Whether to execute the request immediately, defaults to false.
+ * @param options.initialData Initial data, defaults to undefined.
+ * @returns An object {loading, error, data, run} containing the loading state, error info, response data, and a function to trigger the request manually.
  */
 export default function useRequest<T>(
   func: () => Promise<IResData<T>>,

@@ -18,7 +18,7 @@ public interface ModelConfigDao extends BaseDao<ModelConfigEntity> {
     List<String> getModelCodeList(@Param("modelType") String modelType, @Param("modelName") String modelName);
 
     /**
-     * 获取符合条件的TTS平台列表(id和modelName)
+     * Get the list of TTS platforms that meet the conditions (id and modelName)
      */
     List<Map<String, Object>> getTtsPlatformList();
 }

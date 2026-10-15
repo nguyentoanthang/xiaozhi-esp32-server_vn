@@ -4,12 +4,12 @@ import { pages, subPackages } from '@/pages.json'
 import { isMpWeixin } from './platform'
 
 /**
- * 运行时服务端地址覆盖存储键
+ * Storage key for the runtime server address override
  */
 export const SERVER_BASE_URL_OVERRIDE_KEY = 'server_base_url_override'
 
 /**
- * 设置/清除/获取 运行时覆盖的服务端地址
+ * Set/clear/get the runtime-overridden server address
  */
 export function setServerBaseUrlOverride(url: string) {
   uni.setStorageSync(SERVER_BASE_URL_OVERRIDE_KEY, url)
@@ -25,17 +25,17 @@ export function getServerBaseUrlOverride(): string | null {
 }
 
 export function getLastPage() {
-  // getCurrentPages() 至少有1个元素，所以不再额外判断
+  // getCurrentPages() has at least 1 element, so no extra check is needed
   // const lastPage = getCurrentPages().at(-1)
-  // 上面那个在低版本安卓中打包会报错，所以改用下面这个【虽然我加了 src/interceptions/prototype.ts，但依然报错】
+  // The one above causes errors when packaging on older Android versions, so use the one below [even though I added src/interceptions/prototype.ts, it still errors]
   const pages = getCurrentPages()
   return pages[pages.length - 1]
 }
 
 /**
- * 获取当前页面路由的 path 路径和 redirectPath 路径
- * path 如 '/pages/login/index'
- * redirectPath 如 '/pages/demo/base/route-interceptor'
+ * Get the path and redirectPath of the current page route
+ * path e.g. '/pages/login/index'
+ * redirectPath e.g. '/pages/demo/base/route-interceptor'
  */
 export function currRoute() {
   const lastPage = getLastPage()
@@ -44,10 +44,10 @@ export function currRoute() {
   // console.log('lastPage.$page.fullpath:', currRoute.fullPath)
   // console.log('lastPage.$page.options:', currRoute.options)
   // console.log('lastPage.options:', (lastPage as any).options)
-  // 经过多端测试，只有 fullPath 靠谱，其他都不靠谱
+  // After multi-platform testing, only fullPath is reliable, the others are not
   const { fullPath } = currRoute as { fullPath: string }
   // console.log(fullPath)
-  // eg: /pages/login/index?redirect=%2Fpages%2Fdemo%2Fbase%2Froute-interceptor (小程序)
+  // eg: /pages/login/index?redirect=%2Fpages%2Fdemo%2Fbase%2Froute-interceptor (mini program)
   // eg: /pages/login/index?redirect=%2Fpages%2Froute-interceptor%2Findex%3Fname%3Dfeige%26age%3D30(h5)
   return getUrlObj(fullPath)
 }
@@ -59,9 +59,9 @@ function ensureDecodeURIComponent(url: string) {
   return url
 }
 /**
- * 解析 url 得到 path 和 query
- * 比如输入url: /pages/login/index?redirect=%2Fpages%2Fdemo%2Fbase%2Froute-interceptor
- * 输出: {path: /pages/login/index, query: {redirect: /pages/demo/base/route-interceptor}}
+ * Parse the url to get path and query
+ * For example, input url: /pages/login/index?redirect=%2Fpages%2Fdemo%2Fbase%2Froute-interceptor
+ * Output: {path: /pages/login/index, query: {redirect: /pages/demo/base/route-interceptor}}
  */
 export function getUrlObj(url: string) {
   const [path, queryStr] = url.split('?')
@@ -77,17 +77,17 @@ export function getUrlObj(url: string) {
   queryStr.split('&').forEach((item) => {
     const [key, value] = item.split('=')
     // console.log(key, value)
-    query[key] = ensureDecodeURIComponent(value) // 这里需要统一 decodeURIComponent 一下，可以兼容h5和微信y
+    query[key] = ensureDecodeURIComponent(value) // decodeURIComponent is needed here uniformly, to be compatible with h5 and WeChat
   })
   return { path, query }
 }
 /**
- * 得到所有的需要登录的 pages，包括主包和分包的
- * 这里设计得通用一点，可以传递 key 作为判断依据，默认是 needLogin, 与 route-block 配对使用
- * 如果没有传 key，则表示所有的 pages，如果传递了 key, 则表示通过 key 过滤
+ * Get all pages that require login, including main package and subpackages
+ * This is designed to be somewhat generic: a key can be passed as the criterion, defaulting to needLogin, used together with route-block
+ * If no key is passed, it means all pages; if a key is passed, pages are filtered by the key
  */
 export function getAllPages(key = 'needLogin') {
-  // 这里处理主包
+  // Handle the main package here
   const mainPages = pages
     .filter(page => !key || page[key])
     .map(page => ({
@@ -95,7 +95,7 @@ export function getAllPages(key = 'needLogin') {
       path: `/${page.path}`,
     }))
 
-  // 这里处理分包
+  // Handle subpackages here
   const subPages: any[] = []
   subPackages.forEach((subPageObj) => {
     // console.log(subPageObj)
@@ -116,35 +116,35 @@ export function getAllPages(key = 'needLogin') {
 }
 
 /**
- * 得到所有的需要登录的 pages，包括主包和分包的
- * 只得到 path 数组
+ * Get all pages that require login, including main package and subpackages
+ * Only get the path array
  */
 export const getNeedLoginPages = (): string[] => getAllPages('needLogin').map(page => page.path)
 
 /**
- * 得到所有的需要登录的 pages，包括主包和分包的
- * 只得到 path 数组
+ * Get all pages that require login, including main package and subpackages
+ * Only get the path array
  */
 export const needLoginPages: string[] = getAllPages('needLogin').map(page => page.path)
 
 /**
- * 根据微信小程序当前环境，判断应该获取的 baseUrl
+ * Determine the baseUrl to use based on the current WeChat Mini Program environment
  */
 export function getEnvBaseUrl() {
-  // 若存在用户设置的覆盖地址，优先返回
+  // If a user-configured override address exists, return it first
   const override = getServerBaseUrlOverride()
   if (override)
     return override
 
-  // 请求基准地址（默认来源于 env）
+  // Request base address (from env by default)
   let baseUrl = import.meta.env.VITE_SERVER_BASEURL
 
-  // # 有些同学可能需要在微信小程序里面根据 develop、trial、release 分别设置上传地址，参考代码如下。
+  // # You may need to set the upload address separately for develop, trial, and release in the WeChat Mini Program, see the code below.
   const VITE_SERVER_BASEURL__WEIXIN_DEVELOP = 'https://ukw0y1.laf.run'
   const VITE_SERVER_BASEURL__WEIXIN_TRIAL = 'https://ukw0y1.laf.run'
   const VITE_SERVER_BASEURL__WEIXIN_RELEASE = 'https://ukw0y1.laf.run'
 
-  // 微信小程序端环境区分
+  // WeChat Mini Program environment distinction
   if (isMpWeixin) {
     const {
       miniProgram: { envVersion },
@@ -167,17 +167,17 @@ export function getEnvBaseUrl() {
 }
 
 /**
- * 根据微信小程序当前环境，判断应该获取的 UPLOAD_BASEURL
+ * Determine the UPLOAD_BASEURL to use based on the current WeChat Mini Program environment
  */
 export function getEnvBaseUploadUrl() {
-  // 请求基准地址
+  // Request base address
   let baseUploadUrl = import.meta.env.VITE_UPLOAD_BASEURL
 
   const VITE_UPLOAD_BASEURL__WEIXIN_DEVELOP = 'https://ukw0y1.laf.run/upload'
   const VITE_UPLOAD_BASEURL__WEIXIN_TRIAL = 'https://ukw0y1.laf.run/upload'
   const VITE_UPLOAD_BASEURL__WEIXIN_RELEASE = 'https://ukw0y1.laf.run/upload'
 
-  // 微信小程序端环境区分
+  // WeChat Mini Program environment distinction
   if (isMpWeixin) {
     const {
       miniProgram: { envVersion },
@@ -200,57 +200,57 @@ export function getEnvBaseUploadUrl() {
 }
 
 /**
- * 生成SM2密钥对（十六进制格式）
- * @returns {object} 包含公钥和私钥的对象
+ * Generate an SM2 key pair (hex format)
+ * @returns {object} An object containing the public and private keys
  */
 export function generateSm2KeyPairHex() {
-  // 使用sm-crypto库生成SM2密钥对
+  // Generate the SM2 key pair using the sm-crypto library
   const sm2 = smCrypto.sm2
   const keypair = sm2.generateKeyPairHex()
 
   return {
     publicKey: keypair.publicKey,
     privateKey: keypair.privateKey,
-    clientPublicKey: keypair.publicKey, // 客户端公钥
-    clientPrivateKey: keypair.privateKey, // 客户端私钥
+    clientPublicKey: keypair.publicKey, // Client public key
+    clientPrivateKey: keypair.privateKey, // Client private key
   }
 }
 
 /**
- * SM2公钥加密
- * @param {string} publicKey 公钥（十六进制格式）
- * @param {string} plainText 明文
- * @returns {string} 加密后的密文（十六进制格式）
+ * SM2 public key encryption
+ * @param {string} publicKey public key (hex format)
+ * @param {string} plainText plaintext
+ * @returns {string} encrypted ciphertext (hex format)
  */
 export function sm2Encrypt(publicKey: string, plainText: string): string {
   if (!publicKey) {
-    throw new Error('公钥不能为null或undefined')
+    throw new Error('Public key cannot be null or undefined')
   }
 
   if (!plainText) {
-    throw new Error('明文不能为空')
+    throw new Error('Plaintext cannot be empty')
   }
 
   const sm2 = smCrypto.sm2
-  // SM2加密，添加04前缀表示未压缩公钥
+  // SM2 encryption, add the 04 prefix to indicate an uncompressed public key
   const encrypted = sm2.doEncrypt(plainText, publicKey, 1)
-  // 转换为十六进制格式（与后端保持一致，添加04前缀）
+  // Convert to hex format (consistent with the backend, add the 04 prefix)
   const result = `04${encrypted}`
 
   return result
 }
 
 /**
- * SM2私钥解密
- * @param {string} privateKey 私钥（十六进制格式）
- * @param {string} cipherText 密文（十六进制格式）
- * @returns {string} 解密后的明文
+ * SM2 private key decryption
+ * @param {string} privateKey private key (hex format)
+ * @param {string} cipherText ciphertext (hex format)
+ * @returns {string} decrypted plaintext
  */
 export function sm2Decrypt(privateKey: string, cipherText: string): string {
   const sm2 = smCrypto.sm2
-  // 移除04前缀（与后端保持一致）
+  // Remove the 04 prefix (consistent with the backend)
   const dataWithoutPrefix = cipherText.startsWith('04') ? cipherText.substring(2) : cipherText
-  // SM2解密
+  // SM2 decryption
   return sm2.doDecrypt(dataWithoutPrefix, privateKey, 1)
 }
 
@@ -261,11 +261,11 @@ interface DebouncedFunction extends AnyFunction {
 }
 
 /**
- * 防抖函数
- * @param fn 要防抖的函数
- * @param delay 延迟时间（毫秒），默认500ms
- * @param immediate 是否立即执行，默认false
- * @returns 防抖处理后的函数
+ * Debounce function
+ * @param fn the function to debounce
+ * @param delay delay in milliseconds, defaults to 500ms
+ * @param immediate whether to execute immediately, defaults to false
+ * @returns the debounced function
  */
 export function debounce<T extends AnyFunction>(
   fn: T,
@@ -304,9 +304,9 @@ export function debounce<T extends AnyFunction>(
 type DeepCloneTarget = string | number | boolean | null | undefined | object
 
 /**
- * 深拷贝方法
- * @param target 要拷贝的目标
- * @returns 拷贝后的新对象
+ * Deep copy method
+ * @param target the target to copy
+ * @returns the new copied object
  */
 export function deepClone<T extends DeepCloneTarget>(target: T): T {
   if (target === null || typeof target !== 'object') {

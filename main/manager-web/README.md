@@ -1,10 +1,10 @@
-本文档是开发类文档，如需部署小智服务端，[点击这里查看部署教程](../../README.md#%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3)
+This is a development document. To deploy the Xiaozhi server, [click here for the deployment guide](../../README.md#deployment-documentation)
 
 # xiaozhi
 
 ## Project setup
 
-开发使用代码编辑器，导入项目时，选择`manager-web`文件夹作为项目目录
+When developing with a code editor, select the `manager-web` folder as the project directory when importing the project
 
 ```
 npm install

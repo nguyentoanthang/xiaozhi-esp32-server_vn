@@ -1055,7 +1055,7 @@ class AgentSnapshotServiceImplTest {
         current.setTtsLanguage(null);
         AgentSnapshotDataDTO next = new AgentSnapshotDataDTO();
         next.setTtsVoiceId("voice-id");
-        next.setTtsLanguage("普通话");
+        next.setTtsLanguage("English");
 
         List<String> changedFields = (List<String>) method.invoke(service, current, next);
 
@@ -1160,7 +1160,7 @@ class AgentSnapshotServiceImplTest {
         template.setSummaryMemory(null);
         when(templateService.getDefaultTemplate()).thenReturn(template);
 
-        when(timbreService.getDefaultLanguageById("TTS_EdgeTTS0001")).thenReturn("普通话");
+        when(timbreService.getDefaultLanguageById("TTS_EdgeTTS0001")).thenReturn("English");
         when(agentDao.insert(any(AgentEntity.class))).thenReturn(1);
 
         AgentCreateDTO dto = new AgentCreateDTO();
@@ -1170,7 +1170,7 @@ class AgentSnapshotServiceImplTest {
 
         InOrder inOrder = inOrder(agentDao, pluginMappingService, snapshotService);
         inOrder.verify(agentDao).insert(argThat((AgentEntity agent) -> "test123".equals(agent.getAgentName())
-                && "普通话".equals(agent.getTtsLanguage())
+                && "English".equals(agent.getTtsLanguage())
                 && "".equals(agent.getSummaryMemory())
                 && Integer.valueOf(0).equals(agent.getChatHistoryConf())));
         inOrder.verify(pluginMappingService).saveBatch(any(), eq(IRepository.DEFAULT_BATCH_SIZE));
@@ -1235,7 +1235,7 @@ class AgentSnapshotServiceImplTest {
         RenException error = assertThrows(RenException.class,
                 () -> service.restoreSnapshot(agentId, targetId, "stale-token"));
 
-        assertTrue(error.getMessage().contains("重新打开恢复预览"));
+        assertTrue(error.getMessage().contains("reopen the restore preview"));
         verify(snapshotDao, never()).selectLatestSnapshot(agentId);
         verify(snapshotDao, never()).insertWithNextVersion(any());
         verify(agentDao, never()).updateSnapshotFields(any());
@@ -1430,7 +1430,7 @@ class AgentSnapshotServiceImplTest {
         AgentEntity lockedAgent = new AgentEntity();
         lockedAgent.setId(agentId);
         lockedAgent.setUserId(7L);
-        lockedAgent.setTtsLanguage("普通话");
+        lockedAgent.setTtsLanguage("English");
         lockedAgent.setTtsVolume(0);
         lockedAgent.setTtsRate(0);
         lockedAgent.setTtsPitch(0);
@@ -1440,7 +1440,7 @@ class AgentSnapshotServiceImplTest {
         lockedAgent.setSystemPrompt("old prompt");
 
         AgentInfoVO currentInfo = snapshotAgentInfo(agentId, 7L, "same-name", "same-summary");
-        currentInfo.setTtsLanguage("普通话");
+        currentInfo.setTtsLanguage("English");
         currentInfo.setTtsVolume(0);
         currentInfo.setTtsRate(0);
         currentInfo.setTtsPitch(0);
@@ -1451,7 +1451,7 @@ class AgentSnapshotServiceImplTest {
         AgentInfoVO restoredInfo = snapshotAgentInfo(agentId, 7L, "same-name", "same-summary");
 
         AgentSnapshotDataDTO currentData = snapshotData("same-name", "same-summary");
-        currentData.setTtsLanguage("普通话");
+        currentData.setTtsLanguage("English");
         currentData.setTtsVolume(0);
         currentData.setTtsRate(0);
         currentData.setTtsPitch(0);
@@ -1834,7 +1834,7 @@ class AgentSnapshotServiceImplTest {
                 () -> method.invoke(service, snapshotTag, new Date()));
 
         assertTrue(error.getCause() instanceof RenException);
-        assertEquals("快照引用的标签已被删除，无法恢复，请先重新创建或选择标签", error.getCause().getMessage());
+        assertEquals("The tag referenced by the snapshot has been deleted and cannot be restored. Please recreate or select a tag first", error.getCause().getMessage());
         verify(tagDao, never()).updateById(any(AgentTagEntity.class));
         verify(tagDao, never()).insert(any(AgentTagEntity.class));
     }

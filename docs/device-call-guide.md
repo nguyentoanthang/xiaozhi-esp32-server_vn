@@ -1,60 +1,60 @@
-# 设备间相互呼叫插件使用指南
+# Device-to-Device Calling Plugin Guide
 
-## 概述
+## Overview
 
-设备呼叫功能允许两个已配置设备之间通过语音/数据通道进行双向通信。设备A呼叫设备B时，系统通过以下流程实现：
+The device calling feature allows two configured devices to communicate bidirectionally over a voice/data channel. When device A calls device B, the system works through the following flow:
 
 ```
-设备A → 授权校验 → MQTT网关 → 设备B远程唤醒 → 建立连接 → 通话建立
+Device A → authorization check → MQTT gateway → remote wake-up of device B → connection established → call established
 ```
-## 使用这个功能的前提条件
-1. 你必须要有至少两个设备，每个设备型号必须是`ESP32-S3`，因为只有`ESP32-S3`才支持远程唤醒功能。
-2. 你的设备必须要有`两个麦克风`。但是如果你的设备只有`单个麦克风`，你只是想体验一下这个功能，也是可以的，但是会有强烈的卡顿感。
-3. 你必须使用[全模块部署](Deployment_all.md)本项目，因为你需要`智控台`来管理设备的权限和通信。
-4. 你必须安装并配置好`2026年5月27日`以后的[MQTT网关服务](mqtt-gateway-integration.md)，如果你已经部署了MQTT网关服务，请确认代码的版本是`2026年5月27日`之后的版本。
+## Prerequisites for Using This Feature
+1. You must have at least two devices, and each must be an `ESP32-S3`, because only the `ESP32-S3` supports remote wake-up.
+2. Your devices must have `two microphones`. If your device has only a `single microphone` and you just want to try the feature, that also works, but it will feel very laggy.
+3. You must deploy this project using the [full-module deployment](Deployment_all.md), because you need the `Control Panel` to manage device permissions and communication.
+4. You must install and configure the [MQTT gateway service](mqtt-gateway-integration.md) from `May 27, 2026` or later. If you have already deployed the MQTT gateway service, confirm that the code version is from after `May 27, 2026`.
 
-以上是使用这个功能的硬性条件，接下来会详细介绍。
+The above are the hard requirements for using this feature; the details follow.
 
-## 配置步骤
+## Configuration Steps
 
-### 第一步：开启通讯录功能
+### Step 1: Enable the Address Book Feature
 
-1. 确认你的智控台版本是`0.9.4`或以上版本。
-2. 登录智控台后台
-3. 进入 **系统功能配置**
-4. 在左侧功能列表中勾选 **通讯录**
-5. 点击 **保存配置** 确认
+1. Confirm that your Control Panel version is `0.9.4` or later.
+2. Log in to the Control Panel back end
+3. Go to **System Feature Configuration**
+4. In the feature list on the left, check **Address Book**
+5. Click **Save Configuration** to confirm
 
-### 第二步：配置设备间呼叫权限
+### Step 2: Configure Call Permissions Between Devices
 
-1. 在智控台顶部菜单点击 **通讯录**
-2. 在左侧智能体下，设备列表中选择你的设备A（支持按 MAC地址 或 备注名 搜索）
-3. 在右侧详情面板中，找到目标设备B的称呼设置，例如 **"小王"**
-4. 勾选设备B的 **呼叫权限** 复选框
-5. 点击 **保存**
+1. In the top menu of the Control Panel, click **Address Book**
+2. Under the agent list on the left, select your device A from the device list (you can search by MAC address or remark name)
+3. In the detail panel on the right, find the name setting for the target device B, for example **"Xiao Wang"**
+4. Check the **Call Permission** checkbox for device B
+5. Click **Save**
 
-**双向授权说明：** 如需设备A和设备B互相通信，必须在两侧智控台分别配置对方权限。例如：
+**Note on two-way authorization:** For device A and device B to communicate with each other, you must configure each other's permissions on both sides in the Control Panel. For example:
 
-- 在设备A的配置中勾选设备B → 设备A可与设备B通信
-- 在设备B的配置中勾选设备A → 设备B可与设备A通信
+- Check device B in device A's configuration → device A can communicate with device B
+- Check device A in device B's configuration → device B can communicate with device A
 
-### 第三步：在智能体配置添加呼叫工具
+### Step 3: Add the Call Tool in the Agent Configuration
 
-1. 在智控台顶部菜单点击 **智能体管理**
-2. 在刚刚配置设备联系人的相关智能体中点击 **编辑角色**
-3. 在右侧详情面板中，点击 **编辑功能**
-4. 勾选 **设备呼叫设备** 工具
-5. 点击 **保存配置** 确认
-6. 在外侧再次点击 **保存配置** ，随即重启设备
+1. In the top menu of the Control Panel, click **Agent Management**
+2. On the agent for which you just configured device contacts, click **Edit Role**
+3. In the detail panel on the right, click **Edit Functions**
+4. Check the **Device Calls Device** tool
+5. Click **Save Configuration** to confirm
+6. Click **Save Configuration** again on the outer page, then restart the device
 
-### 第四步：固件端添加远程唤醒工具
+### Step 4: Add the Remote Wake-Up Tool in the Firmware
 
-1. 在[xiaozhi-esp32](https://github.com/78/xiaozhi-esp32) 代码的基础上增加远程唤醒工具MCP，版本支持为2.1.0至2.2.6（2026年5月29日的版本）
-2. 在application.h文件中添加远程唤醒函数声明
+1. On top of the [xiaozhi-esp32](https://github.com/78/xiaozhi-esp32) code, add the remote wake-up tool MCP. Supported versions are 2.1.0 to 2.2.6 (the version as of May 29, 2026)
+2. Add the remote wake-up function declaration to the application.h file
     ```cpp
     void RemoteWakeup(const std::string& reason);
     ```
-3. 在application.cc文件中添加远程唤醒函数
+3. Add the remote wake-up function to the application.cc file
     ```cpp
     void Application::RemoteWakeup(const std::string& reason){
         if (!protocol_) {
@@ -96,7 +96,7 @@
         }
     }
     ```
-4. 在mcp_server.cc文件中添加远程唤醒工具
+4. Add the remote wake-up tool to the mcp_server.cc file
     ```cpp
     AddUserOnlyTool("self.remote_wakeup", "Remote wakeup function with configurable parameters",
         PropertyList({
@@ -109,40 +109,40 @@
             app.RemoteWakeup(reason);
             return true;
     ```
-5. 按照 [固件编译烧录指南](firmware-build.md) 完成固件烧录
-6. 无论你的设备是单麦还是双麦，请在编译环节，勾选开启AEC功能!
-7. 无论你的设备是单麦还是双麦，请在编译环节，勾选开启AEC功能!
-8. 无论你的设备是单麦还是双麦，请在编译环节，勾选开启AEC功能!
+5. Follow the [firmware build and flashing guide](firmware-build.md) to flash the firmware
+6. Whether your device has a single microphone or two, check the option to enable the AEC feature during the build!
+7. Whether your device has a single microphone or two, check the option to enable the AEC feature during the build!
+8. Whether your device has a single microphone or two, check the option to enable the AEC feature during the build!
 
-### 第五步：配置MQTT网关服务
+### Step 5: Configure the MQTT Gateway Service
 
-1. 部署MQTT网关服务，参考 [MQTT网关集成文档](mqtt-gateway-integration.md)
-2. 如果已经部署请确认代码的版本是2026年5月27日的版本
+1. Deploy the MQTT gateway service; see the [MQTT gateway integration document](mqtt-gateway-integration.md)
+2. If it is already deployed, confirm that the code version is the one from May 27, 2026
 
-## 呼叫流程说明
+## Call Flow
 
-准备两个设备，在智控台上面配置好通讯权限和在智能体中添加呼叫工具之后，在其中一个小智对话那里对他说：”呼叫XXX“，观察设备B是否响应。
+Prepare two devices. After configuring the communication permissions in the Control Panel and adding the call tool to the agent, say to one of the Xiaozhi devices: "Call XXX", and observe whether device B responds.
 
-## 常见问题
+## FAQ
 
-### Q: 设备B没有响应呼叫？
+### Q: Device B does not respond to the call?
 
-- 检查设备B是否在线（智控台设备状态）
-- 确认设备B的固件已正确集成远程唤醒工具
-- 检查MQTT网关连接是否正常
-- 验证双向权限配置是否完整
+- Check whether device B is online (device status in the Control Panel)
+- Confirm that device B's firmware has the remote wake-up tool integrated correctly
+- Check whether the MQTT gateway connection is normal
+- Verify that the two-way permission configuration is complete
 
-### Q: 提示"无呼叫权限"？
+### Q: I get the message "No call permission"?
 
-- 在智控台确认设备A已勾选设备B的呼叫权限
-- 确认配置已保存（非仅修改未保存）
+- In the Control Panel, confirm that device A has device B's call permission checked
+- Confirm that the configuration has been saved (not just modified without saving)
 
-### Q: 如何确认通讯录功能已开启？
+### Q: How do I confirm that the address book feature is enabled?
 
-- 智控台顶部菜单如显示"通讯录"入口，则表示已开启
+- If the top menu of the Control Panel shows an "Address Book" entry, the feature is enabled
 
-### Q: 我叫他呼叫"张山"，但是他老是识别成"张三"，怎么办？
-- 可以查阅你使用的asr服务的文档，确认是否支持热词识别。
-- 如果你用的是`FunASRServer`,可以在容器里的`热词文件`里添加"张山"，然后重启容器。
-- 如果你用的是`火山引擎`的服务，可以在`火山引擎的控制台`里添加`热词文件`，然后回到智控台的`模型配置页面`，把`热词文件名称`配置在`火山引擎的tts`上去。
+### Q: I tell it to call "Zhang Shan", but it keeps recognizing "Zhang San". What should I do?
+- Check the documentation of the ASR service you use to confirm whether it supports hot word recognition.
+- If you use `FunASRServer`, you can add "Zhang Shan" to the `hot word file` in the container and then restart the container.
+- If you use the `Volcano Engine` service, you can add a `hot word file` in the `Volcano Engine console`, then go back to the `model configuration page` of the Control Panel and set the `hot word file name` on the `Volcano Engine TTS`.
 

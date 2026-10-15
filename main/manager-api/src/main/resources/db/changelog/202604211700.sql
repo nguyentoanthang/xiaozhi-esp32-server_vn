@@ -1,21 +1,21 @@
--- 修复豆包语音合成模型2.0 provider_code 重复问题，添加 ASR 2.0 支持
+-- Fix the duplicate provider_code of Doubao speech synthesis model 2.0 and add ASR 2.0 support
 
--- ==================== 豆包语音合成模型2.0 ====================
--- 删除 TTS 2.0 供应器（不再需要单独的供应器）
+-- ==================== Doubao speech synthesis model 2.0 ====================
+-- Delete the TTS 2.0 provider (a separate provider is no longer needed)
 delete from `ai_model_provider` where id = 'SYSTEM_TTS_HSDSTTS_V2';
 
--- ==================== 豆包语音识别(流式) ====================
--- 修正原有豆包语音识别(流式)供应器，移除cluster字段，添加resource_id字段
-UPDATE `ai_model_provider` SET `fields` = '[{"key":"appid","type":"string","label":"应用ID"},{"key":"access_token","type":"string","label":"访问令牌"},{"key":"boosting_table_name","type":"string","label":"热词文件名称"},{"key":"correct_table_name","type":"string","label":"替换词文件名称"},{"key":"output_dir","type":"string","label":"输出目录"},{"key":"end_window_size","type":"number","label":"静音判定时长(ms)"},{"key":"enable_multilingual","type":"boolean","label":"是否开启多语种识别模式"},{"key":"language","type":"string","label":"指定语言编码"},{"key":"resource_id","type":"string","label":"资源ID"}]' WHERE `id` = 'SYSTEM_ASR_DoubaoStreamASR';
+-- ==================== Doubao speech recognition (streaming) ====================
+-- Fix the existing Doubao speech recognition (streaming) provider: remove the cluster field and add the resource_id field
+UPDATE `ai_model_provider` SET `fields` = '[{"key":"appid","type":"string","label":"App ID"},{"key":"access_token","type":"string","label":"Access token"},{"key":"boosting_table_name","type":"string","label":"Hotword file name"},{"key":"correct_table_name","type":"string","label":"Replacement word file name"},{"key":"output_dir","type":"string","label":"Output directory"},{"key":"end_window_size","type":"number","label":"Silence detection duration (ms)"},{"key":"enable_multilingual","type":"boolean","label":"Enable multilingual recognition mode"},{"key":"language","type":"string","label":"Specified language code"},{"key":"resource_id","type":"string","label":"Resource ID"}]' WHERE `id` = 'SYSTEM_ASR_DoubaoStreamASR';
 
--- 修正原有豆包语音识别(流式)配置，移除cluster字段，添加resource_id默认值
+-- Fix the existing Doubao speech recognition (streaming) config: remove the cluster field and add the resource_id default value
 UPDATE `ai_model_config` SET `config_json` = JSON_REMOVE(JSON_SET(`config_json`, '$.resource_id', 'volc.bigasr.sauc.duration'), '$.cluster') WHERE `id` = 'ASR_DoubaoStreamASR';
 
--- ==================== 豆包语音识别模型2.0 ====================
+-- ==================== Doubao speech recognition model 2.0 ====================
 
--- 插入豆包语音识别模型2.0配置
+-- Insert the Doubao speech recognition model 2.0 config
 delete from `ai_model_config` where id = 'ASR_DoubaoStreamASRV2';
-INSERT INTO `ai_model_config` VALUES ('ASR_DoubaoStreamASRV2', 'ASR', 'DoubaoStreamASRV2', '豆包语音识别模型2.0', 0, 1, '{
+INSERT INTO `ai_model_config` VALUES ('ASR_DoubaoStreamASRV2', 'ASR', 'DoubaoStreamASRV2', 'Doubao speech recognition model 2.0', 0, 1, '{
   "type": "doubao_stream",
   "appid": "",
   "access_token": "",
@@ -26,20 +26,20 @@ INSERT INTO `ai_model_config` VALUES ('ASR_DoubaoStreamASRV2', 'ASR', 'DoubaoStr
   "output_dir": "tmp/"
 }', NULL, NULL, 6, NULL, NULL, NULL, NULL);
 
--- 豆包语音识别模型2.0配置说明文档
+-- Doubao speech recognition model 2.0 configuration documentation
 UPDATE `ai_model_config` SET
 `doc_link` = 'https://www.volcengine.com/docs/6561/109979',
-`remark` = '豆包语音识别模型2.0配置说明（基于火山引擎seed-asr）：
-1. 访问 https://www.volcengine.com/ 注册并开通火山引擎账号
-2. 访问 https://console.volcengine.com/speech/service/10038 开通豆包流式语音识别模型2.0
-3. 在页面底部获取appid和access_token
-4. 资源ID有两种：小时版（volc.seedasr.sauc.duration）和并发版（volc.seedasr.sauc.concurrent）
-   - 小时版：固定为：volc.seedasr.sauc.duration（豆包语音识别模型2.0）
-   - 并发版：固定为：volc.seedasr.sauc.concurrent（豆包语音识别模型2.0）
+`remark` = 'Doubao speech recognition model 2.0 configuration notes (based on Volcano Engine seed-asr):
+1. Visit https://www.volcengine.com/ to register and activate a Volcano Engine account
+2. Visit https://console.volcengine.com/speech/service/10038 to activate Doubao streaming speech recognition model 2.0
+3. Get the appid and access_token at the bottom of the page
+4. There are two kinds of resource IDs: the hourly edition (volc.seedasr.sauc.duration) and the concurrency edition (volc.seedasr.sauc.concurrent)
+   - Hourly edition: fixed as: volc.seedasr.sauc.duration (Doubao speech recognition model 2.0)
+   - Concurrency edition: fixed as: volc.seedasr.sauc.concurrent (Doubao speech recognition model 2.0)
 
-详细参数文档：https://www.volcengine.com/docs/6561/109979
+Detailed parameter documentation: https://www.volcengine.com/docs/6561/109979
 
-注意：
-- 豆包语音识别模型2.0使用volc.seedasr.sauc.duration资源ID，与豆包语音识别(流式)（volc.bigasr.sauc.duration）不同
-- 语音识别模型2.0价格更为便宜，建议在高并发场景下使用并发版资源ID
+Note:
+- Doubao speech recognition model 2.0 uses the volc.seedasr.sauc.duration resource ID, which differs from Doubao speech recognition (streaming) (volc.bigasr.sauc.duration)
+- Speech recognition model 2.0 is cheaper; the concurrency edition resource ID is recommended for high-concurrency scenarios
 ' WHERE `id` = 'ASR_DoubaoStreamASRV2';
