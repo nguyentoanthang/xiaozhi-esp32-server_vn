@@ -641,7 +641,7 @@ class UIController {
 
     // Start AI chat session after connection
     startAIChatSession() {
-        this.addChatMessage('Connected, let's start chatting~😊', false);
+        this.addChatMessage('Connected, let\'s start chatting~😊', false);
         // Check microphone availability and show error messages if needed
         if (!window.microphoneAvailable) {
             if (window.isHttpNonLocalhost) {

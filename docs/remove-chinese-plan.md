@@ -67,6 +67,21 @@ Kept as-is for now; revisit when switching the server to Vietnamese:
 - Prompts (persona, summary, title) currently English; add a Vietnamese reply-language instruction if wanted.
 - Home Assistant device examples and other region-specific defaults.
 
+## Migrations merged into one baseline
+- What: the 108 Liquibase changelog files were merged into one changeSet, id `202610150000`
+  (`src/main/resources/db/changelog/202610150000.sql`, referenced by `db.changelog-master.yaml`).
+- Why: fresh-install standalone fork (no upstream merging, no existing databases), so one baseline is simpler.
+- Backup: the originals (moved with `git mv`, original master order kept in
+  `db.changelog-master.original.yaml`) and the generator `merge_changelog.py` live in
+  `main/manager-api/db-migration-backup/`. It is outside the classpath and not loaded by the app.
+- Boundary changes: BOM and `-- liquibase formatted sql` / `-- changeset` markers removed; `;` added to
+  `202507041018.sql`; begin/end comment banners per file. Unescaped apostrophes from the translation
+  (e.g. `Chase's`, `project's`, `Let's` in `202504092335`, `202508081701`, `202602021555`) are escaped as `'`,
+  because they broke the string literals (the originals did not parse correctly).
+- Adding migrations now: create a NEW `<yyyyMMddHHmm>.sql` and append a NEW changeSet after the baseline in
+  `db.changelog-master.yaml`; never edit an applied changeSet. A failed baseline leaves a partial DB
+  (MySQL DDL auto-commits): drop and recreate the database before retrying.
+
 ## Status
 Done in two local commits (translation + Chinese removal, then a captcha fix). Nothing has been
 compiled or run end to end yet; use the checklist below.
@@ -84,10 +99,11 @@ compiled or run end to end yet; use the checklist below.
       `python -m pytest tests`. 14 tests (`test_memory`, `test_rag`, `test_stt`, `test_tts`) could not run.
 
 ### Fresh-database startup
-- [ ] Liquibase applies every changelog on an empty MySQL with no syntax errors (edited by hand, never run).
+- [ ] The single baseline `202610150000.sql` applies on an empty MySQL with no syntax errors (edited by hand, never run).
 - [ ] Seed rows look right: `ai_tts_voice` languages are all `English`, agent template is `en`/`English`,
       `end_prompt`, plugin params (`get_weather` default `London`, `news_sources` = `your_news_sources`).
-- [ ] `202608061800.sql` (Doubao remark REPLACE removed) applies cleanly.
+- [ ] `LLM_DoubaoLLM` ends up with model_name `doubao-seed-2-0-lite-260215` after startup (the old `202608061800.sql` is inside the baseline).
+- [ ] Baseline statement count is 948, equal to the originals (script self-check), and startup creates all tables: 32 `CREATE TABLE` in the baseline and in the originals (`SHOW TABLES` should list them, plus `DATABASECHANGELOG`/`DATABASECHANGELOGLOCK`).
 
 ### Behavior
 - [ ] Web UI: login, register, forgot-password; language dropdown shows only en/de/vi/pt_BR; default is English.

@@ -1,5 +1,7 @@
 # OpenRouter LLM Provider — Implementation Plan
 
+> Note: the Liquibase changelog is now a single baseline (`202610150000.sql`, originals in `main/manager-api/db-migration-backup/`). New changes still go in a new `<ts>.sql` plus a new changeSet appended after the baseline in `db.changelog-master.yaml`.
+
 Status: **provider and live tests are implemented; offline tests pass (45); live tests (section 13) are pending the user's OpenRouter key and have never been run against the real API.**
 Scope: add one new LLM provider (`type: openrouter`) built on the official `openrouter` Python SDK, with
 provider-routing options and per-call token/cost usage capture. Existing providers are not modified.
