@@ -71,10 +71,6 @@ async def startToChat(conn: "ConnectionHandler", text):
     else:
         conn.current_speaker = None
 
-    if conn.need_bind:
-        await check_bind_device(conn)
-        return
-
     # If the day's output word count exceeds the limit
     if conn.max_output_size > 0:
         if check_device_output_limit(
@@ -139,41 +135,3 @@ async def max_out_size(conn: "ConnectionHandler"):
     opus_packets = await audio_to_data(file_path)
     conn.tts.tts_audio_queue.put((SentenceType.LAST, opus_packets, text))
     conn.close_after_chat = True
-
-
-async def check_bind_device(conn: "ConnectionHandler"):
-    if conn.bind_code:
-        # Make sure bind_code is a 6-digit number
-        if len(conn.bind_code) != 6:
-            conn.logger.bind(tag=TAG).error(f"Invalid bind code format: {conn.bind_code}")
-            text = "Bind code format is wrong, please check the configuration."
-            await send_stt_message(conn, text)
-            return
-
-        text = f"Please log in to the control panel, enter {conn.bind_code}, and bind the device."
-        await send_stt_message(conn, text)
-
-        # Play the prompt sound
-        music_path = "config/assets/bind_code.wav"
-        opus_packets = await audio_to_data(music_path)
-        conn.tts.tts_audio_queue.put((SentenceType.FIRST, opus_packets, text))
-
-        # Play the digits one by one
-        for i in range(6):  # Make sure only 6 digits are played
-            try:
-                digit = conn.bind_code[i]
-                num_path = f"config/assets/bind_code/{digit}.wav"
-                num_packets = await audio_to_data(num_path)
-                conn.tts.tts_audio_queue.put((SentenceType.MIDDLE, num_packets, None))
-            except Exception as e:
-                conn.logger.bind(tag=TAG).error(f"Failed to play digit audio: {e}")
-                continue
-        conn.tts.tts_audio_queue.put((SentenceType.LAST, [], None))
-    else:
-        # Play the unbound prompt
-        conn.client_abort = False
-        text = f"No version info was found for this device, please configure the OTA address correctly and recompile the firmware."
-        await send_stt_message(conn, text)
-        music_path = "config/assets/bind_not_found.wav"
-        opus_packets = await audio_to_data(music_path)
-        conn.tts.tts_audio_queue.put((SentenceType.LAST, opus_packets, text))

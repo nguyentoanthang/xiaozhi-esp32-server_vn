@@ -10,6 +10,7 @@ from core.http_server import SimpleHttpServer
 from core.websocket_server import WebSocketServer
 from core.utils.util import check_ffmpeg_installed
 from core.utils.gc_manager import get_gc_manager
+from core.db import close_database
 
 TAG = __name__
 logger = setup_logging()
@@ -47,18 +48,15 @@ async def main():
     check_ffmpeg_installed()
     config = await load_config()
 
-    # auth_key priority: server.auth_key in config file > manager-api.secret > auto-generated
+    # auth_key priority: server.auth_key in data/.config.yaml > auto-generated
     # auth_key is used for JWT authentication, e.g. JWT auth for the vision analysis API, token generation for the OTA API, and websocket authentication
     # Get auth_key from the config file
     auth_key = config["server"].get("auth_key", "")
     
-    # Validate auth_key; if invalid, try manager-api.secret
+    # Validate auth_key; if invalid, generate a random key
     if not auth_key or len(auth_key) == 0 or "your_" in auth_key:
-        auth_key = config.get("manager-api", {}).get("secret", "")
-        # Validate secret; if invalid, generate a random key
-        if not auth_key or len(auth_key) == 0 or "your_" in auth_key:
-            auth_key = str(uuid.uuid4().hex)
-    
+        auth_key = str(uuid.uuid4().hex)
+
     config["server"]["auth_key"] = auth_key
 
     # Add the stdin monitoring task
@@ -75,14 +73,12 @@ async def main():
     ota_server = SimpleHttpServer(config)
     ota_task = asyncio.create_task(ota_server.start())
 
-    read_config_from_api = config.get("read_config_from_api", False)
     port = int(config["server"].get("http_port", 8003))
-    if not read_config_from_api:
-        logger.bind(tag=TAG).info(
-            "OTA endpoint is\t\thttp://{}:{}/xiaozhi/ota/",
-            get_local_ip(),
-            port,
-        )
+    logger.bind(tag=TAG).info(
+        "OTA endpoint is\t\thttp://{}:{}/xiaozhi/ota/",
+        get_local_ip(),
+        port,
+    )
     logger.bind(tag=TAG).info(
         "Vision analysis endpoint is\thttp://{}:{}/mcp/vision/explain",
         get_local_ip(),
@@ -142,6 +138,8 @@ async def main():
             timeout=3.0,
             return_when=asyncio.ALL_COMPLETED,
         )
+        # Drain pending database writes and stop the writer thread
+        close_database()
         print("Server closed, program exiting.")
 
 

@@ -18,8 +18,7 @@ real providers.
 Configuration loading
 ---------------------
 Always uses the file-merge path (``config.yaml`` + ``data/.config.yaml``).
-``manager-api`` is intentionally NOT contacted — pytest must work in a
-single-module deployment.
+The SQLite database is intentionally NOT opened by the provider tests.
 """
 from __future__ import annotations
 
@@ -87,66 +86,21 @@ def _load_via_file_merge() -> dict:
     return config
 
 
-# Full-module deployment detection (fail fast in any mode to avoid triggering remote APIs).
-# Full-module deployment makes ``load_config`` fetch from manager-api remotely, which pytest should not trigger.
-if _CUSTOM_CONFIG.exists():
-    _raw_custom = yaml.safe_load(_CUSTOM_CONFIG.read_text(encoding="utf-8")) or {}
-    _api_cfg = _raw_custom.get("manager-api", {})
-    _has_url = bool(_api_cfg.get("url"))
-    _has_secret = bool(_api_cfg.get("secret")) and "your_" not in str(
-        _api_cfg.get("secret", "")
-    )
-    if _has_url and _has_secret:
-        print(
-            "\n[conftest] ============================================================\n"
-            "[conftest] FAIL: full-module deployment detected (manager-api.url + secret configured),\n"
-            "[conftest]       pytest does not support full-module deployment.\n"
-            "[conftest] Reason: the server.secret of manager-api is an anonymous token,\n"
-            "[conftest]       it lacks the sys:role:superAdmin permission,\n"
-            "[conftest]       so it cannot fetch the configJson (including api_key) of LLM/TTS/Memory.\n"
-            "[conftest] How to switch to single-module:\n"
-            "[conftest]   1) manager-web -> Parameter Management -> Model Config,\n"
-            "[conftest]      copy out the configJson of LLM/TTS/Memory\n"
-            "[conftest]   2) write it to data/.config.yaml (same structure as config.yaml)\n"
-            "[conftest]   3) clear the whole manager-api block in data/.config.yaml\n"
-            "[conftest]   4) re-run pytest\n"
-            "[conftest] ============================================================",
-            flush=True,
-        )
-        sys.exit(2)
-
-
 # Always use file merging: use directly for single-module
 CONFIG: dict = _load_via_file_merge()
 
 
 # ---------------------------------------------------------------------------
-# Key: replace runtime config entry points such as ``load_config`` / ``get_server_config`` with
-# ones that directly return the CONFIG we already built, so that ``config.config_loader.load_config`` does not
-# re-read ``data/.config.yaml`` (by default a full-module deployment config) during the test run and trigger
-# a remote manager-api call.
+# Key: replace the runtime config entry point ``load_config`` with one that directly returns the
+# CONFIG we already built, so that ``config.config_loader.load_config`` does not open the SQLite
+# database during the provider tests.
 # ---------------------------------------------------------------------------
 async def _load_config_patched(*_args, **_kwargs):
     return CONFIG
 
 
-async def _get_server_config_patched(*_args, **_kwargs):
-    return None
-
-
-def _init_service_noop(_config):
-    """Prevent ``init_service`` from instantiating ``ManageApiClient``."""
-    return None
-
-
 import config.config_loader as _cl  # noqa: E402
-import config.manage_api_client as _mac  # noqa: E402
 _cl.load_config = _load_config_patched
-_mac.init_service = _init_service_noop
-_mac.get_server_config = _get_server_config_patched
-# Clear the ManageApiClient singleton, in case other code already triggered instantiation earlier.
-_mac.ManageApiClient._instance = None
-_mac.ManageApiClient._closed = True
 
 
 # ---------------------------------------------------------------------------

@@ -37,10 +37,10 @@ from core.providers.tools.unified_tool_handler import UnifiedToolHandler
 from plugins_func.loadplugins import auto_import_modules
 from plugins_func.register import Action, ActionResponse, all_function_registry, module_func_map
 from core.auth import AuthenticationError
-from config.config_loader import get_private_config_from_api
+from config.config_loader import get_private_config
+from core.db import DeviceRefused, get_database, touch_device
 from core.providers.tts.dto.dto import ContentType, TTSMessageDTO, SentenceType
 from config.logger import setup_logging, build_module_string, create_connection_logger
-from config.manage_api_client import DeviceNotFoundException, DeviceBindException, generate_and_save_chat_title
 from core.utils.prompt_manager import PromptManager
 from core.utils.voiceprint_provider import VoiceprintProvider
 from core.utils.util import get_system_error_response
@@ -93,13 +93,13 @@ class ConnectionHandler:
         self.logger = setup_logging()
         self.server = server  # Keep a reference to the server instance
 
-        self.need_bind = False  # Whether the device needs to be bound
-        self.bind_completed_event = asyncio.Event()
-        self.bind_code = None  # Verification code for binding the device
-        self.last_bind_prompt_time = 0  # Timestamp (seconds) of the last bind prompt playback
-        self.bind_prompt_interval = 60  # Bind prompt playback interval (seconds)
+        # Set once the per-device config has been loaded from the database
+        self.config_ready_event = asyncio.Event()
+        self.device_refused = False  # Unknown device while device.auto_register is off
+        self.agent_id = None  # Agent resolved for this device (used for attribution)
 
-        self.read_config_from_api = self.config.get("read_config_from_api", False)
+        # Always true in this build: config, agents and devices come from SQLite
+        self.db_enabled = self.config.get("db_enabled", True)
 
         self.websocket: websockets.ServerConnection | None = None
         self.headers = None
@@ -127,8 +127,8 @@ class ConnectionHandler:
         self.report_queue = queue.Queue()
         self.report_thread = None
         # This can be modified in the future to adjust ASR and TTS reporting; both are enabled by default for now
-        self.report_asr_enable = self.read_config_from_api
-        self.report_tts_enable = self.read_config_from_api
+        self.report_asr_enable = self.db_enabled
+        self.report_tts_enable = self.db_enabled
 
         # Dependent components
         self.vad = None
@@ -278,29 +278,12 @@ class ConnectionHandler:
     async def _save_and_close(self, ws):
         """Save memory and close the connection"""
         try:
-            # Daemon thread 1: generate the title independently (does not depend on the memory model)
-            # Title generation is triggered only when the server has chat_history reporting enabled,
-            # otherwise the server cannot look up the corresponding agent/chat_history by session_id,
-            # and would raise an "agent not found" error
-            if self.session_id and self.chat_history_conf != 0:
-                def generate_title_task():
-                    try:
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
-                        loop.run_until_complete(
-                            generate_and_save_chat_title(self.session_id)
-                        )
-                    except Exception as e:
-                        self.logger.bind(tag=TAG).error(f"Failed to generate title: {e}")
-                    finally:
-                        try:
-                            loop.close()
-                        except Exception:
-                            pass
+            # TODO(phase 3): generate the chat title / summary and write chat_session at disconnect
+            # (the Java API calls that did this are gone).
+            if self.device_refused:
+                return
 
-                threading.Thread(target=generate_title_task, daemon=True).start()
-
-            # Daemon thread 2: save memory via the legacy flow (memory only, no title)
+            # Daemon thread: save memory (memory only, no title)
             if self.memory:
                 # Save memory asynchronously using the thread pool
                 def save_memory_task():
@@ -334,36 +317,16 @@ class ConnectionHandler:
                     f"Failed to close the connection after saving memory: {close_error}"
                 )
 
-    async def _discard_message_with_bind_prompt(self):
-        """Discard the message and check whether the bind prompt needs to be played"""
-        current_time = time.time()
-        # Check whether the bind prompt needs to be played
-        if current_time - self.last_bind_prompt_time >= self.bind_prompt_interval:
-            self.last_bind_prompt_time = current_time
-            # Reuse the existing bind prompt logic
-            from core.handle.receiveAudioHandle import check_bind_device
-
-            asyncio.create_task(check_bind_device(self))
-
     async def _route_message(self, message):
         """Message routing"""
-        # Check whether the real binding state has been obtained
-        if not self.bind_completed_event.is_set():
-            # The real state has not been obtained yet; wait until it is obtained or times out
-            try:
-                await asyncio.wait_for(self.bind_completed_event.wait(), timeout=1)
-            except asyncio.TimeoutError:
-                # Timed out without obtaining the real state; discard the message
-                await self._discard_message_with_bind_prompt()
-                return
-
-        # The real state has been obtained; check whether binding is needed
-        if self.need_bind:
-            # Binding needed; discard the message
-            await self._discard_message_with_bind_prompt()
+        if self.device_refused:
             return
-
-        # No binding needed; continue processing the message
+        # Wait for the per-device config; discard the message if it is still not there
+        if not self.config_ready_event.is_set():
+            try:
+                await asyncio.wait_for(self.config_ready_event.wait(), timeout=1)
+            except asyncio.TimeoutError:
+                return
 
         if isinstance(message, str):
             await handleTextMessage(self, message)
@@ -611,9 +574,6 @@ class ConnectionHandler:
             asyncio.run_coroutine_threadsafe(
                 self.tts.open_audio_channels(self), self.loop
             )
-            if self.need_bind:
-                self.bind_completed_event.set()
-                return
             self.selected_module_str = build_module_string(
                 self.config.get("selected_module", {})
             )
@@ -732,7 +692,7 @@ class ConnectionHandler:
 
     def _init_report_threads(self):
         """Initialize the ASR and TTS report threads"""
-        if not self.read_config_from_api or self.need_bind:
+        if not self.db_enabled:
             return
         if self.chat_history_conf == 0:
             return
@@ -745,9 +705,7 @@ class ConnectionHandler:
 
     def _initialize_tts(self):
         """Initialize TTS"""
-        tts = None
-        if not self.need_bind:
-            tts = initialize_tts(self.config)
+        tts = initialize_tts(self.config)
 
         if tts is None:
             tts = DefaultTTS(self.config, delete_audio_file=True)
@@ -791,43 +749,63 @@ class ConnectionHandler:
         """Initialize config and components in the background (never blocks the main loop)"""
         try:
             # Asynchronously get the differentiated config
-            await self._initialize_private_config_async()
+            if not await self._initialize_private_config_async():
+                return  # device refused: nothing to initialize
             # Initialize components in the thread pool
             self.executor.submit(self._initialize_components)
         except Exception as e:
             self.logger.bind(tag=TAG).error(f"Background initialization failed: {e}")
 
-    async def _initialize_private_config_async(self):
-        """Asynchronously get the differentiated config from the API (async version, does not block the main loop)"""
-        if not self.read_config_from_api:
-            self.need_bind = False
-            self.bind_completed_event.set()
-            return
+    async def _refuse_device(self):
+        """Tell the device it is not registered, then close the WebSocket."""
+        self.device_refused = True
+        try:
+            await self.websocket.send(
+                json.dumps(
+                    {
+                        "type": "server",
+                        "status": "error",
+                        "message": "Device is not registered on this server",
+                        "content": {"action": "device_refused"},
+                    }
+                )
+            )
+        except Exception as e:
+            self.logger.bind(tag=TAG).debug(f"Could not send the refusal message: {e}")
+        try:
+            await self.websocket.close(code=1008, reason="device not registered")
+        except Exception as e:
+            self.logger.bind(tag=TAG).debug(f"Error closing the refused connection: {e}")
+
+    async def _initialize_private_config_async(self) -> bool:
+        """Load the differentiated (per-device) config from the database, without blocking the loop.
+
+        Returns False when the device was refused (unknown device while device.auto_register is
+        off); the connection is then closed with a message and nothing else is initialized.
+        """
+        if not self.db_enabled:
+            self.config_ready_event.set()
+            return True
         try:
             begin_time = time.time()
-            private_config = await get_private_config_from_api(
-                self.config,
-                self.headers.get("device-id"),
-                self.headers.get("client-id", self.headers.get("device-id")),
+            private_config = await get_private_config(
+                self.config, self.headers.get("device-id")
             )
-            private_config["delete_audio"] = bool(self.config.get("delete_audio", True))
-            private_config["tts_timeout"] = self.config.get("tts_timeout", 15)
+            self.agent_id = private_config.get("agent_id")
             self.logger.bind(tag=TAG).info(
-                f"{time.time() - begin_time} seconds, differentiated config obtained asynchronously: {json.dumps(filter_sensitive_info(private_config), ensure_ascii=False)}"
+                f"{time.time() - begin_time} seconds, differentiated config loaded from the database: {json.dumps(filter_sensitive_info(private_config), ensure_ascii=False)}"
             )
-            self.need_bind = False
-            self.bind_completed_event.set()
-        except DeviceNotFoundException as e:
-            self.need_bind = True
-            private_config = {}
-        except DeviceBindException as e:
-            self.need_bind = True
-            self.bind_code = e.bind_code
-            private_config = {}
+            # Remember the connection time (through the writer thread, fire and forget)
+            touch_device(get_database(), self.headers.get("device-id"))
+        except DeviceRefused as e:
+            self.logger.bind(tag=TAG).warning(f"Device refused: {e}")
+            await self._refuse_device()
+            return False
         except Exception as e:
-            self.need_bind = True
-            self.logger.bind(tag=TAG).error(f"Failed to asynchronously get the differentiated config: {e}")
+            # Degrade to the default agent's config instead of dropping the device
+            self.logger.bind(tag=TAG).error(f"Failed to load the differentiated config: {e}")
             private_config = {}
+        self.config_ready_event.set()
 
         init_llm, init_tts, init_memory, init_intent = (
             False,
@@ -861,11 +839,6 @@ class ConnectionHandler:
             self.config["selected_module"]["LLM"] = private_config["selected_module"][
                 "LLM"
             ]
-        if private_config.get("VLLM", None) is not None:
-            self.config["VLLM"] = private_config["VLLM"]
-            self.config["selected_module"]["VLLM"] = private_config["selected_module"][
-                "VLLM"
-            ]
         if private_config.get("Memory", None) is not None:
             init_memory = True
             self.config["Memory"] = private_config["Memory"]
@@ -879,35 +852,41 @@ class ConnectionHandler:
             self.config["selected_module"]["Intent"] = model_intent
             # Load the plugin config
             if model_intent != "Intent_nointent":
-                plugin_from_server = private_config.get("plugins", {})
-                for plugin, config_str in plugin_from_server.items():
-                    plugin_from_server[plugin] = json.loads(config_str)
-                # Copy the module-level plugin config to each concrete function name,
-                # making it easy to look up description, news_sources and other config per function later
-                for module_name, func_names in module_func_map.items():
-                    if module_name in plugin_from_server:
-                        module_config = plugin_from_server[module_name]
-                        for func_name in func_names:
-                            if func_name not in plugin_from_server:
-                                plugin_from_server[func_name] = module_config
-                self.config["plugins"] = plugin_from_server
-                # Expand module-level plugin names into concrete function names
-                expanded_functions = []
-                for plugin_key in plugin_from_server.keys():
-                    if plugin_key in all_function_registry:
-                        expanded_functions.append(plugin_key)
-                    elif plugin_key in module_func_map:
-                        expanded_functions.extend(module_func_map[plugin_key])
-                    else:
-                        expanded_functions.append(plugin_key)
-                self.config["Intent"][self.config["selected_module"]["Intent"]][
-                    "functions"
-                ] = expanded_functions
+                plugin_from_server = private_config.get("plugins") or {}
+                # Per-agent plugin parameters may be JSON strings or dicts
+                plugin_from_server = {
+                    plugin: json.loads(config_val) if isinstance(config_val, str) else config_val
+                    for plugin, config_val in plugin_from_server.items()
+                }
+                if plugin_from_server:
+                    # Copy the module-level plugin config to each concrete function name,
+                    # making it easy to look up description, news_sources and other config per function later
+                    for module_name, func_names in module_func_map.items():
+                        if module_name in plugin_from_server:
+                            module_config = plugin_from_server[module_name]
+                            for func_name in func_names:
+                                if func_name not in plugin_from_server:
+                                    plugin_from_server[func_name] = module_config
+                    # Per-agent parameters override the global `plugins.*` settings
+                    merged_plugins = copy.deepcopy(self.config.get("plugins") or {})
+                    merged_plugins.update(plugin_from_server)
+                    self.config["plugins"] = merged_plugins
+                    # Expand module-level plugin names into concrete function names
+                    expanded_functions = []
+                    for plugin_key in plugin_from_server.keys():
+                        if plugin_key in all_function_registry:
+                            expanded_functions.append(plugin_key)
+                        elif plugin_key in module_func_map:
+                            expanded_functions.extend(module_func_map[plugin_key])
+                        else:
+                            expanded_functions.append(plugin_key)
+                    self.config["Intent"][self.config["selected_module"]["Intent"]][
+                        "functions"
+                    ] = expanded_functions
+                # With no per-agent plugin entry the Intent model's own `functions` list applies.
+                # Nothing reaches the LLM unless tools.server_plugins_enabled is true.
         if private_config.get("prompt", None) is not None:
             self.config["prompt"] = private_config["prompt"]
-        # Get voiceprint information
-        if private_config.get("voiceprint", None) is not None:
-            self.config["voiceprint"] = private_config["voiceprint"]
         if private_config.get("summaryMemory", None) is not None:
             self.config["summaryMemory"] = private_config["summaryMemory"]
         if private_config.get("device_max_output_size", None) is not None:
@@ -957,6 +936,7 @@ class ConnectionHandler:
             self.intent = modules["intent"]
         if modules.get("memory", None) is not None:
             self.memory = modules["memory"]
+        return True
 
     def _initialize_memory(self):
         if self.memory is None:
@@ -966,7 +946,7 @@ class ConnectionHandler:
             role_id=self.device_id,
             llm=self.llm,
             summary_memory=self.config.get("summaryMemory", None),
-            save_to_file=not self.read_config_from_api,
+            save_to_file=False,  # persisted in the memory table (phase 3), not in data/.memory.yaml
         )
 
         # Get the memory summary config
@@ -1724,8 +1704,6 @@ class ConnectionHandler:
         try:
             while not self.stop_event.is_set():
                 last_activity_time = self.last_activity_time
-                if self.need_bind:
-                    last_activity_time = self.first_activity_time
 
                 # Check for timeout (only when the timestamp has been initialized)
                 if last_activity_time > 0.0:

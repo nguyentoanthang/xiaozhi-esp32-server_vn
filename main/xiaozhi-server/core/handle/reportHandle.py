@@ -17,8 +17,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from core.connection import ConnectionHandler
 
-from config.manage_api_client import report as manage_report
-
 TAG = __name__
 
 
@@ -32,28 +30,13 @@ async def report(conn: "ConnectionHandler", chat_type, text, audio_data, report_
         audio_data: audio data (PCM format when chat_type=1, Opus format when chat_type=2)
         report_time: report time
     """
-    try:
-        if audio_data:
-
-            if chat_type == 1:
-                wav_data = pcm_to_wav(conn, audio_data)
-            elif chat_type == 2:
-                wav_data = opus_to_wav(conn, audio_data)
-            else:
-                wav_data = None
-        else:
-            wav_data = None
-        # Perform the async report
-        await manage_report(
-            mac_address=conn.device_id,
-            session_id=conn.session_id,
-            chat_type=chat_type,
-            content=text,
-            audio=wav_data,
-            report_time=report_time,
-        )
-    except Exception as e:
-        conn.logger.bind(tag=TAG).error(f"Failed to report chat record: {e}")
+    # TODO(phase 3): write to chat_session / chat_message / chat_audio through the db writer.
+    # The Java chat-history API is gone, so for now the queued item is dropped here and the
+    # WAV conversion below is not run. (pcm_to_wav / opus_to_wav stay for reference; phase 3
+    # stores Opus frames as received instead.)
+    conn.logger.bind(tag=TAG).debug(
+        f"Chat history not persisted yet (phase 3): type={chat_type}, {len(text or '')} chars"
+    )
 
 
 def pcm_to_wav(conn: "ConnectionHandler", pcm_data):
@@ -165,7 +148,7 @@ def enqueue_tts_report(conn: "ConnectionHandler", text, opus_data):
         text: synthesized text
         opus_data: opus audio data
     """
-    if not conn.read_config_from_api or conn.need_bind or not conn.report_tts_enable:
+    if not conn.db_enabled or not conn.report_tts_enable:
         return
     if conn.chat_history_conf == 0:
         return
@@ -195,7 +178,7 @@ def enqueue_tool_report(conn: "ConnectionHandler", tool_name: str, tool_input: d
         tool_result: tool execution result (optional)
         report_tool_call: whether to report the tool call itself, default True; set to False when reporting only the result
     """
-    if not conn.read_config_from_api or conn.need_bind:
+    if not conn.db_enabled:
         return
     if conn.chat_history_conf == 0:
         return
@@ -232,7 +215,7 @@ def enqueue_asr_report(conn: "ConnectionHandler", text, opus_data):
         text: synthesized text
         opus_data: opus audio data
     """
-    if not conn.read_config_from_api or conn.need_bind or not conn.report_asr_enable:
+    if not conn.db_enabled or not conn.report_asr_enable:
         return
     if conn.chat_history_conf == 0:
         return

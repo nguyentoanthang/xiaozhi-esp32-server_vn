@@ -31,7 +31,7 @@ _setup_websockets_logger()
 
 
 from core.connection import ConnectionHandler
-from config.config_loader import get_config_from_api_async
+from config.config_loader import load_config_from_db
 from core.auth import AuthManager, AuthenticationError
 from core.utils.modules_initialize import initialize_modules
 from core.utils.util import check_vad_update, check_asr_update
@@ -164,8 +164,13 @@ class WebSocketServer:
         """
         try:
             async with self.config_lock:
-                # Re-fetch the config (async version)
-                new_config = await get_config_from_api_async(self.config)
+                # Re-read the global settings and the default agent from the database
+                new_config = await load_config_from_db()
+                if new_config is not None:
+                    # Keep the runtime-only values of the running config
+                    new_config["server"]["auth_key"] = self.config["server"].get("auth_key", "")
+                    if "mcp_endpoint" in self.config:
+                        new_config["mcp_endpoint"] = self.config["mcp_endpoint"]
                 if new_config is None:
                     self.logger.bind(tag=TAG).error("Failed to get the new config")
                     return False

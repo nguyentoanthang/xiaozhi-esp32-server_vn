@@ -2,14 +2,6 @@ import os
 import asyncio
 import yaml
 from collections.abc import Mapping
-from config.manage_api_client import (
-    init_service,
-    get_server_config,
-    get_agent_models,
-    get_correct_words,
-    DeviceNotFoundException,
-    DeviceBindException,
-)
 
 
 def get_project_dir():
@@ -23,8 +15,80 @@ def read_config(config_path):
     return config
 
 
+# Keys of data/.config.yaml that are needed before the database can be opened.
+# Everything else comes from the SQLite database (see docs/minimal-server-design.md, "Bootstrap").
+BOOTSTRAP_SERVER_KEYS = ("ip", "port", "http_port", "auth_key")
+
+
+def load_bootstrap_config():
+    """Read the bootstrap settings: db.path, the log block and server ip/port/http_port.
+
+    Defaults come from config.yaml, data/.config.yaml overrides them, and the env var
+    XIAOZHI_DB overrides db.path.
+    """
+    default_config = read_config(get_project_dir() + "config.yaml") or {}
+    custom_path = get_project_dir() + "data/.config.yaml"
+    custom_config = read_config(custom_path) if os.path.exists(custom_path) else {}
+    custom_config = custom_config or {}
+
+    bootstrap = {
+        "db": {"path": "data/xiaozhi.db"},
+        "log": dict(default_config.get("log") or {}),
+        "server": {
+            k: v
+            for k, v in (default_config.get("server") or {}).items()
+            if k in BOOTSTRAP_SERVER_KEYS
+        },
+    }
+    bootstrap = merge_configs(
+        bootstrap,
+        {
+            "db": custom_config.get("db") or {},
+            "log": custom_config.get("log") or {},
+            "server": {
+                k: v
+                for k, v in (custom_config.get("server") or {}).items()
+                if k in BOOTSTRAP_SERVER_KEYS
+            },
+        },
+    )
+    env_path = os.environ.get("XIAOZHI_DB")
+    if env_path:
+        bootstrap["db"]["path"] = env_path
+    return bootstrap
+
+
+def get_config_database(bootstrap=None):
+    """Open (or reuse) the process-wide database named by the bootstrap settings."""
+    from core.db import get_database
+
+    bootstrap = bootstrap or load_bootstrap_config()
+    return get_database(bootstrap["db"]["path"])
+
+
+def _build_config_from_db(bootstrap):
+    """Blocking: global settings + default agent models, with the bootstrap values on top."""
+    from core.db import build_base_config
+
+    db = get_config_database(bootstrap)
+    config = build_base_config(db)
+    server = config.setdefault("server", {})
+    server.update(bootstrap["server"])
+    config["log"] = bootstrap["log"]
+    config["db"] = {"path": db.path}
+    # Always true in this build: config, agents and devices come from SQLite
+    config["db_enabled"] = True
+    return config
+
+
+async def load_config_from_db(bootstrap=None):
+    """Build the server config from the database (runs the queries in a worker thread)."""
+    bootstrap = bootstrap or load_bootstrap_config()
+    return await asyncio.to_thread(_build_config_from_db, bootstrap)
+
+
 async def load_config():
-    """Load the configuration file"""
+    """Load the configuration: bootstrap file + database"""
     from core.utils.cache.manager import cache_manager, CacheType
 
     # Check the cache
@@ -32,18 +96,7 @@ async def load_config():
     if cached_config is not None:
         return cached_config
 
-    default_config_path = get_project_dir() + "config.yaml"
-    custom_config_path = get_project_dir() + "data/.config.yaml"
-
-    # Load the default config
-    default_config = read_config(default_config_path)
-    custom_config = read_config(custom_config_path)
-
-    if custom_config.get("manager-api", {}).get("url"):
-        config = await get_config_from_api_async(custom_config)
-    else:
-        # Merge configs
-        config = merge_configs(default_config, custom_config)
+    config = await load_config_from_db()
     # Initialize directories
     ensure_directories(config)
 
@@ -52,58 +105,15 @@ async def load_config():
     return config
 
 
-async def get_config_from_api_async(config):
-    """Get config from the Java API (async version)"""
-    # Initialize the API client
-    init_service(config)
+async def get_private_config(config, device_id):
+    """Per-device config (agent models, prompt, memory, ...) from the database.
 
-    # Get the server config
-    config_data = await get_server_config()
-    if config_data is None:
-        raise Exception("Failed to fetch server config from API")
+    Raises core.db.DeviceRefused for an unknown device when device.auto_register is off.
+    """
+    from core.db import get_agent_config, get_database
 
-    config_data["read_config_from_api"] = True
-    config_data["manager-api"] = {
-        "url": config["manager-api"].get("url", ""),
-        "secret": config["manager-api"].get("secret", ""),
-    }
-    auth_enabled = config_data.get("server", {}).get("auth", {}).get("enabled", False)
-    # The local config takes precedence for the server section
-    if config.get("server"):
-        config_data["server"] = {
-            "ip": config["server"].get("ip", ""),
-            "port": config["server"].get("port", ""),
-            "http_port": config["server"].get("http_port", ""),
-            "vision_explain": config["server"].get("vision_explain", ""),
-            "auth_key": config["server"].get("auth_key", ""),
-        }
-    config_data["server"]["auth"] = {"enabled": auth_enabled}
-    # If the server has no prompt_template, read it from the local config
-    if not config_data.get("prompt_template"):
-        config_data["prompt_template"] = config.get("prompt_template")
-    return config_data
-
-
-async def get_private_config_from_api(config, device_id, client_id):
-    """Get the private config from the Java API"""
-    results = await asyncio.gather(
-        get_agent_models(device_id, client_id, config["selected_module"]),
-        get_correct_words(device_id),
-        return_exceptions=True,
-    )
-    agent_result = results[0]
-    correct_words = results[1] if not isinstance(results[1], Exception) else None
-
-    # Raise a business exception
-    if isinstance(agent_result, DeviceNotFoundException):
-        raise agent_result
-    if isinstance(agent_result, DeviceBindException):
-        raise agent_result
-
-    private_config = agent_result if not isinstance(agent_result, Exception) else {}
-    if correct_words:
-        private_config["correct_words"] = correct_words
-    return private_config
+    # The process-wide instance was opened by load_config()
+    return await get_agent_config(get_database(), device_id)
 
 
 def ensure_directories(config):

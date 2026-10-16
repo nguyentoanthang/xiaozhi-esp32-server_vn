@@ -35,33 +35,31 @@ class SimpleHttpServer:
     async def start(self):
         try:
             server_config = self.config["server"]
-            read_config_from_api = self.config.get("read_config_from_api", False)
             host = server_config.get("ip", "0.0.0.0")
             port = int(server_config.get("http_port", 8003))
 
             if port:
                 app = web.Application()
 
-                if not read_config_from_api:
-                    # If the control console is not enabled and only a single module is running, add a simple OTA endpoint to issue the websocket address
-                    app.add_routes(
-                        [
-                            web.get("/xiaozhi/ota/", self.ota_handler.handle_get),
-                            web.post("/xiaozhi/ota/", self.ota_handler.handle_post),
-                            web.options(
-                                "/xiaozhi/ota/", self.ota_handler.handle_options
-                            ),
-                            # Download endpoint, only serves data/bin/*.bin downloads
-                            web.get(
-                                "/xiaozhi/ota/download/{filename}",
-                                self.ota_handler.handle_download,
-                            ),
-                            web.options(
-                                "/xiaozhi/ota/download/{filename}",
-                                self.ota_handler.handle_options,
-                            ),
-                        ]
-                    )
+                # Simple OTA endpoint: issues the websocket address to devices
+                app.add_routes(
+                    [
+                        web.get("/xiaozhi/ota/", self.ota_handler.handle_get),
+                        web.post("/xiaozhi/ota/", self.ota_handler.handle_post),
+                        web.options(
+                            "/xiaozhi/ota/", self.ota_handler.handle_options
+                        ),
+                        # Download endpoint, only serves data/bin/*.bin downloads
+                        web.get(
+                            "/xiaozhi/ota/download/{filename}",
+                            self.ota_handler.handle_download,
+                        ),
+                        web.options(
+                            "/xiaozhi/ota/download/{filename}",
+                            self.ota_handler.handle_options,
+                        ),
+                    ]
+                )
                 # Add routes
                 app.add_routes(
                     [

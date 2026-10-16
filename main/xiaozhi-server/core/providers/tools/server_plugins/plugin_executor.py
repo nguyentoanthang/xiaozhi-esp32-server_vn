@@ -95,6 +95,11 @@ class ServerPluginExecutor(ToolExecutor):
         """Get all registered server-side plugin tools"""
         tools = {}
 
+        # Server plugins are switched off globally unless the setting turns them on
+        # (setting `tools.server_plugins_enabled`, default false). No description reaches the LLM.
+        if not (self.config.get("tools") or {}).get("server_plugins_enabled", False):
+            return tools
+
         # Get the required functions
         necessary_functions = ["handle_exit_intent", "get_lunar"]
 

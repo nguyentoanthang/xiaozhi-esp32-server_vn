@@ -4,7 +4,6 @@ import json
 import os
 import yaml
 from config.config_loader import get_project_dir
-from config.manage_api_client import generate_and_save_chat_summary
 import asyncio
 from core.utils.util import check_model_key
 
@@ -188,9 +187,12 @@ class MemoryProvider(MemoryProviderBase):
             except Exception as e:
                 logger.bind(tag=TAG).error(f"Error in saving memory: {e}")
         else:
-            # When save_to_file is False, call the Java side's chat-record summary API
-            summary_id = session_id if session_id else self.role_id
-            await generate_and_save_chat_summary(summary_id)
+            # TODO(phase 3): summarise with the LLM and write the memory table row for this device.
+            # The Java chat-summary API that handled this case is gone, so nothing is stored yet.
+            logger.bind(tag=TAG).info(
+                "Memory persistence to the database is not implemented yet (phase 3); nothing saved"
+            )
+            return self.short_memory
         logger.bind(tag=TAG).info(
             f"Save memory successful - Role: {self.role_id}, Session: {session_id}"
         )

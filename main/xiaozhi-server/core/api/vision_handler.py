@@ -5,7 +5,6 @@ from config.logger import setup_logging
 from core.api.base_handler import BaseHandler
 from core.utils.util import get_vision_url, is_valid_image_file
 from core.utils.vllm import create_instance
-from config.config_loader import get_private_config_from_api
 from core.utils.auth import AuthToken
 import base64
 from typing import Tuple, Optional
@@ -100,15 +99,9 @@ class VisionHandler(BaseHandler):
             # Convert the image to base64 encoding
             image_base64 = base64.b64encode(image_data).decode("utf-8")
 
-            # If the control console is enabled, get the model config from it
+            # Vision is not part of the minimal server: use the global config as is
+            # (no per-device VLLM config exists, so this ends in "no default vision module")
             current_config = copy.deepcopy(self.config)
-            read_config_from_api = current_config.get("read_config_from_api", False)
-            if read_config_from_api:
-                current_config = await get_private_config_from_api(
-                    current_config,
-                    device_id,
-                    client_id,
-                )
 
             select_vllm_module = current_config["selected_module"].get("VLLM")
             if not select_vllm_module:
