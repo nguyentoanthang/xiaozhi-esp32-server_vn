@@ -1,5 +1,7 @@
 # OpenRouter LLM Provider — Implementation Plan
 
+> **SUPERSEDED (partly).** This plan assumed the full-mode Java stack (config from `manager-api`, `ai_model_config` / `ai_model_provider.fields`, Liquibase changelogs, console forms). The project is moving to a single Python process with SQLite; see [minimal-server-design.md](./minimal-server-design.md). Still valid: the provider design, SDK facts, routing options, usage record and test notes. Obsolete: everything that depends on the Java API, Liquibase, the web console or `usage` being log-only (usage will be stored in the SQLite `ai_usage` table).
+
 > Note: the Liquibase changelog is now a single baseline (`202610150000.sql`, originals in `main/manager-api/db-migration-backup/`). New changes still go in a new `<ts>.sql` plus a new changeSet appended after the baseline in `db.changelog-master.yaml`.
 
 Status: **provider and live tests are implemented; offline tests pass (45); live tests (section 13) are pending the user's OpenRouter key and have never been run against the real API.**
