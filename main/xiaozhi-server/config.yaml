@@ -129,7 +129,7 @@ plugins:
   # After applying, you can find your own apihost via this link: https://console.qweather.com/setting?lang=zh
   get_weather:
     api_host: "mj7p3y7naa.re.qweatherapi.com"
-    api_key: "a861d0d5e7bf4ee1a83d9a9e4f96d4da"
+    api_key: "your_qweather_api_key"
     default_location: "Guangzhou"  # TODO(vi): customize for Vietnamese usage (see docs/remove-chinese-plan.md)
   # News plugin configuration; pass the URL for the news type you need. Society, technology and finance news are supported by default
   # More news categories: https://www.chinanews.com.cn/rss/
