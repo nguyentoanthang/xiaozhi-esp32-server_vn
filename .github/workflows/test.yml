@@ -34,33 +34,6 @@ jobs:
             echo "::warning::Slice 2 not done yet — tests/test_smoke.py missing"
             exit 0
           fi
-
-  java:
-    name: Java (manager-api)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'maven'
-      - name: Run tests
-        working-directory: main/manager-api
-        run: mvn -B -q test -DfailIfNoTests=false
-
-  web:
-    name: Vue (manager-web)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: main/manager-web/package-lock.json
-      - name: Run tests
-        working-directory: main/manager-web
-        run: |
-          npm ci --no-audit --no-fund
-          npm run test:unit
+      - name: Run database layer tests
+        working-directory: main/xiaozhi-server
+        run: pytest tests/core/db -q

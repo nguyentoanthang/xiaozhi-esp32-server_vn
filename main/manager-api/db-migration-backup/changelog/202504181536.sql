@@ -1,7 +1,0 @@
--- Adjust the intent recognition configuration
-delete from `ai_model_config` where id = 'Intent_function_call';
-INSERT INTO `ai_model_config` VALUES ('Intent_function_call', 'Intent', 'function_call', 'Function-call intent recognition', 0, 1, '{\"type\": \"function_call\", \"functions\": \"change_role;get_weather;get_news;play_music\"}', NULL, NULL, 3, NULL, NULL, NULL, NULL);
-
--- Add the maximum number of chat sentences per device per day
-delete from `sys_params` where  id = 105;
-INSERT INTO `sys_params` (id, param_code, param_value, value_type, param_type, remark) VALUES (105, 'device_max_output_size', '0', 'number', 1, 'Maximum number of characters output per device per day, 0 means unlimited');

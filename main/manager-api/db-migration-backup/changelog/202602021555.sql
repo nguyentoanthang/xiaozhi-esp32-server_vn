@@ -1,1 +1,0 @@
-INSERT INTO `sys_params` (id, param_code, param_value, value_type, param_type, remark) VALUES (502, 'system_error_response', 'Master, Xiaozhi is a bit busy right now. Let's try again later.', 'string', 1, 'Reply on system error');

@@ -71,18 +71,3 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             BUILDKIT_PROGRESS=plain
-
-      # Build the manager-api image
-      - name: Build and push manager-web
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: Dockerfile-web
-          push: true
-          tags: |
-            ${{ env.IS_VERSION == 'true' && format('ghcr.io/{0}:web_{1},ghcr.io/{0}:web_latest', github.repository, env.VERSION) || format('ghcr.io/{0}:web_latest', github.repository) }}
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            BUILDKIT_PROGRESS=plain
