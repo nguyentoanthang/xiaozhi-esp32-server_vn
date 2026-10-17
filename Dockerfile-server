@@ -1,7 +1,21 @@
-# Production image, containing only the application code
-FROM ghcr.io/xinnan-tech/xiaozhi-esp32-server:server-base
+# xiaozhi-server (minimal single-process build): Python + SQLite, no other service
+# Build context is the repository root:  docker build -f Dockerfile-server -t xiaozhi-esp32-server:local .
+FROM python:3.10-slim
 
+# libopus0: Opus codec used for the device audio; ffmpeg: required at startup (audio conversion)
+RUN apt-get update &&     apt-get install -y --no-install-recommends libopus0 ffmpeg &&     apt-get clean &&     rm -rf /var/lib/apt/lists/*
+
+ENV LANG=C.UTF-8     LC_ALL=C.UTF-8     PYTHONIOENCODING=utf-8     PYTHONUNBUFFERED=1
+
+WORKDIR /opt/xiaozhi-esp32-server
+
+# Python dependencies first, so code changes do not rebuild this layer
+COPY main/xiaozhi-server/requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel &&     pip install --no-cache-dir -r requirements.txt --default-timeout=120 --retries 5
+
+# Application code (includes the Silero VAD model under models/)
 COPY main/xiaozhi-server .
 
-# Start the application
+# data/ holds xiaozhi.db (config, agents, devices, chat history, usage); mount it as a volume
+EXPOSE 8000 8003
 CMD ["python", "app.py"]
