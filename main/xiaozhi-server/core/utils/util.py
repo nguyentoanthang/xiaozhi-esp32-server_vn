@@ -519,52 +519,24 @@ def filter_sensitive_info(config: dict) -> dict:
     return _filter_dict(copy.deepcopy(config))
 
 
-def get_vision_url(config: dict) -> str:
-    """Get the vision URL
+def get_http_base_url(config: dict) -> str:
+    """Get the base URL of the HTTP service (OTA firmware downloads)
+
+    Uses server.http_base_url when set, otherwise http://<local ip>:<http_port>.
 
     Args:
         config: config dict
 
     Returns:
-        str: vision URL
+        str: base URL without a trailing slash
     """
     server_config = config["server"]
-    vision_explain = server_config.get("vision_explain", "")
-    if "your_" in vision_explain:
+    base_url = server_config.get("http_base_url") or ""
+    if not base_url or "your_" in base_url:
         local_ip = get_local_ip()
         port = int(server_config.get("http_port", 8003))
-        vision_explain = f"http://{local_ip}:{port}/mcp/vision/explain"
-    return vision_explain
-
-
-def is_valid_image_file(file_data: bytes) -> bool:
-    """
-    Check whether the file data is a valid image format
-
-    Args:
-        file_data: binary data of the file
-
-    Returns:
-        bool: True if it is a valid image format, otherwise False
-    """
-    # Magic numbers (file headers) of common image formats
-    image_signatures = {
-        b"\xff\xd8\xff": "JPEG",
-        b"\x89PNG\r\n\x1a\n": "PNG",
-        b"GIF87a": "GIF",
-        b"GIF89a": "GIF",
-        b"BM": "BMP",
-        b"II*\x00": "TIFF",
-        b"MM\x00*": "TIFF",
-        b"RIFF": "WEBP",
-    }
-
-    # Check whether the file header matches any known image format
-    for signature in image_signatures:
-        if file_data.startswith(signature):
-            return True
-
-    return False
+        base_url = f"http://{local_ip}:{port}"
+    return base_url.rstrip("/")
 
 
 def sanitize_tool_name(name: str) -> str:

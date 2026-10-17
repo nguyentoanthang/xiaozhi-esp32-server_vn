@@ -2,44 +2,21 @@
 
 ## Step 1: Prepare Your OTA Address
 
-If you are using version 0.3.12 of this project, you will have an OTA address regardless of whether you use the simple Server deployment or the full-module deployment.
-
-Because the OTA address is set differently in the simple Server deployment and the full-module deployment, choose the specific method below:
-
-### If You Use the Simple Server Deployment
-Now open your OTA address in a browser. For example, my OTA address is
+Open your OTA address in a browser. For example, my OTA address is
 ```
 http://192.168.1.25:8003/xiaozhi/ota/
 ```
-If it shows "OTA interface is running normally, the websocket address sent to devices is: ws://xxx:8000/xiaozhi/v1/
+If it shows "OTA interface is running normally, the websocket address sent to devices is: ws://xxx:8000/xiaozhi/v1/", continue to Step 2.
 
 You can start the `digital-human` module and open `index.html` to test whether you can connect to the websocket address shown on the OTA page.
 
-If it cannot be reached, you need to change the `server.websocket` address in the `.config.yaml` configuration file, restart, and test again until `index.html` can connect normally.
+If it cannot be reached, set the `server.websocket` value in the database and restart:
 
-Once it succeeds, continue to Step 2
-
-### If You Use the Full-Module Deployment
-Now open your OTA address in a browser. For example, my OTA address is
-```
-http://192.168.1.25:8002/xiaozhi/ota/
+```bash
+sqlite3 data/xiaozhi.db "UPDATE setting SET value = '\"ws://192.168.1.25:8000/xiaozhi/v1/\"' WHERE key = 'server.websocket';"
 ```
 
-If it shows "OTA interface is running normally, number of websocket clusters: X", continue to Step 2.
-
-If it shows "OTA interface is not running normally", you probably have not yet configured the `Websocket` address in the `Control Panel`. In that case:
-
-- 1. Log in to the Control Panel as the super administrator
-
-- 2. Click `Parameter Management` in the top menu
-
-- 3. Find the `server.websocket` item in the list and enter your `Websocket` address. For example, mine is
-
-```
-ws://192.168.1.25:8000/xiaozhi/v1/
-```
-
-After configuring it, refresh your OTA API address in the browser and see whether it is normal now. If it is still not normal, double-check whether the Websocket service started properly and whether the Websocket address was configured.
+Test again until `index.html` can connect normally.
 
 ## Step 2: Configure the Environment
 First configure the project environment by following this tutorial: [Setting up the ESP IDF 5.3.2 development environment on Windows and building Xiaozhi](https://icnynnzcwou8.feishu.cn/wiki/JEYDwTTALi5s2zkGlFGcDiRknXf)
@@ -54,7 +31,7 @@ After downloading, open the `xiaozhi-esp32/main/Kconfig.projbuild` file.
 ## Step 4: Change the OTA Address
 
 Find the `default` content of `OTA_URL` and change `https://api.tenclass.net/xiaozhi/ota/`
-   to your own address. For example, my API address is `http://192.168.1.25:8002/xiaozhi/ota/`, so I change the content to that.
+   to your own address. For example, my API address is `http://192.168.1.25:8003/xiaozhi/ota/`, so I change the content to that.
 
 Before:
 ```
@@ -68,7 +45,7 @@ After:
 ```
 config OTA_URL
     string "Default OTA URL"
-    default "http://192.168.1.25:8002/xiaozhi/ota/"
+    default "http://192.168.1.25:8003/xiaozhi/ota/"
     help
         The application will access this URL to check for new firmwares and server address.
 ```

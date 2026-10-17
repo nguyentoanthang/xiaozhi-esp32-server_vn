@@ -83,7 +83,7 @@ class ASRProviderBase(ABC):
 
     # Handle speech stop
     async def handle_voice_stop(self, conn: "ConnectionHandler", asr_audio_task: List[bytes]):
-        """Process ASR and voiceprint recognition in parallel"""
+        """Run ASR on the finished utterance and start the chat"""
         # The ASR instance is shared: tell it (and its ai_usage row) which device / agent / session this is
         with bind_attribution(attribution_from_conn(conn)):
             await self._handle_voice_stop(conn, asr_audio_task)
@@ -93,37 +93,10 @@ class ASRProviderBase(ABC):
             total_start_time = time.monotonic()
 
             # The data is already PCM, use it directly
-            pcm_data = asr_audio_task
-            combined_pcm_data = b"".join(pcm_data)
-
-            # Prepare WAV data in advance
-            wav_data = None
-            if conn.voiceprint_provider and combined_pcm_data:
-                wav_data = self._pcm_to_wav(combined_pcm_data)
-
-            # Define the ASR task
-            asr_task = self.speech_to_text_wrapper(
+            asr_result = await self.speech_to_text_wrapper(
                 asr_audio_task, conn.session_id
             )
-
-            if conn.voiceprint_provider and wav_data:
-                voiceprint_task = conn.voiceprint_provider.identify_speaker(
-                    wav_data, conn.session_id
-                )
-                # Wait for both results concurrently
-                asr_result, voiceprint_result = await asyncio.gather(
-                    asr_task, voiceprint_task, return_exceptions=True
-                )
-            else:
-                asr_result = await asr_task
-                voiceprint_result = None
-
-            # Record recognition results - check whether they are exceptions
-            if isinstance(asr_result, Exception):
-                logger.bind(tag=TAG).error(f"ASR recognition failed: {asr_result}")
-                raw_text = ""
-            else:
-                raw_text, _ = asr_result
+            raw_text, _ = asr_result
 
             # Guardrails: mask personal data before the text is logged or goes anywhere else
             # The unmasked result is kept only for the device subtitle: never log or store it
@@ -132,18 +105,9 @@ class ASRProviderBase(ABC):
             if guardrail is not None:
                 raw_text = guardrail.mask_asr_result(raw_text)
 
-            if isinstance(voiceprint_result, Exception):
-                logger.bind(tag=TAG).error(f"Voiceprint recognition failed: {voiceprint_result}")
-                speaker_name = ""
-            else:
-                speaker_name = voiceprint_result
-
             # Determine the ASR result type
             if isinstance(raw_text, dict):
                 # dict format returned by FunASR
-                if speaker_name:
-                    raw_text["speaker"] = speaker_name
-
                 # Record the recognition result
                 if raw_text.get("language"):
                     logger.bind(tag=TAG).info(f"Recognized language: {raw_text['language']}")
@@ -151,26 +115,18 @@ class ASRProviderBase(ABC):
                     logger.bind(tag=TAG).info(f"Recognized emotion: {raw_text['emotion']}")
                 if raw_text.get("content"):
                     logger.bind(tag=TAG).info(f"Recognized text: {raw_text['content']}")
-                if speaker_name:
-                    logger.bind(tag=TAG).info(f"Recognized speaker: {speaker_name}")
 
                 # Convert to a JSON string for downstream use
                 enhanced_text = json.dumps(raw_text, ensure_ascii=False)
-                shown_text = json.dumps(
-                    {**shown_raw, **({"speaker": speaker_name} if speaker_name else {})},
-                    ensure_ascii=False,
-                )
+                shown_text = json.dumps(shown_raw, ensure_ascii=False)
                 content_for_length_check = raw_text.get("content", "")
             else:
                 # Plain text returned by other ASRs
                 if raw_text:
                     logger.bind(tag=TAG).info(f"Recognized text: {raw_text}")
-                if speaker_name:
-                    logger.bind(tag=TAG).info(f"Recognized speaker: {speaker_name}")
 
-                # Build a JSON string containing speaker information
-                enhanced_text = self._build_enhanced_text(raw_text, speaker_name)
-                shown_text = self._build_enhanced_text(shown_raw, speaker_name)
+                enhanced_text = raw_text
+                shown_text = shown_raw
                 content_for_length_check = raw_text
 
             # Performance monitoring
@@ -193,15 +149,6 @@ class ASRProviderBase(ABC):
             import traceback
 
             logger.bind(tag=TAG).debug(f"Exception details: {traceback.format_exc()}")
-
-    def _build_enhanced_text(self, text: str, speaker_name: Optional[str]) -> str:
-        """Build text containing speaker information (only for plain-text ASR)"""
-        if speaker_name and speaker_name.strip():
-            return json.dumps(
-                {"speaker": speaker_name, "content": text}, ensure_ascii=False
-            )
-        else:
-            return text
 
     def _pcm_to_wav(self, pcm_data: bytes) -> bytes:
         """Convert PCM data to WAV format"""

@@ -1,8 +1,8 @@
-# Usage Guide for the Performance Test Tool for Speech Recognition, Large Language Models, Non-Streaming Speech Synthesis, Streaming Speech Synthesis, and Vision Models
+# Usage Guide for the Performance Test Tool for Speech Recognition, Large Language Models, Non-Streaming Speech Synthesis, and Streaming Speech Synthesis
 
 1. Create a data directory under main/xiaozhi-server
 2. Create a .config.yaml file in the data directory
-3. In .data/config.yaml, write the parameters for your speech recognition, large language model, streaming speech synthesis, and vision model
+3. In .data/config.yaml, write the parameters for your speech recognition, large language model, and streaming speech synthesis
 For example:
 ```
 LLM:
@@ -16,8 +16,6 @@ LLM:
     api_key: your chat-glm web key
 
 TTS:
-
-VLLM:
 
 ASR:
 ```

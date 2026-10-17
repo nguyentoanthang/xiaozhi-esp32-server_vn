@@ -4,8 +4,7 @@ import json
 import asyncio
 import re
 from concurrent.futures import Future
-from core.utils.util import get_vision_url, sanitize_tool_name
-from core.utils.auth import AuthToken
+from core.utils.util import sanitize_tool_name
 from config.logger import setup_logging
 from typing import TYPE_CHECKING
 
@@ -238,17 +237,6 @@ async def handle_mcp_message(
 async def send_mcp_initialize_message(conn: "ConnectionHandler"):
     """Send MCP initialization message"""
 
-    vision_url = get_vision_url(conn.config)
-
-    # Generate a token from the secret key
-    auth = AuthToken(conn.config["server"]["auth_key"])
-    token = auth.generate_token(conn.headers.get("device-id"))
-
-    vision = {
-        "url": vision_url,
-        "token": token,
-    }
-
     payload = {
         "jsonrpc": "2.0",
         "id": 1,  # mcpInitializeID
@@ -258,7 +246,6 @@ async def send_mcp_initialize_message(conn: "ConnectionHandler"):
             "capabilities": {
                 "roots": {"listChanged": True},
                 "sampling": {},
-                "vision": vision,
             },
             "clientInfo": {
                 "name": "XiaozhiClient",

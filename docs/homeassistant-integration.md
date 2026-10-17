@@ -51,13 +51,7 @@ Log in to `HomeAssistant`, click `your avatar in the lower left -> Profile`, swi
 
 - You need to make sure `Xiaomi Home` is integrated in HomeAssistant and your Mijia devices have been imported into `HomeAssistant`.
 
-- You need to make sure the `xiaozhi-esp32-server Control Panel` works normally.
-
-- My `xiaozhi-esp32-server Control Panel` and `HomeAssistant` are deployed on the same machine on different ports, and the version is `0.3.10`
-
-  ```
-  http://192.168.4.7:8002
-  ```
+- You need to make sure `xiaozhi-server` runs normally.
 
 
 ### Configuration Steps
@@ -91,21 +85,15 @@ Office,Desk lamp,switch.iot_cn_831898993_socn1_on_p_2_1;
 
 We call this string the "device list string". Keep it safe, because we will need it shortly.
 
-#### 2. Log in to the `Control Panel`
+#### 2. Configure the plugin in the database
 
-![image-20250504051716417](images/image-ha-integration-06.png)
+The plugin parameters are stored in the `setting` row `plugins.home_assistant` (JSON): your `HomeAssistant` address, the long-lived access token, and the "device list string" from step 1 (the value of `devices` is that one string):
 
-Log in to the `Control Panel` with the administrator account. In `Agent Management`, find your agent and click `Configure Role`.
+```bash
+sqlite3 data/xiaozhi.db "UPDATE setting SET value = json('{\"base_url\": \"http://192.168.4.7:8123\", \"api_key\": \"your HomeAssistant token\", \"devices\": \"Office,Toy lamp,switch.cuco_cn_460494544_cp1_on_p_2_1;Office,Desk lamp,switch.iot_cn_831898993_socn1_on_p_2_1;\"}') WHERE key = 'plugins.home_assistant';"
+```
 
-Set intent recognition to `External LLM intent recognition` or `LLM autonomous function calling`. You will then see `Edit Functions` on the right. Click the `Edit Functions` button and a `Function Management` dialog will pop up.
-
-In the `Function Management` dialog, check `HomeAssistant device status query` and `HomeAssistant device status modification`.
-
-After checking them, click `HomeAssistant device status query` under `Selected Functions`, and then configure your `HomeAssistant` address, key, and device list string under `Parameter Configuration`.
-
-After editing, click `Save Configuration`. The `Function Management` dialog will close, and then you click to save the agent configuration.
-
-After it is saved successfully, you can wake the device and operate it.
+Plugins are switched off by default. Enable them and list the two Home Assistant functions in the `functions` of the `function_call` intent model (see [weather-integration.md](./weather-integration.md) for the commands; the function names are `hass_get_state` and `hass_set_state`), then restart the server. After it is saved successfully, you can wake the device and operate it.
 
 #### 3. Wake the device to control it
 

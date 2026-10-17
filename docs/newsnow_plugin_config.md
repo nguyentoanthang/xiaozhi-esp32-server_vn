@@ -4,22 +4,17 @@
 
 ## Overview
 
-The `get_news_from_newsnow` plugin now supports configuring news sources dynamically through the web management interface, with no need to modify code. Users can configure different news sources for each agent in the Control Panel.
+The `get_news_from_newsnow` plugin supports configuring news sources without modifying code. The news sources are one setting for the whole server.
 
 ## Configuration Methods
 
-### 1. Configure Through the Web Management Interface (Recommended)
+The plugin parameters are stored in the `setting` row `plugins.get_news_from_newsnow` (JSON):
 
-1. Log in to the Control Panel
-2. Go to the "Role Configuration" page
-3. Select the agent to configure
-4. Click the "Edit Functions" button
-5. In the parameter configuration area on the right, find the "newsnow news aggregation" plugin
-6. In the "News Source Configuration" field, enter the Chinese names separated by semicolons
+```bash
+sqlite3 data/xiaozhi.db "UPDATE setting SET value = json_set(value, '$.news_sources', '澎湃新闻;百度热搜;财联社;微博;抖音') WHERE key = 'plugins.get_news_from_newsnow';"
+```
 
-### 2. Configuration File
-
-Configure in `config.yaml`:
+The seeded value comes from `config.yaml`:
 
 ```yaml
 plugins:
@@ -27,6 +22,9 @@ plugins:
     url: "https://newsnow.busiyi.world/api/s?id="
     news_sources: "澎湃新闻;百度热搜;财联社;微博;抖音"
 ```
+
+Plugins are switched off by default: set the setting `tools.server_plugins_enabled` to `true` and list `get_news_from_newsnow` in the
+`functions` of the `Intent_function_call` model row (see [weather-integration.md](./weather-integration.md) for the commands), then restart the server.
 
 ## News Source Configuration Format
 
@@ -87,7 +85,7 @@ If no news source is configured, the plugin uses the following default configura
 
 ## Usage
 
-1. **Configure news sources**: Set the Chinese names of the news sources in the web interface or the configuration file, separated by semicolons
+1. **Configure news sources**: Set the Chinese names of the news sources in the plugin setting, separated by semicolons
 2. **Call the plugin**: The user can say "broadcast the news" or "get the news"
 3. **Specify a news source**: The user can say "broadcast 澎湃新闻 (The Paper) news" or "get 百度热搜 (Baidu Hot Search)"
 4. **Get details**: The user can say "tell me more about this news item"

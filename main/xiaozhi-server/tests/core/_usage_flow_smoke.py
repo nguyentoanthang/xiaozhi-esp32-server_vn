@@ -193,7 +193,6 @@ async def stt_flow(handler, tmp):
     provider = ASRProvider(
         {"api_key": "k", "model_name": "openai/whisper-large-v3", "output_dir": tmp}, True, client=client
     )
-    handler.voiceprint_provider = None
     with patch.object(asr_base, "startToChat", fake_chat), patch.object(
         asr_base, "enqueue_asr_report", lambda conn, text, audio: None
     ):

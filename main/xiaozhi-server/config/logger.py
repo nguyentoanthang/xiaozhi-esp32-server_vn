@@ -32,7 +32,6 @@ def build_module_string(selected_module):
         + get_module_abbreviation("TTS", selected_module)
         + get_module_abbreviation("Memory", selected_module)
         + get_module_abbreviation("Intent", selected_module)
-        + get_module_abbreviation("VLLM", selected_module)
     )
 
 

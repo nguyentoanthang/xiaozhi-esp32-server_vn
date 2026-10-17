@@ -46,7 +46,7 @@ class MCPEndpointExecutor(ToolExecutor):
                 except Exception as e:
                     pass
 
-            # The vision model's output is not post-processed by a second LLM pass
+            # A tool result that names an action is used as is (no second LLM pass)
             if (
                 resultJson is not None
                 and isinstance(resultJson, dict)

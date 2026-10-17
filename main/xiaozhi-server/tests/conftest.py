@@ -173,8 +173,6 @@ _MOCKED_MODULES: tuple[str, ...] = (
     "vosk",
     "edge_tts",
     "elevenlabs",
-    "mem0",
-    "mem0ai",
     "freezegun",
 )
 

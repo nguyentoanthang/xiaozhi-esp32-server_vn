@@ -6,28 +6,11 @@ The prerequisite of this tutorial is that your `xiaozhi-server` already has the 
 
 # How to Connect a Simple mcp Feature, Such as a Calculator, to an Agent
 
-### If You Use the Full-Module Deployment
-If you use the full-module deployment, go to the Control Panel, open Agent Management, and click `Configure Role`. To the right of `Intent Recognition` there is an `Edit Functions` button.
-
-Click this button. In the popup page, at the bottom there is `MCP Endpoint`, which normally shows the `MCP endpoint address` of this agent. Next, we will extend this agent with a calculator feature based on MCP technology.
-
-This `MCP endpoint address` is important; you will use it shortly.
-
-### If You Use the Single-Module Deployment
-If you use the single-module deployment and have already configured the MCP endpoint address in the configuration file, then normally the following logs are printed when the single module starts.
+Your `MCP endpoint address` is the value of `agent.mcp_endpoint` for your agent (`sqlite3 data/xiaozhi.db "SELECT id, mcp_endpoint FROM agent;"`).
+When the server starts it also prints it, for example
 ```
-250705[__main__]-INFO-Component initialized: vad ok SileroVAD
-250705[__main__]-INFO-Component initialized: asr ok FunASRServer
-250705[__main__]-INFO-OTA endpoint is        http://192.168.1.25:8002/xiaozhi/ota/
-250705[__main__]-INFO-Vision analysis endpoint is  http://192.168.1.25:8002/mcp/vision/explain
 250705[__main__]-INFO-MCP endpoint is  ws://192.168.1.25:8004/mcp_endpoint/mcp/?token=abc
-250705[__main__]-INFO-Websocket address is ws://192.168.1.25:8000/xiaozhi/v1/
-250705[__main__]-INFO-=======The address above is a websocket protocol address; do not open it in a browser=======
-250705[__main__]-INFO-To test websocket, start the digital-human module and use the browser for interactive testing
-250705[__main__]-INFO-=============================================================
 ```
-
-As above, the `ws://192.168.1.25:8004/mcp_endpoint/mcp/?token=abc` printed after `MCP endpoint is` is your `MCP endpoint address`.
 
 This `MCP endpoint address` is important; you will use it shortly.
 
@@ -54,7 +37,7 @@ pip install -r requirements.txt
 
 ## Step 2: Start
 
-Before starting, first copy the MCP endpoint address from the agent in your Control Panel.
+Before starting, first copy the MCP endpoint address of your agent (see above).
 
 For example, my agent's mcp address is
 ```
@@ -73,11 +56,8 @@ After entering them, start the program
 python mcp_pipe.py calculator.py
 ```
 
-### If You Use the Control Panel Deployment
-If you use the Control Panel deployment, after starting, go back to the Control Panel and click to refresh the MCP connection status. You will then see the list of features you added.
-
-### If You Use the Single-Module Deployment
-If you use the single-module deployment, after a device connects, similar logs are printed, which means it succeeded
+### Check the Result
+After a device connects, similar logs are printed, which means it succeeded
 
 ```
 250705 -INFO-Initializing MCP endpoint: wss://2662r3426b.vicp.fun/mcp_e 

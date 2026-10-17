@@ -18,7 +18,6 @@ class CacheType(Enum):
     IP_INFO = "ip_info"
     CONFIG = "config"
     DEVICE_PROMPT = "device_prompt"
-    VOICEPRINT_HEALTH = "voiceprint_health"  # voiceprint recognition health check
     AUDIO_DATA = "audio_data"  # audio data cache
 
 
@@ -55,9 +54,6 @@ class CacheConfig:
             ),
             CacheType.DEVICE_PROMPT: cls(
                 strategy=CacheStrategy.TTL, ttl=None, max_size=1000  # manual invalidation
-            ),
-            CacheType.VOICEPRINT_HEALTH: cls(
-                strategy=CacheStrategy.TTL, ttl=600, max_size=100  # expires after 10 minutes
             ),
             CacheType.AUDIO_DATA: cls(
                 strategy=CacheStrategy.TTL, ttl=600, max_size=100  # expires after 10 minutes

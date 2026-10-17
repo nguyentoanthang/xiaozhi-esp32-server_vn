@@ -1,5 +1,3 @@
-import os
-import sys
 import copy
 import json
 import re
@@ -9,10 +7,8 @@ import queue
 import asyncio
 import threading
 import traceback
-import subprocess
 import websockets
 import opuslib_next
-import numpy as np
 
 from core.utils.util import (
     extract_json_from_string,
@@ -45,7 +41,6 @@ from core.db.usage import UsageScope, attribution_from_conn, bind_attribution, t
 from core.providers.tts.dto.dto import ContentType, TTSMessageDTO, SentenceType
 from config.logger import setup_logging, build_module_string, create_connection_logger
 from core.utils.prompt_manager import PromptManager
-from core.utils.voiceprint_provider import VoiceprintProvider
 from core.utils.util import get_system_error_response
 from core.utils import textUtils
 
@@ -145,8 +140,6 @@ class ConnectionHandler:
         self.memory = _memory
         self.intent = _intent
 
-        # Manage voiceprint recognition separately for each connection
-        self.voiceprint_provider = None
 
         # VAD related variables
         self.client_audio_buffer = bytearray()
@@ -165,7 +158,6 @@ class ConnectionHandler:
         self.asr_audio_queue = queue.Queue()
         self.current_speaker = None  # Stores the current speaker
         self.introduced_speakers = set()  # Speakers already "introduced for the first time"; ensures the name is attached only in the first turn
-        self.system_introduced_speakers = set()  # Speakers whose identity was already injected into system; ensures the system identity appears only in the first turn
 
         # LLM related variables
         self.dialogue = Dialogue()
@@ -193,9 +185,6 @@ class ConnectionHandler:
 
         # {"mcp":true} means the MCP feature is enabled
         self.features = None
-
-        # Mark whether the connection comes from MQTT
-        self.conn_from_mqtt_gateway = False
 
         # Initialize the prompt manager
         self.prompt_manager = PromptManager(self.config, self.logger)
@@ -228,21 +217,12 @@ class ConnectionHandler:
             # Authentication passed, continue processing
             self.websocket = ws
 
-            # Check whether the connection comes from MQTT
-            request_path = ws.request.path
-            self.conn_from_mqtt_gateway = request_path.endswith("?from=mqtt_gateway")
-            if self.conn_from_mqtt_gateway:
-                self.logger.bind(tag=TAG).info("Connection from: MQTT gateway")
-
             # Initialize the activity timestamp
             self.first_activity_time = time.time() * 1000
             self.last_activity_time = time.time() * 1000
 
             # Start the timeout check task
             self.timeout_task = asyncio.create_task(self._check_timeout())
-
-            # Start the AEC cache cleanup task
-            self._aec_cache_cleanup_task = asyncio.create_task(self._check_aec_cache_expiry())
 
             self.welcome_msg = self.config["xiaozhi"]
             self.welcome_msg["session_id"] = self.session_id
@@ -359,163 +339,10 @@ class ConnectionHandler:
             if self.vad is None or self.asr is None:
                 return
 
-            # Handle audio packets from the MQTT gateway
-            if self.conn_from_mqtt_gateway and len(message) >= 16:
-                handled = await self._process_mqtt_audio_message(message)
-                if handled:
-                    return
-
             # Decode PCM directly at the entry point to avoid repeated decoding by VAD and ASR
             pcm_frame = self._decode_opus_packet(message)
             if pcm_frame:
                 self.asr_audio_queue.put(pcm_frame)
-
-    async def _process_mqtt_audio_message(self, message):
-        """
-        Handle audio messages from the MQTT gateway: parse the 16-byte header, extract the audio data, and apply AEC before enqueueing
-
-        Args:
-            message: Audio message containing the header
-
-        Returns:
-            bool: Whether the message was handled successfully
-        """
-        try:
-            # Parse the timestamp
-            timestamp = int.from_bytes(message[8:12], "big")
-
-            audio_data = message[16:]
-            # Decode PCM directly at the entry point
-            pcm_frame = self._decode_opus_packet(audio_data)
-            if not pcm_frame:
-                return True
-
-            # AEC processing: if timestamp>0 and AEC is enabled
-            if timestamp > 0 and self.client_aec:
-                pcm_frame = self._apply_aec(timestamp, pcm_frame)
-
-            self.asr_audio_queue.put(pcm_frame)
-            return True
-        except Exception as e:
-            self.logger.bind(tag=TAG).error(f"Failed to parse WebSocket audio packet: {e}")
-
-        # Handling failed; returning False means processing should continue
-        return False
-
-    def _apply_aec(self, timestamp: int, pcm_frame: bytes) -> bytes:
-        """Apply AEC processing - combined algorithm: cross-correlation delay estimation + Wiener filtering + spectral subtraction"""
-        try:
-            if not pcm_frame or len(pcm_frame) == 0:
-                return pcm_frame
-
-            if not hasattr(self, "aec_audio_cache") or not self.aec_audio_cache:
-                return pcm_frame
-
-            mic_audio = np.frombuffer(pcm_frame, dtype=np.int16).astype(np.float32)
-            mic_rms = np.sqrt(np.mean(mic_audio ** 2))
-
-            if mic_rms < 100:
-                return pcm_frame
-
-            sorted_timestamps = sorted(self.aec_audio_cache.keys())
-            if len(sorted_timestamps) < 2:
-                return pcm_frame
-
-            # ========== Match reference frames (log power spectrum matching) ==========
-            n = len(mic_audio)
-
-            # Find the closest timestamp as the starting point
-            closest_idx = min(range(len(sorted_timestamps)), key=lambda i: abs(sorted_timestamps[i] - timestamp))
-
-            # Precompute the log power spectrum of mic_audio (shared inside the loop to avoid repeated FFT)
-            mic_window = np.hanning(n)
-            mic_fft = np.fft.rfft(mic_audio * mic_window)
-            mic_psd = np.abs(mic_fft) ** 2
-            mic_log_psd = 10 * np.log10(mic_psd + 1e-8)
-            mic_P_xx = np.dot(mic_log_psd, mic_log_psd)
-
-            # Find the best frame via log power spectrum matching: check 2 frames before and after
-            best_corr = -1
-            best_ref_idx = closest_idx
-            best_ref_rms = 0.0
-
-            for offset in range(-2, 3):  # T-2, T-1, T, T+1, T+2
-                test_idx = closest_idx + offset
-                if test_idx < 0 or test_idx >= len(sorted_timestamps):
-                    continue
-                test_ts = sorted_timestamps[test_idx]
-                test_ref = np.frombuffer(self.aec_audio_cache[test_ts], dtype=np.int16).astype(np.float32)
-                test_ref_rms = np.sqrt(np.mean(test_ref ** 2))
-                if test_ref_rms < 50:
-                    continue
-
-                # Log power spectrum correlation
-                test_window = np.hanning(len(test_ref))
-                test_fft = np.fft.rfft(test_ref * test_window)
-                test_psd = np.abs(test_fft) ** 2
-                test_log_psd = 10 * np.log10(test_psd + 1e-8)
-                P_xy = np.dot(mic_log_psd, test_log_psd)
-                P_yy = np.dot(test_log_psd, test_log_psd)
-                corr = abs(P_xy) / (np.sqrt(mic_P_xx) * np.sqrt(P_yy) + 1e-8)
-
-                if corr > best_corr:
-                    best_corr = corr
-                    best_ref_idx = test_idx
-                    best_ref_rms = test_ref_rms
-
-            best_ts = sorted_timestamps[best_ref_idx]
-            best_ref = np.frombuffer(self.aec_audio_cache[best_ts], dtype=np.int16).astype(np.float32)
-            ref_rms = best_ref_rms
-
-            if ref_rms < 50:
-                return pcm_frame
-
-            # Align the reference signal (truncate to the same length)
-            aligned_ref = best_ref[:n]
-            if len(aligned_ref) < n:
-                aligned_ref = np.pad(aligned_ref, (0, n - len(aligned_ref)))
-
-            # ========== Frequency-domain AEC processing (spectral subtraction) ==========
-            # Time-domain signals suffer phase distortion after the acoustic path, giving low time-domain correlation with an indeterminate sign of P_xy
-            # The frequency-domain magnitude spectrum is unaffected by phase; log power spectrum correlation stays stable at 0.97+
-            # Formula: result_mag = max(|mic_fft| - |ref_fft| * scale * coef, 0)
-
-            mic_mag = np.abs(mic_fft)
-            mic_phase = np.angle(mic_fft)
-            ref_fft = np.fft.rfft(aligned_ref * np.hanning(n))
-            ref_mag = np.abs(ref_fft)
-
-            # Compute the echo ratio scale in the frequency domain
-            scale = np.sum(mic_mag * ref_mag) / (np.dot(ref_mag, ref_mag) + 1e-8)
-
-            # Adaptive coefficient: dynamically adjusted based on scale and coh
-            # Large scale (strong echo) -> large coef; high coh (accurate match) -> large coef
-            raw_coef = 1.0 + scale * 3 + (best_corr - 0.97) * 30
-            coef = max(0.5, min(3.0, raw_coef))
-
-            # Spectral subtraction (over-subtraction + half-wave rectification)
-            echo_mag = ref_mag * scale * coef
-            result_mag = np.maximum(mic_mag - echo_mag * 1.5, mic_mag * 0.1)
-
-            # Reconstruct the signal while keeping the phase
-            result_fft = result_mag * np.exp(1j * mic_phase)
-            output = np.fft.irfft(result_fft, n)
-
-            # When confident it is pure echo, suppress further to ensure VAD cannot detect it
-            if best_corr >= 0.97 and ref_rms > 500:
-                output = output * 0.3
-
-            # Post-processing: limiting
-            output = np.clip(output, -32768, 32767)
-
-            # Convert to bytes
-            result = output.astype(np.int16).tobytes()
-
-            return result
-
-        except Exception as e:
-            self.logger.bind(tag=TAG).warning(f"[AEC] Processing failed: {e}")
-            return pcm_frame
 
     def _decode_opus_packet(self, opus_packet: bytes) -> bytes:
         """
@@ -542,54 +369,6 @@ class ConnectionHandler:
         """Initialize an independent Opus decoder for the connection"""
         if not hasattr(conn, "_connection_opus_decoder"):
             conn._connection_opus_decoder = opuslib_next.Decoder(16000, 1)
-
-    async def handle_restart(self, message):
-        """Handle a server restart request"""
-        try:
-
-            self.logger.bind(tag=TAG).info("Received server restart command, preparing to execute...")
-
-            # Send the confirmation response
-            await self.websocket.send(
-                json.dumps(
-                    {
-                        "type": "server",
-                        "status": "success",
-                        "message": "Server restarting...",
-                        "content": {"action": "restart"},
-                    }
-                )
-            )
-
-            # Perform the restart asynchronously
-            def restart_server():
-                """Method that actually performs the restart"""
-                time.sleep(1)
-                self.logger.bind(tag=TAG).info("Executing server restart...")
-                subprocess.Popen(
-                    [sys.executable, "app.py"],
-                    stdin=sys.stdin,
-                    stdout=sys.stdout,
-                    stderr=sys.stderr,
-                    start_new_session=True,
-                )
-                os._exit(0)
-
-            # Use a thread to perform the restart to avoid blocking the event loop
-            threading.Thread(target=restart_server, daemon=True).start()
-
-        except Exception as e:
-            self.logger.bind(tag=TAG).error(f"Restart failed: {str(e)}")
-            await self.websocket.send(
-                json.dumps(
-                    {
-                        "type": "server",
-                        "status": "error",
-                        "message": f"Restart failed: {str(e)}",
-                        "content": {"action": "restart"},
-                    }
-                )
-            )
 
     def _initialize_components(self):
         try:
@@ -620,8 +399,6 @@ class ConnectionHandler:
             if self.asr is None:
                 self.asr = self._initialize_asr()
 
-            # Initialize voiceprint recognition
-            self._initialize_voiceprint()
             # Open the speech recognition channel
             asyncio.run_coroutine_threadsafe(
                 self.asr.open_audio_channels(self), self.loop
@@ -753,22 +530,6 @@ class ConnectionHandler:
             asr = initialize_asr(self.config)
 
         return asr
-
-    def _initialize_voiceprint(self):
-        """Initialize voiceprint recognition for the current connection"""
-        try:
-            voiceprint_config = self.config.get("voiceprint", {})
-            if voiceprint_config:
-                voiceprint_provider = VoiceprintProvider(voiceprint_config)
-                if voiceprint_provider is not None and voiceprint_provider.enabled:
-                    self.voiceprint_provider = voiceprint_provider
-                    self.logger.bind(tag=TAG).info("Voiceprint recognition was dynamically enabled at connection time")
-                else:
-                    self.logger.bind(tag=TAG).warning("Voiceprint recognition is enabled but the config is incomplete")
-            else:
-                self.logger.bind(tag=TAG).info("Voiceprint recognition is not enabled")
-        except Exception as e:
-            self.logger.bind(tag=TAG).warning(f"Voiceprint recognition initialization failed: {str(e)}")
 
     async def _background_initialize(self):
         """Initialize config and components in the background (never blocks the main loop)"""
@@ -983,8 +744,8 @@ class ConnectionHandler:
         memory_type = self.config["Memory"][self.config["selected_module"]["Memory"]][
             "type"
         ]
-        # If nomen or mem_report_only is used, return directly
-        if memory_type == "nomem" or memory_type == "mem_report_only":
+        # If nomem is used, return directly
+        if memory_type == "nomem":
             return
         # Use mem_local_short mode
         elif memory_type == "mem_local_short":
@@ -1138,20 +899,12 @@ class ConnectionHandler:
                 )
                 memory_str = future.result()
 
-            # Inject the identity into system only when the speaker first appears; afterwards rely on the first turn kept in the dialogue history,
-            # to avoid the name repeating in system every turn and inducing the model to address the user by name repeatedly
-            speaker_for_system = None
-            cs = (self.current_speaker or "").strip()
-            if cs and cs != "Unknown speaker" and cs not in self.system_introduced_speakers:
-                self.system_introduced_speakers.add(cs)
-                speaker_for_system = cs
-
             if self.intent_type == "function_call" and functions is not None:
                 # Use the streaming interface that supports functions
                 llm_responses = self.llm.response_with_functions(
                     self.session_id,
                     self.dialogue.get_llm_dialogue_with_memory(
-                        memory_str, self.config.get("voiceprint", {}), speaker_for_system
+                        memory_str
                     ),
                     functions=functions,
                 )
@@ -1160,7 +913,7 @@ class ConnectionHandler:
                 llm_responses = self.llm.response(
                     self.session_id,
                     self.dialogue.get_llm_dialogue_with_memory(
-                        memory_str, self.config.get("voiceprint", {}), speaker_for_system
+                        memory_str
                     ),
                 )
                 llm_responses = self._track_llm_stream(llm_responses, "chat")
@@ -1593,20 +1346,6 @@ class ConnectionHandler:
                     pass
                 self.timeout_task = None
 
-            # Cancel the AEC cache cleanup task
-            if hasattr(self, "_aec_cache_cleanup_task") and self._aec_cache_cleanup_task and not self._aec_cache_cleanup_task.done():
-                self._aec_cache_cleanup_task.cancel()
-                try:
-                    await self._aec_cache_cleanup_task
-                except asyncio.CancelledError:
-                    pass
-                self._aec_cache_cleanup_task = None
-
-            # Clean up the AEC cache
-            if hasattr(self, "aec_audio_cache"):
-                self.aec_audio_cache.clear()
-                self.aec_audio_cache_time.clear()
-
             # Clean up tool handler resources
             if hasattr(self, "func_handler") and self.func_handler:
                 try:
@@ -1767,26 +1506,6 @@ class ConnectionHandler:
             self.logger.bind(tag=TAG).error(f"Timeout check task error: {e}")
         finally:
             self.logger.bind(tag=TAG).info("Timeout check task exited")
-
-    async def _check_aec_cache_expiry(self):
-        """Periodically clean up expired AEC cache"""
-        try:
-            while not self.stop_event.is_set():
-                if hasattr(self, "aec_audio_cache") and self.aec_audio_cache:
-                    current_time = time.time()
-                    expired_keys = [
-                        ts for ts, cache_time in list(self.aec_audio_cache_time.items())
-                        if current_time - cache_time > 120  # Expires after 2 minutes
-                    ]
-                    for ts in expired_keys:
-                        self.aec_audio_cache.pop(ts, None)
-                        self.aec_audio_cache_time.pop(ts, None)
-                    if expired_keys:
-                        self.logger.bind(tag=TAG).debug(f"[AEC] Cleaned up {len(expired_keys)} expired cache entries")
-                # Check every 30 seconds
-                await asyncio.sleep(30)
-        except Exception as e:
-            self.logger.bind(tag=TAG).error(f"AEC cache cleanup task error: {e}")
 
     @staticmethod
     def _extract_direct_answer_response(arguments_str):

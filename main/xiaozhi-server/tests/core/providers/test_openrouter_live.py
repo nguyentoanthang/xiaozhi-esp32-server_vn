@@ -16,7 +16,6 @@ How to run (PowerShell, from main/xiaozhi-server, venv active)::
     pytest tests/core/providers/test_openrouter_live.py -s -q --noconftest -p no:cacheprovider
 
 Why ``--noconftest``: tests/conftest.py, in RUN_LIVE_API_TESTS=1 mode, aborts the whole session
-(sys.exit 2) if data/.config.yaml is a full-mode config (manager-api url + secret) and
 (sys.exit 3) unless ASR/LLM/TTS/Memory/VAD are all configured with real keys. Without
 RUN_LIVE_API_TESTS=1 it replaces httpx.Client with a fake that always raises ConnectError, which
 would break the SDK. This module only needs the real httpx, so it gates itself and does not need
@@ -98,11 +97,11 @@ def _resolve_key():
 
 
 def _bootstrap():
-    """Make the provider importable without data/.config.yaml and without touching manager-api.
+    """Make the provider importable without data/.config.yaml.
 
     The provider modules call setup_logging() at import time, which needs a config with a `log`
     section. When tests/conftest.py is not active we seed the config cache with a minimal one
-    (logs go to tmp/openrouter_live.log + console), so a full-mode data/.config.yaml is never read.
+    (logs go to tmp/openrouter_live.log + console), so data/.config.yaml is never read.
     """
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))

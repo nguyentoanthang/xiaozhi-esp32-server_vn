@@ -1,11 +1,5 @@
 """Offline tests for core/providers/llm/openrouter/routing.py (pure functions)."""
-from pathlib import Path
 
-import pytest
-
-# Like the other tests that import setup_logging(): needs the (git-ignored) data/.config.yaml
-if not (Path(__file__).resolve().parents[3] / "data" / ".config.yaml").exists():
-    pytest.skip("data/.config.yaml is required by setup_logging(); skipped", allow_module_level=True)
 
 from core.providers.llm.openrouter import routing
 

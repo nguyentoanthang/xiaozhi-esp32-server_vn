@@ -73,30 +73,17 @@ For Xiaozhi to parse the data correctly, your API must meet the following specif
 
 ## Configuration Guide
 
-### Method 1: Control Panel configuration (full-module deployment)
+Context providers are stored per agent in the SQLite database (`agent.context_providers_json`, a JSON list):
 
-1. Log in to the Control Panel and go to the **Role Configuration** page.
-2. Find the **Context Provider** setting (click the "Edit Sources" button).
-3. Click **Add** and enter your API address.
-4. If the API requires authentication, add `Authorization` or other headers in the **Request Headers** section.
-5. Save the configuration.
-
-### Method 2: Configuration file (single-module deployment)
-
-Edit the `xiaozhi-server/data/.config.yaml` file and add the `context_providers` section:
-
-```yaml
-# Context provider configuration
-context_providers:
-  - url: "http://api.example.com/data"
-    headers:
-      Authorization: "Bearer your-token"
-  - url: "http://another-api.com/data"
+```bash
+sqlite3 data/xiaozhi.db "UPDATE agent SET context_providers_json = '[{\"url\": \"http://api.example.com/data\", \"headers\": {\"Authorization\": \"Bearer your-token\"}}, {\"url\": \"http://another-api.com/data\"}]' WHERE id = 'default';"
 ```
+
+The change applies to the next device connection. `headers` is optional.
 
 ## Enabling the Feature
 
-By default, the `{{ dynamic_context }}` placeholder is already built into the system's prompt template file (`data/.agent-base-prompt.txt`), so you do not need to add it manually.
+By default, the `{{ dynamic_context }}` placeholder is already built into the system's prompt template file (`agent-base-prompt.txt` in `main/xiaozhi-server`), so you do not need to add it manually.
 
 **Example:**
 

@@ -1,16 +1,14 @@
-# Firmware OTA Auto-Upgrade Configuration Guide for Single-Module Deployment
+# Firmware OTA Auto-Upgrade Configuration Guide
 
-This tutorial guides you through configuring the firmware OTA auto-upgrade feature in a **single-module deployment** so that device firmware updates automatically.
-
-If you already use the **full-module deployment**, ignore this tutorial.
+This tutorial guides you through configuring the firmware OTA auto-upgrade feature of the built-in OTA endpoint so that device firmware updates automatically.
 
 ## Feature Overview
 
-In a single-module deployment, xiaozhi-server has built-in OTA firmware management that can detect device versions automatically and deliver upgrade firmware. Based on the device model and current version, the system automatically matches and pushes the latest firmware version.
+xiaozhi-server has built-in OTA firmware management that can detect device versions automatically and deliver upgrade firmware. Based on the device model and current version, the system automatically matches and pushes the latest firmware version.
 
 ## Prerequisites
 
-- You have completed a **single-module deployment** and xiaozhi-server is running
+- xiaozhi-server is running
 - The device can connect to the server normally
 
 ## Step 1: Prepare the Firmware File
@@ -61,46 +59,23 @@ For example:
 cp xiaozhi.bin data/bin/bread-compact-wifi_1.6.6.bin
 ```
 
-## Step 2: Configure the Public Access Address (Required Only for Public Deployments)
+## Step 2: Configure the Download Address (Only if the Default Is Wrong)
 
-**Note: This step applies only to single-module public network deployments.**
+By default the firmware download link is `http://<server LAN ip>:<http_port>/xiaozhi/ota/download/<file>`. On a plain LAN
+you can skip this step. Behind Docker NAT, a domain name or a reverse proxy the automatic address is wrong, so set the
+base URL in the `setting` table (the value is JSON, so the string keeps its quotes):
 
-If your xiaozhi-server is deployed on a public network (using a public IP or domain name), you **must** configure the `server.vision_explain` parameter, because the OTA firmware download address uses the domain name and port from this setting.
-
-If you deploy on a LAN, you can skip this step.
-
-### Why Configure This Parameter?
-
-In a single-module deployment, when the system generates the firmware download address, it uses the domain name and port configured in `vision_explain` as the base address. If it is not configured or is configured incorrectly, the device cannot reach the firmware download address.
-
-### Configuration Method
-
-Open the `data/.config.yaml` file, find the `server` section, and set the `vision_explain` parameter:
-
-```yaml
-server:
-  vision_explain: http://your-domain-or-IP:port/mcp/vision/explain
+```bash
+sqlite3 data/xiaozhi.db "INSERT OR REPLACE INTO setting(key, value, note) VALUES ('server.http_base_url', '\"http://192.168.1.100:8003\"', 'OTA firmware base URL');"
 ```
 
-**Configuration examples:**
-
-LAN deployment (default):
-```yaml
-server:
-  vision_explain: http://192.168.1.100:8003/mcp/vision/explain
-```
-
-Public domain name deployment:
-```yaml
-server:
-  vision_explain: http://yourdomain.com:8003/mcp/vision/explain
-```
+Restart the server afterwards. Use only the scheme, host and port: the path `/xiaozhi/ota/download/<file>` is added by the server.
 
 ### Notes
 
 - The domain name or IP must be an address the device can reach
 - If you deploy with Docker, do not use Docker-internal addresses (such as 127.0.0.1 or localhost)
-- If you use an nginx reverse proxy, enter the external address and port number, not the port this project runs on
+- If you use a reverse proxy, enter the external address and port number, not the port this project runs on
 
 
 ## FAQ
@@ -119,12 +94,12 @@ server:
 
 **Possible causes and solutions:**
 
-- Check that the domain name or IP configured in `server.vision_explain` is correct
+- Check that the domain name or IP configured in `server.http_base_url` is correct
 - Confirm that the port number is configured correctly (default 8003)
 - For a public deployment, make sure the device can reach that public address
 - For a Docker deployment, make sure an internal address (127.0.0.1) is not used
 - Check that the firewall allows the corresponding port
-- If you use an nginx reverse proxy, enter the external address and port number, not the port this project runs on
+- If you use a reverse proxy, enter the external address and port number, not the port this project runs on
 
 ### 3. How to Confirm the Device's Current Version
 

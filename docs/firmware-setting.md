@@ -4,28 +4,22 @@
 Flash the firmware already built by Brother Xia, [version 1.6.1 or above](https://github.com/78/xiaozhi-esp32/releases)
 
 ## Step 2: Prepare Your OTA Address
-If you followed the tutorial and used the full-module deployment, you should have an OTA address.
+Your OTA address is `http://<server ip>:8003/xiaozhi/ota/` (it is printed in the server's startup log).
 
 Now open your OTA address in a browser. For example, my OTA address is
 ```
-https://2662r3426b.vicp.fun/xiaozhi/ota/
+http://192.168.1.25:8003/xiaozhi/ota/
 ```
 
-If it shows "OTA interface is running normally, number of websocket clusters: X", continue.
+If it shows "OTA interface is running normally, the websocket address sent to devices is: ws://xxx:8000/xiaozhi/v1/", continue.
 
-If it shows "OTA interface is not running normally", you probably have not yet configured the `Websocket` address in the `Control Panel`. In that case:
+If the websocket address shown is wrong (Docker, domain name, several network cards), set it in the database and restart the server:
 
-- 1. Log in to the Control Panel as the super administrator
-
-- 2. Click `Parameter Management` in the top menu
-
-- 3. Find the `server.websocket` item in the list and enter your `Websocket` address. For example, mine is
-
-```
-wss://2662r3426b.vicp.fun/xiaozhi/v1/
+```bash
+sqlite3 data/xiaozhi.db "UPDATE setting SET value = '\"ws://192.168.1.25:8000/xiaozhi/v1/\"' WHERE key = 'server.websocket';"
 ```
 
-After configuring it, refresh your OTA API address in the browser and see whether it is normal now. If it is still not normal, double-check whether the Websocket service started properly and whether the Websocket address was configured.
+Then refresh the OTA address in the browser. If it is still not normal, double-check whether the Websocket service started properly and whether the port is open.
 
 ## Step 3: Enter Network Configuration Mode
 Put the device into network configuration mode, click "Advanced Options" at the top of the page, enter your server's `ota` address there, and click Save. Then restart the device

@@ -2,7 +2,6 @@ import asyncio
 from aiohttp import web
 from config.logger import setup_logging
 from core.api.ota_handler import OTAHandler
-from core.api.vision_handler import VisionHandler
 
 TAG = __name__
 
@@ -12,7 +11,6 @@ class SimpleHttpServer:
         self.config = config
         self.logger = setup_logging()
         self.ota_handler = OTAHandler(config)
-        self.vision_handler = VisionHandler(config)
 
     def _get_websocket_url(self, local_ip: str, port: int) -> str:
         """Get the websocket address
@@ -60,19 +58,6 @@ class SimpleHttpServer:
                         ),
                     ]
                 )
-                # Add routes
-                app.add_routes(
-                    [
-                        web.get("/mcp/vision/explain", self.vision_handler.handle_get),
-                        web.post(
-                            "/mcp/vision/explain", self.vision_handler.handle_post
-                        ),
-                        web.options(
-                            "/mcp/vision/explain", self.vision_handler.handle_options
-                        ),
-                    ]
-                )
-
                 # Run the service
                 runner = web.AppRunner(app)
                 await runner.setup()

@@ -1,3 +1,7 @@
+> **Note: this document describes the ORIGINAL full-stack project** (Java manager-api, web console, mobile app, MySQL, Redis, nginx,
+> MQTT gateway, vision, voiceprint, RAGFlow). It is kept for reference only and does not describe the `minimal_server` branch.
+> The minimal architecture (one Python process, one SQLite file) is in [minimal-server-design.md](./minimal-server-design.md).
+
 # xiaozhi-esp32-server Architecture
 
 This document describes how the components of the full-module deployment fit together. It is based on reading the source (Python server, Java API, nginx/Docker config, docs). The mobile app (`manager-mobile`), the digital-human tool, voice cloning internals and the RAGFlow adapter were only inspected at directory level.

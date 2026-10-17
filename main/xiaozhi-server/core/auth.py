@@ -15,7 +15,6 @@ class AuthManager:
     Unified authorization and authentication manager
     Generates and verifies the client_id / device_id / token (HMAC-SHA256) authentication triple
     The token contains no plaintext client_id/device_id, only a signature + timestamp; client_id/device_id are passed at connection time
-    In MQTT, client_id: client_id, username: device_id, password: token
     In Websocket, header:{Device-ID: device_id, Client-ID: client_id, Authorization: Bearer token, ......}
     """
 

@@ -1,8 +1,5 @@
 import json
 import time
-import base64
-import hashlib
-import hmac
 import os
 import re
 import glob
@@ -10,7 +7,7 @@ from typing import Dict, List, Tuple
 from aiohttp import web
 
 from core.auth import AuthManager
-from core.utils.util import get_local_ip, get_vision_url
+from core.utils.util import get_local_ip, get_http_base_url
 from core.api.base_handler import BaseHandler
 
 TAG = __name__
@@ -101,26 +98,6 @@ class OTAHandler(BaseHandler):
         except Exception as e:
             self.logger.bind(tag=TAG).error(f"Failed to refresh firmware cache: {e}")
             # keep previous cache if any
-
-    def generate_password_signature(self, content: str, secret_key: str) -> str:
-        """Generate the MQTT password signature
-
-        Args:
-            content: signature content (clientId + '|' + username)
-            secret_key: secret key
-
-        Returns:
-            str: Base64-encoded HMAC-SHA256 signature
-        """
-        try:
-            hmac_obj = hmac.new(
-                secret_key.encode("utf-8"), content.encode("utf-8"), hashlib.sha256
-            )
-            signature = hmac_obj.digest()
-            return base64.b64encode(signature).decode("utf-8")
-        except Exception as e:
-            self.logger.bind(tag=TAG).error(f"Failed to generate MQTT password signature: {e}")
-            return ""
 
     def _get_websocket_url(self, local_ip: str, port: int) -> str:
         """Get the websocket address
@@ -231,71 +208,22 @@ class OTAHandler(BaseHandler):
                 },
             }
 
-            # existing mqtt/websocket logic (unchanged)
-            mqtt_gateway_endpoint = server_config.get("mqtt_gateway")
-
-            if mqtt_gateway_endpoint:  # If a non-empty string is configured
-                # Try to get the device model from the request data (parsed above)
-                try:
-                    group_id = f"GID_{device_model}".replace(":", "_").replace(" ", "_")
-                except Exception as e:
-                    self.logger.bind(tag=TAG).error(f"Failed to get device model: {e}")
-                    group_id = "GID_default"
-
-                mac_address_safe = device_id.replace(":", "_")
-                mqtt_client_id = f"{group_id}@@@{mac_address_safe}@@@{mac_address_safe}"
-
-                # Build user data
-                user_data = {"ip": "unknown"}
-                try:
-                    user_data_json = json.dumps(user_data)
-                    username = base64.b64encode(user_data_json.encode("utf-8")).decode(
-                        "utf-8"
-                    )
-                except Exception as e:
-                    self.logger.bind(tag=TAG).error(f"Failed to generate username: {e}")
-                    username = ""
-
-                # Generate password
-                password = ""
-                signature_key = server_config.get("mqtt_signature_key", "")
-                if signature_key:
-                    password = self.generate_password_signature(
-                        mqtt_client_id + "|" + username, signature_key
-                    )
-                    if not password:
-                        password = ""  # Leave empty if signing fails; the device decides whether to allow no password
-                else:
-                    self.logger.bind(tag=TAG).warning("Missing MQTT signing key, leaving password empty")
-
-                # Build MQTT config (use the mqtt_gateway string directly)
-                return_json["mqtt"] = {
-                    "endpoint": mqtt_gateway_endpoint,
-                    "client_id": mqtt_client_id,
-                    "username": username,
-                    "password": password,
-                    "publish_topic": "device-server",
-                    "subscribe_topic": f"devices/p2p/{mac_address_safe}",
-                }
-                self.logger.bind(tag=TAG).info(f"Issuing MQTT gateway config to device {device_id}")
-
-            else:  # mqtt_gateway not configured, issue WebSocket
-                # If authentication is enabled, perform auth validation
-                token = ""
-                if self.auth_enable:
-                    if self.allowed_devices:
-                        if device_id not in self.allowed_devices:
-                            token = self.auth.generate_token(client_id, device_id)
-                    else:
+            # If authentication is enabled, perform auth validation
+            token = ""
+            if self.auth_enable:
+                if self.allowed_devices:
+                    if device_id not in self.allowed_devices:
                         token = self.auth.generate_token(client_id, device_id)
-                # NOTE: use websocket_port here
-                return_json["websocket"] = {
-                    "url": self._get_websocket_url(local_ip, websocket_port),
-                    "token": token,
-                }
-                self.logger.bind(tag=TAG).info(
-                    f"MQTT gateway not configured, issuing WebSocket config to device {device_id}"
-                )
+                else:
+                    token = self.auth.generate_token(client_id, device_id)
+            # NOTE: use websocket_port here
+            return_json["websocket"] = {
+                "url": self._get_websocket_url(local_ip, websocket_port),
+                "token": token,
+            }
+            self.logger.bind(tag=TAG).info(
+                f"Issuing WebSocket config to device {device_id}"
+            )
 
             # Now check firmware files for updates
             try:
@@ -315,19 +243,14 @@ class OTAHandler(BaseHandler):
                     if _is_higher_version(ver, device_version):
                         # build download url (only allow download via our download endpoint)
                         chosen_version = ver
-                        # Use get_vision_url to get the base URL and replace the path
-                        vision_url = get_vision_url(self.config)
-                        # Replace the path from "/mcp/vision/explain" to "/xiaozhi/ota/download/{fname}"
-                        chosen_url = vision_url.replace(
-                            "/mcp/vision/explain", f"/xiaozhi/ota/download/{fname}"
-                        )
+                        chosen_url = f"{get_http_base_url(self.config)}/xiaozhi/ota/download/{fname}"
                         break
 
                 if chosen_url:
                     return_json["firmware"]["version"] = chosen_version
                     return_json["firmware"]["url"] = chosen_url
                     self.logger.bind(tag=TAG).info(
-                        f"Issuing firmware {chosen_version} to device {device_id} [if the address prefix is wrong, check server.vision_explain in the config file]-> {chosen_url} "
+                        f"Issuing firmware {chosen_version} to device {device_id} [if the address prefix is wrong, set server.http_base_url]-> {chosen_url} "
                     )
                 else:
                     self.logger.bind(tag=TAG).info(

@@ -49,7 +49,7 @@ async def main():
     config = await load_config()
 
     # auth_key priority: server.auth_key in data/.config.yaml > auto-generated
-    # auth_key is used for JWT authentication, e.g. JWT auth for the vision analysis API, token generation for the OTA API, and websocket authentication
+    # auth_key is used for JWT authentication, e.g. token generation for the OTA API and websocket authentication
     # Get auth_key from the config file
     auth_key = config["server"].get("auth_key", "")
     
@@ -76,11 +76,6 @@ async def main():
     port = int(config["server"].get("http_port", 8003))
     logger.bind(tag=TAG).info(
         "OTA endpoint is\t\thttp://{}:{}/xiaozhi/ota/",
-        get_local_ip(),
-        port,
-    )
-    logger.bind(tag=TAG).info(
-        "Vision analysis endpoint is\thttp://{}:{}/mcp/vision/explain",
         get_local_ip(),
         port,
     )

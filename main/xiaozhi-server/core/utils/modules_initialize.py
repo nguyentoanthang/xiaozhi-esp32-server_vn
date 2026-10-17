@@ -131,22 +131,3 @@ def initialize_asr(config):
     return new_asr
 
 
-def initialize_voiceprint(asr_instance, config):
-    """Initialize the voiceprint recognition feature"""
-    voiceprint_config = config.get("voiceprint")
-    if not voiceprint_config:
-        return False  
-
-    # Apply the configuration
-    if not voiceprint_config.get("url") or not voiceprint_config.get("speakers"):
-        logger.bind(tag=TAG).warning("Voiceprint recognition config is incomplete")
-        return False
-        
-    try:
-        asr_instance.init_voiceprint(voiceprint_config)
-        logger.bind(tag=TAG).info("Voiceprint recognition enabled dynamically for the ASR module")
-        logger.bind(tag=TAG).info(f"Configured speaker count: {len(voiceprint_config['speakers'])}")
-        return True
-    except Exception as e:
-        logger.bind(tag=TAG).error(f"Failed to dynamically initialize voiceprint recognition: {str(e)}")
-        return False

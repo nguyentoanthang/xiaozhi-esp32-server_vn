@@ -32,48 +32,24 @@ We currently support `Metaso Search`, `Tavily Search`, and `Serply Search`.
 - Copy the generated API Key. This is the key information needed for configuration
 - For the API description, see the [Serply documentation](https://serply.io/docs)
 
-## Configuration Methods
+## Configuration
 
-### Method 1. Use the Control Panel Deployment (Recommended)
+The plugin parameters are stored in the `setting` row `plugins.web_search` (JSON):
 
-- Log in to the Control Panel
-- Go to the "Configure Role" page and select the agent to configure
-- Click the "Edit Functions" button and find the "Web search" plugin in the parameter configuration area on the right
-- Check "Web search"
-- Enter the search provider (`metaso`, `tavily`, or `serply`) and enter the corresponding `API Key` in the configuration item
-- Save the configuration, then save the agent configuration
+- `provider`: the search provider, one of `metaso`, `tavily`, or `serply`
+- `api_key`: the API Key you obtained
+- optional `max_results` (default 5) and `description` (tool description for the LLM)
 
-### Method 2. Single-Module xiaozhi-server Deployment
-
-Configure in `data/.config.yaml`:
-
-- Enter the search provider in `provider`; the options are `metaso`, `tavily`, or `serply`
-- Enter the API Key you obtained in `api_key`
-
-```yaml
-plugins:
-  web_search:
-    provider: "metaso"
-    api_key: "your API Key"
+```bash
+sqlite3 data/xiaozhi.db "UPDATE setting SET value = json_set(value, '$.provider', 'metaso', '$.api_key', 'your API Key') WHERE key = 'plugins.web_search';"
 ```
 
-To customize the number of returned results and the tool description, additionally configure `max_results` and `description`:
+Plugins are switched off by default. Enable them once in the database (the second command sets the function list of the
+`function_call` intent model; add to it instead if it already lists other plugins):
 
-```yaml
-plugins:
-  web_search:
-    provider: "metaso"
-    description: "Web search tool. Use this tool when the user explicitly needs to search the web for an answer."
-    max_results: 5
-    api_key: "your API Key"
+```bash
+sqlite3 data/xiaozhi.db "UPDATE setting SET value = 'true' WHERE key = 'tools.server_plugins_enabled';"
+sqlite3 data/xiaozhi.db "UPDATE model_config SET config_json = json_set(config_json, '$.functions', json('[\"web_search\"]')) WHERE id = 'Intent_function_call';"
 ```
 
-Also make sure `web_search` is enabled in the `functions` list:
-
-```yaml
-plugins:
-  functions:
-    - web_search
-```
-
-Restart the service after the configuration for it to take effect.
+Restart the server afterwards.

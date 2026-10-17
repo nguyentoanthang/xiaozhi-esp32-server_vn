@@ -1,7 +1,7 @@
 """Memory pipeline tests.
 
 Mock mode (default): builds a real provider from the config in data/.config.yaml; external
-SDK calls (mem0ai / powermem clients) go through the shim and send no real requests.
+provider SDK calls go through the shim and send no real requests.
 Live mode (``RUN_LIVE_API_TESTS=1``): calls the real Memory provider.
 
 Interface contract (core/providers/memory/base.py):

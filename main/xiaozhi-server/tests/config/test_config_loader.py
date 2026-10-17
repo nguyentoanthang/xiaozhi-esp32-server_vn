@@ -43,3 +43,57 @@ def test_merge_does_not_mutate_defaults():
     custom = {"a": {"c": 2}}
     merge_configs(default, custom)
     assert default == {"a": {"b": 1}}  # unchanged
+
+# ---- data/.config.yaml is optional (first start with an empty ./data) ----------------------------
+def _project_without_custom_config(tmp_path, monkeypatch):
+    import shutil
+
+    from config import config_loader
+
+    project = tmp_path / "proj"
+    (project / "data").mkdir(parents=True)  # an empty mounted ./data
+    shutil.copy(config_loader.get_project_dir() + "config.yaml", project / "config.yaml")
+    monkeypatch.setattr(config_loader, "get_project_dir", lambda: str(project) + "/")
+    monkeypatch.delenv("XIAOZHI_DB", raising=False)
+    return project
+
+
+def test_bootstrap_without_custom_config_uses_defaults(tmp_path, monkeypatch):
+    from config.config_loader import load_bootstrap_config
+
+    _project_without_custom_config(tmp_path, monkeypatch)
+    boot = load_bootstrap_config()
+    assert boot["db"]["path"] == "data/xiaozhi.db"
+    assert boot["server"]["port"] == 8000 and boot["server"]["http_port"] == 8003
+    assert boot["log"]["log_dir"] == "tmp"
+
+
+def test_bootstrap_custom_config_overrides_defaults(tmp_path, monkeypatch):
+    from config.config_loader import load_bootstrap_config
+
+    project = _project_without_custom_config(tmp_path, monkeypatch)
+    (project / "data" / ".config.yaml").write_text("server:\n  port: 9000\n", encoding="utf-8")
+    assert load_bootstrap_config()["server"]["port"] == 9000
+
+
+def test_empty_custom_config_file_is_accepted(tmp_path, monkeypatch):
+    from config.config_loader import load_bootstrap_config
+
+    project = _project_without_custom_config(tmp_path, monkeypatch)
+    (project / "data" / ".config.yaml").write_text("", encoding="utf-8")
+    assert load_bootstrap_config()["db"]["path"] == "data/xiaozhi.db"
+
+
+def test_check_config_file_does_not_require_custom_config(tmp_path, monkeypatch):
+    from config import settings
+
+    _project_without_custom_config(tmp_path, monkeypatch)
+    calls = []
+
+    async def fake_load_config():
+        calls.append(1)
+
+    monkeypatch.setattr(settings, "load_config", fake_load_config)
+    monkeypatch.setattr(settings, "config_file_valid", False)
+    settings.check_config_file()  # used to raise FileNotFoundError without data/.config.yaml
+    assert calls == [1]

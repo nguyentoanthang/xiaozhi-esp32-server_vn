@@ -1,22 +1,31 @@
-# Docker install of Server
-
-version: '3'
+# Docker install of the minimal xiaozhi-server: ONE service, ONE volume (./data).
+#
+#   cd main/xiaozhi-server
+#   docker compose up -d --build
+#
+# The first start seeds ./data/xiaozhi.db (an empty ./data is fine). Then set your OpenRouter key, e.g.
+#   sqlite3 data/xiaozhi.db "UPDATE model_config SET config_json = json_set(config_json,'$.api_key','sk-or-...') WHERE id IN ('LLM_OpenRouter','ASR_OpenRouter');"
+# and restart:  docker compose restart
 services:
   xiaozhi-esp32-server:
-    image: ghcr.nju.edu.cn/xinnan-tech/xiaozhi-esp32-server:server_latest
+    build:
+      context: ../..
+      dockerfile: Dockerfile-server
+    image: xiaozhi-esp32-server:local
     container_name: xiaozhi-esp32-server
-    restart: always
-    security_opt:
-      - seccomp:unconfined
+    restart: unless-stopped
     environment:
       - TZ=UTC
+      # Optional: location of the SQLite file (relative paths are resolved against the app directory)
+      - XIAOZHI_DB=data/xiaozhi.db
     ports:
-      # ws server
+      # WebSocket server (devices)
       - "8000:8000"
-      # http service port, used for the simple OTA endpoint (single-service deployment) and the vision analysis endpoint
+      # HTTP service: built-in OTA endpoint (/xiaozhi/ota/)
       - "8003:8003"
     volumes:
-      # Config file directory
+      # The only volume: xiaozhi.db, optional data/.config.yaml, optional data/bin (firmware)
       - ./data:/opt/xiaozhi-esp32-server/data
-      # Model file mount, very important
-      - ./models/SenseVoiceSmall/model.pt:/opt/xiaozhi-esp32-server/models/SenseVoiceSmall/model.pt
+      # Only if you switch to the local FunASR model (ASR_FunASR): mount its weights (not part of the image).
+      # Download model.pt into ./models/SenseVoiceSmall/ first, or Docker creates a directory in its place.
+      # - ./models/SenseVoiceSmall/model.pt:/opt/xiaozhi-esp32-server/models/SenseVoiceSmall/model.pt

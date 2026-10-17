@@ -63,9 +63,6 @@ _YAML_SETTINGS: List[Tuple[str, Tuple[str, ...]]] = [
     ("end_prompt.prompt", ("end_prompt", "prompt")),
 ]
 
-# Plugin parameter blocks (config.yaml `plugins:`). search_from_ragflow is skipped: RAGFlow is dropped.
-_PLUGIN_SKIP = {"search_from_ragflow"}
-
 
 def _dig(data: Dict[str, Any], path: Tuple[str, ...]):
     cur: Any = data
@@ -89,8 +86,7 @@ def _setting_rows(cfg: Dict[str, Any]) -> List[Tuple[str, str, Optional[str]]]:
         if found and value is not None:
             rows.append((key, value, None))
     for name, params in (cfg.get("plugins") or {}).items():
-        if name not in _PLUGIN_SKIP:
-            rows.append((f"plugins.{name}", params, "Plugin parameters; only used when tools.server_plugins_enabled is true"))
+        rows.append((f"plugins.{name}", params, "Plugin parameters; only used when tools.server_plugins_enabled is true"))
     rows.extend(_FIXED_SETTINGS)
     return [(k, json.dumps(v, ensure_ascii=False), n) for k, v, n in rows]
 

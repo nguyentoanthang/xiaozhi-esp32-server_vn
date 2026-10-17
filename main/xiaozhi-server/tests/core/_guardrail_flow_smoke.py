@@ -138,7 +138,6 @@ async def asr_flow(handler, raw):
     log.bind.return_value.info.side_effect = lambda m, *a: logs.append(str(m))
     log.bind.return_value.debug.side_effect = lambda m, *a: logs.append(str(m))
     log.bind.return_value.error.side_effect = lambda m, *a: logs.append(str(m))
-    handler.voiceprint_provider = None
     with patch.object(asr_base, "startToChat", fake_chat), patch.object(
         asr_base, "enqueue_asr_report", lambda conn, text, audio: reported.append(text)
     ), patch.object(asr_base, "logger", log):
@@ -163,7 +162,6 @@ async def subtitle_flow(handler, source, payload):
     for level in ("info", "debug", "error", "warning"):
         getattr(log.bind.return_value, level).side_effect = lambda m, *a: logs.append(str(m))
     handler.logger = log
-    handler.voiceprint_provider = None
     handler.intent_type = "function_call"
     handler.max_output_size = 0
     handler.client_is_speaking = False

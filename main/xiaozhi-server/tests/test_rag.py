@@ -1,10 +1,9 @@
 """RAG (retrieval-augmented generation) pipeline tests.
 
-The xiaozhi-esp32-server project has no standalone RAG provider -- RAG is implemented by
-MemoryProvider (mem0ai / powermem) ``query_memory`` together with LLM tool
-calls. This test focuses on the core flow "save -> query -> get retrieval results".
+The server has no standalone RAG provider; this test only covers the memory provider contract
+(``save_memory`` then ``query_memory``) of the selected Memory module.
 
-Mock mode (default): cloud calls such as mem0/powermem go through the shim and send no requests.
+Mock mode (default): provider SDK calls go through the shim and send no requests.
 Live mode (``RUN_LIVE_API_TESTS=1``): sends real requests to the selected memory provider.
 """
 from __future__ import annotations

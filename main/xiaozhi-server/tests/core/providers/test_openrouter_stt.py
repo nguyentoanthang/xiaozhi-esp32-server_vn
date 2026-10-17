@@ -11,13 +11,8 @@ import sys
 import types
 import wave
 import io
-from pathlib import Path
 
 import pytest
-
-# Like the other tests that import setup_logging(): needs the (git-ignored) data/.config.yaml
-if not (Path(__file__).resolve().parents[3] / "data" / ".config.yaml").exists():
-    pytest.skip("data/.config.yaml is required by setup_logging(); skipped", allow_module_level=True)
 
 from core.db import Database, set_database
 from core.db.usage import Attribution, bind_attribution

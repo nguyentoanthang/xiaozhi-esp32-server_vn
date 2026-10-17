@@ -32,33 +32,25 @@ The weather plugin `get_weather` is one of the core features of the Xiaozhi ESP3
 
 These steps give you two important pieces of configuration information: the `API Key` and the `API Host`
 
-## Configuration Methods (Choose One)
+## Configuration
 
-### Method 1. If You Use the Control Panel Deployment (Recommended)
-
-1. Log in to the Control Panel
-2. Go to the "Role Configuration" page
-3. Select the agent to configure
-4. Click the "Edit Functions" button
-5. In the parameter configuration area on the right, find the "Weather query" plugin
-6. Check "Weather query"
-7. Enter the first key setting you copied, the `API Key`, into `Weather plugin API key`
-8. Enter the second key setting you copied, the `API Host`, into `Developer API Host`
-9. Save the configuration, then save the agent configuration
-
-### Method 2. If You Only Use the Single-Module xiaozhi-server Deployment
-
-Configure in `data/.config.yaml`:
+The plugin parameters are stored in the `setting` row `plugins.get_weather` (JSON):
 
 1. Enter the first key setting you copied, the `API Key`, into `api_key`
 2. Enter the second key setting you copied, the `API Host`, into `api_host`
 3. Enter your city into `default_location`, for example `Guangzhou`
 
-```yaml
-plugins:
-  get_weather:
-    api_key: "your QWeather API key"
-    api_host: "your QWeather API host address"
-    default_location: "your default query city"
+```bash
+sqlite3 data/xiaozhi.db "UPDATE setting SET value = json_set(value, '$.api_key', 'your QWeather API key', '$.api_host', 'your QWeather API host address', '$.default_location', 'your default query city') WHERE key = 'plugins.get_weather';"
 ```
+
+Plugins are switched off by default. Enable them once in the database (the second command lists the plugin in the function list of the
+`function_call` intent model; keep the other names if the list already has some):
+
+```bash
+sqlite3 data/xiaozhi.db "UPDATE setting SET value = 'true' WHERE key = 'tools.server_plugins_enabled';"
+sqlite3 data/xiaozhi.db "UPDATE model_config SET config_json = json_set(config_json, '$.functions', json('[\"get_weather\"]')) WHERE id = 'Intent_function_call';"
+```
+
+Restart the server afterwards (the shared intent module is created at startup).
 

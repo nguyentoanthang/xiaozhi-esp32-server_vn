@@ -1,9 +1,8 @@
 # MCP Endpoint Deployment and Usage Guide
 
-This tutorial has 3 parts
+This tutorial has 2 parts
 - 1. How to deploy the MCP endpoint service
-- 2. How to configure the MCP endpoint in a full-module deployment
-- 3. How to configure the MCP endpoint in a single-module deployment
+- 2. How to configure the MCP endpoint in xiaozhi-server
 
 # 1. How to Deploy the MCP Endpoint Service
 
@@ -37,9 +36,9 @@ docker logs -f mcp-endpoint-server
 
 At this point, logs similar to the following are printed
 ```
-250705 INFO-=====The addresses below are the Control Panel / single-module MCP endpoint addresses====
-250705 INFO-Control Panel MCP parameter configuration: http://172.22.0.2:8004/mcp_endpoint/health?key=abc
-250705 INFO-Single-module deployment MCP endpoint: ws://172.22.0.2:8004/mcp_endpoint/mcp/?token=def
+250705 INFO-=====The addresses below are the MCP endpoint addresses====
+250705 INFO-MCP health check: http://172.22.0.2:8004/mcp_endpoint/health?key=abc
+250705 INFO-MCP endpoint: ws://172.22.0.2:8004/mcp_endpoint/mcp/?token=def
 250705 INFO-=====Choose according to your deployment. Do not disclose them to anyone======
 ```
 
@@ -54,73 +53,36 @@ Because you deployed with docker, do NOT use the addresses above directly!
 First copy the addresses into a scratch file. You need to know your computer's LAN IP. For example, my computer's LAN IP is `192.168.1.25`, so
 my original API addresses
 ```
-Control Panel MCP parameter configuration: http://172.22.0.2:8004/mcp_endpoint/health?key=abc
-Single-module deployment MCP endpoint: ws://172.22.0.2:8004/mcp_endpoint/mcp/?token=def
+MCP health check: http://172.22.0.2:8004/mcp_endpoint/health?key=abc
+MCP endpoint: ws://172.22.0.2:8004/mcp_endpoint/mcp/?token=def
 ```
 need to be changed to
 ```
-Control Panel MCP parameter configuration: http://192.168.1.25:8004/mcp_endpoint/health?key=abc
-Single-module deployment MCP endpoint: ws://192.168.1.25:8004/mcp_endpoint/mcp/?token=def
+MCP health check: http://192.168.1.25:8004/mcp_endpoint/health?key=abc
+MCP endpoint: ws://192.168.1.25:8004/mcp_endpoint/mcp/?token=def
 ```
 
-After changing them, use a browser to directly visit the `Control Panel MCP parameter configuration` address. If the browser shows code like the following, it worked.
+After changing them, use a browser to directly visit the `MCP health check` address. If the browser shows code like the following, it worked.
 ```
 {"result":{"status":"success","connections":{"tool_connections":0,"robot_connections":0,"total_connections":0}},"error":null,"id":null,"jsonrpc":"2.0"}
 ```
 
 Keep the two `API addresses` above, because you will need them in the next step.
 
-# 2. How to Configure the MCP Endpoint in a Full-Module Deployment
-First, enable the MCP endpoint feature. In the Control Panel, click `Parameter Dictionary` at the top, and in the dropdown menu click the `System Feature Configuration` page. Check `MCP Endpoint` on the page and click `Save Configuration`. On the `Role Configuration` page, click the `Edit Functions` button to see the `MCP endpoint` feature.
+# 2. How to Configure the MCP Endpoint in xiaozhi-server
 
-If you use the full-module deployment, log in to the Control Panel with the administrator account, click `Parameter Dictionary` at the top, and choose `Parameter Management`.
+The MCP endpoint address is stored per agent in the SQLite database (`agent.mcp_endpoint`). Put the `MCP endpoint` address from the previous step into the agent that your device uses (the default agent is `default`):
 
-Then search for the parameter `server.mcp_endpoint`. Its value should be `null` at this point.
-Click the Edit button, paste the `Control Panel MCP parameter configuration` obtained in the previous step into `Parameter Value`, and then save.
-
-If it saves successfully, everything went well and you can go to the agent to see the result. If not, the Control Panel cannot reach the MCP endpoint, most likely because of a network firewall or an incorrect LAN IP.
-
-# 3. How to Configure the MCP Endpoint in a Single-Module Deployment
-
-If you use the single-module deployment, find your configuration file `data/.config.yaml`.
-Search the configuration file for `mcp_endpoint`. If it is not found, add the `mcp_endpoint` setting. Mine looks like this
-```
-server:
-  websocket: ws://your-ip-or-domain:port/xiaozhi/v1/
-  http_port: 8002
-log:
-  log_level: INFO
-
-# There may be more configuration here..
-
-mcp_endpoint: your endpoint websocket address
-```
-Now paste the `single-module deployment MCP endpoint` obtained in `How to deploy the MCP endpoint service` into `mcp_endpoint`. Like this
-
-```
-server:
-  websocket: ws://your-ip-or-domain:port/xiaozhi/v1/
-  http_port: 8002
-log:
-  log_level: INFO
-
-# There may be more configuration here
-
-mcp_endpoint: ws://192.168.1.25:8004/mcp_endpoint/mcp/?token=def
+```bash
+sqlite3 data/xiaozhi.db "UPDATE agent SET mcp_endpoint = 'ws://192.168.1.25:8004/mcp_endpoint/mcp/?token=def' WHERE id = 'default';"
 ```
 
-After configuring, starting the single module prints logs like the following.
+The change applies to the next device connection; restart the server if you want the startup log to print it. When the server starts it prints logs like the following.
 ```
 250705[__main__]-INFO-Component initialized: vad ok SileroVAD
-250705[__main__]-INFO-Component initialized: asr ok FunASRServer
-250705[__main__]-INFO-OTA endpoint is        http://192.168.1.25:8002/xiaozhi/ota/
-250705[__main__]-INFO-Vision analysis endpoint is  http://192.168.1.25:8002/mcp/vision/explain
+250705[__main__]-INFO-OTA endpoint is        http://192.168.1.25:8003/xiaozhi/ota/
 250705[__main__]-INFO-MCP endpoint is  ws://192.168.1.25:8004/mcp_endpoint/mcp/?token=abc
 250705[__main__]-INFO-Websocket address is ws://192.168.1.25:8000/xiaozhi/v1/
-250705[__main__]-INFO-=======The address above is a websocket protocol address; do not open it in a browser=======
-250705[__main__]-INFO-To test websocket, start the digital-human module and use the browser for interactive testing
-250705[__main__]-INFO-=============================================================
 ```
 
 As above, if it prints something like `MCP endpoint is` followed by `ws://192.168.1.25:8004/mcp_endpoint/mcp/?token=abc`, the configuration succeeded.
-

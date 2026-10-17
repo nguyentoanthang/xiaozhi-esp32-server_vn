@@ -1,8 +1,7 @@
-# During development, create a data directory in the project root, then create an empty file named [.config.yaml] inside it
-# Then put whatever settings you want to override in the [.config.yaml] file, rather than editing [config.yaml]
-# The system reads the settings in [data/.config.yaml] first; if a setting is not present in [.config.yaml], it falls back to the one in [config.yaml].
-# This keeps your configuration minimal and protects your keys.
-# If you use the management console, none of the settings below take effect; change them in the console instead
+# Minimal build: the server runs from the SQLite database (data/xiaozhi.db). It is seeded from this file on the first start;
+# after that, edit the database (see docs/minimal-server-design.md), not this file.
+# data/.config.yaml is OPTIONAL. If present, only these bootstrap keys are read from it (they override the values below):
+# db.path, the log block, and server.ip / port / http_port / auth_key. The env var XIAOZHI_DB overrides db.path.
 
 # #####################################################################################
 # #############################Basic server runtime configuration below####################################
@@ -10,7 +9,7 @@ server:
   # Server listening address and port
   ip: 0.0.0.0
   port: 8000
-  # Port of the HTTP service, used for the simple OTA endpoint (single-service deployment) and the vision analysis endpoint
+  # Port of the HTTP service, used for the built-in OTA endpoint
   http_port: 8003
   # This websocket setting is the websocket address the OTA endpoint sends to devices
   # With the default value, the OTA endpoint generates the websocket address automatically and prints it in the startup log; you can open the OTA endpoint in a browser to confirm it
@@ -18,13 +17,8 @@ server:
   # So when deploying with docker, set websocket to a LAN address
   # When deploying on the public internet, set websocket to the public address
   websocket: ws://your_ip_or_domain:port/xiaozhi/v1/
-  # Vision analysis endpoint address
-  # The vision analysis endpoint address sent to devices
-  # With the default value below, the system generates the vision recognition address automatically and prints it in the startup log; you can open it in a browser to confirm
-  # It may not be accurate when you deploy with docker or on the public internet (with SSL / a domain name)
-  # So when deploying with docker, set vision_explain to a LAN address
-  # When deploying on the public internet, set vision_explain to the public address
-  vision_explain: http://your_ip_or_domain:port/mcp/vision/explain
+  # Optional setting `server.http_base_url` (add it to the `setting` table): base URL of firmware download links in the OTA reply.
+  # By default http://<server ip>:<http_port>. Set it when running behind Docker NAT or a domain name.
   # Time zone offset in the OTA response
   timezone_offset: +8
   # Authentication configuration
@@ -35,12 +29,6 @@ server:
     # Devices on the whitelist skip token validation and are let through directly
     allowed_devices:
       - "11:22:33:44:55:66"
- # MQTT gateway configuration, delivered to devices via OTA; configure it according to the .env file of mqtt_gateway, format host:port
-  mqtt_gateway: null
-  # MQTT signature key, used to generate the MQTT connection password; configure it according to the .env file of mqtt_gateway
-  mqtt_signature_key: null
-  # UDP gateway configuration
-  udp_gateway: null
 log:
   # Log format for console output: time, log level, tag, message
   log_format: "<green>{time:YYMMDD HH:mm:ss}</green>[{version}_{selected_module}][<light-blue>{extra[tag]}</light-blue>]-<level>{level}</level>-<light-green>{message}</light-green>"
@@ -154,15 +142,6 @@ plugins:
       - ".wav"
       - ".p3"
     refresh_time: 300 # Interval for refreshing the music list, in seconds
-  search_from_ragflow:
-    # Description of the knowledge base, so the LLM knows when to call it
-    description: "When the user asks about xxx, call this method and answer using the information in the knowledge base"
-    # ragflow API configuration
-    base_url: "http://192.168.0.8"
-    # ragflow API access token
-    api_key: "ragflow-xxx"
-    # ragflow knowledge base id
-    dataset_ids: ["123456789"]
   # Web search plugin configuration
   # Supports three search sources: Metaso, Tavily and Serply
   # Metaso API Key: https://metaso.cn/search-api/api-keys
@@ -177,19 +156,6 @@ plugins:
     max_results: 5
     # Metaso API Key (mk- prefix) / Tavily API Key (tvly- prefix) / Serply API Key
     api_key: "mk-xxx"
-# Voiceprint recognition configuration
-voiceprint:
-  # Voiceprint service address
-  url: 
-  # Speaker configuration: speaker_id,name,description
-  speakers:
-    - "test1,Zhang San,Zhang San is a programmer"
-    - "test2,Li Si,Li Si is a product manager"
-    - "test3,Wang Wu,Wang Wu is a designer"
-  # Voiceprint similarity threshold, range 0.0-1.0, default 0.4
-  # Higher values are stricter: fewer false matches but possibly more rejections
-  similarity_threshold: 0.4
-
 # #####################################################################################
 # ################################Role model configuration below######################################
 
@@ -229,11 +195,9 @@ selected_module:
   ASR: FunASR
   # The actual LLM adapter is called according to the type of the configured name
   LLM: ChatGLMLLM
-  # Vision-language model
-  VLLM: ChatGLMVLLM
   # The actual TTS adapter is called according to the type of the configured name
   TTS: EdgeTTS
-  # Memory module; memory is disabled by default. For very long memory, mem0ai is recommended; if privacy matters, use the local mem_local_short
+  # Memory module: nomem (off) or mem_local_short (a local summary kept per device)
   Memory: nomem
   # With the intent recognition module enabled, you can play music, control the volume and recognize exit commands.
   # If you do not want intent recognition, set it to: nointent
@@ -273,7 +237,6 @@ Intent:
       - change_role
       - web_search                  # Web search
       - get_weather
-      # - search_from_ragflow
       # - get_news_from_chinanews
       - get_news_from_newsnow
       # play_music is the server's built-in music playback; hass_play_music is playback by a separate external program controlled through home assistant
@@ -283,59 +246,6 @@ Intent:
       #- hass_play_music
 
 Memory:
-  mem0ai:
-    type: mem0ai
-    # https://app.mem0.ai/dashboard/api-keys
-    # 1000 free calls per month
-    api_key: your_mem0ai_api_key
-  powermem:
-    # PowerMem is an open-source agent memory component from OceanBase; it summarizes memories through a local LLM
-    # Cost: PowerMem itself is free; actual cost depends on the chosen LLM and database
-    # - sqlite + a free LLM (e.g. glm-4-flash) = completely free
-    # - cloud LLM or cloud database = billed by the respective service
-    # GitHub: https://github.com/oceanbase/powermem
-    # Website: https://www.powermem.ai/
-    # Usage examples: https://github.com/oceanbase/powermem/tree/main/examples
-    type: powermem
-    # Whether to enable the user profile feature
-    # - false: use the normal memory mode (AsyncMemory)
-    # - true: use the user profile mode (UserMemory), which extracts user information automatically
-    # The user profile feature supports: oceanbase, seekdb, sqlite (powermem 0.3.0+)
-    enable_user_profile: true
-    # ========== LLM configuration ==========
-    # Qwen (Tongyi Qianwen): https://bailian.console.aliyun.com/?apiKey=1#/api-key
-    # Zhipu AI (free): https://bigmodel.cn/usercenter/proj-mgmt/apikeys
-    llm:
-      provider: openai  # Options: qwen, openai, zhipu, etc.
-      config:
-        api_key: your_llm_api_key
-        model: qwen-plus
-        # openai_base_url: https://api.openai.com/v1  # Optional, custom service address
-    # ========== Embedding configuration ==========
-    embedder:
-      provider: openai  # Options: qwen, openai, etc.
-      config:
-        api_key: your_embedding_model_api_key
-        model: text-embedding-v4
-        openai_base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
-        # embedding_dims: 1024  # Vector dimensions; must be configured when not 1536
-
-    # ========== Database configuration ==========
-    # oceanbase (recommended, best performance), seekdb (recommended, all-in-one storage for AI apps), postgres, sqlite (lightweight alternative)
-    # The user profile feature supports: oceanbase, seekdb, sqlite
-    vector_store:
-      provider: sqlite
-      config: {}  # SQLite needs no extra configuration
-      # OceanBase configuration example:
-      # provider: oceanbase
-      # config:
-      #   host: 127.0.0.1
-      #   port: 2881
-      #   user: root@test
-      #   password: your_password
-      #   db_name: powermem
-      #   collection_name: memories  # Default table name; if the dimensions were created incorrectly, delete this table or change the name
-      #   embedding_model_dims: 1024  # Embedding vector dimensions; make sure it matches the model used. For Zhipu, for example, embedding-2 has 1024 dimensions and embedding-3 has 2048
   nomem:
     # If you do not want the memory feature, use nomem
     type: nomem
@@ -752,31 +662,6 @@ LLM:
     # Xinference service address and model name
     model_name: qwen2.5:3b-AWQ  # Name of the small model, used for intent recognition
     base_url: http://localhost:9997  # Xinference service address
-# VLLM configuration (vision-language model)
-VLLM:
-  ChatGLMVLLM:
-    type: openai
-    # glm-4v-flash is Zhipu's free vision model; you must first create an API key on the Zhipu AI platform and obtain the api_key
-    # You can find your api key here https://bigmodel.cn/usercenter/proj-mgmt/apikeys
-    model_name: glm-4v-flash  # Zhipu AI vision model
-    url: https://open.bigmodel.cn/api/paas/v4/
-    api_key: your_api_key
-  QwenVLVLLM:
-    type: openai
-    model_name: qwen3.5-flash
-    url: https://dashscope.aliyuncs.com/compatible-mode/v1
-    # You can find your api key here https://bailian.console.aliyun.com/?apiKey=1#/api-key
-    api_key: your_api_key
-  XunfeiSparkLLM:
-    # Define the LLM API type
-    type: openai
-    # First create an application at the address below
-    # Application activation URL: https://console.xfyun.cn/app/myapp
-    # There is a free quota, but you still need to activate the service to get an api_key
-    # Each model must be activated separately and each model has a different api_password; for example the Lite model is activated at https://console.xfyun.cn/services/cbm
-    base_url: https://ark.cn-beijing.volces.com/api/v3
-    model_name: lite
-    api_key: your_api_password
 TTS:
   # Currently supported types are edge and doubao; you can adapt others yourself
   EdgeTTS:

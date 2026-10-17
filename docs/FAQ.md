@@ -2,8 +2,8 @@
 
 ### 1. Why does Xiaozhi recognize a lot of Korean, Japanese, and English from what I say? 🇰🇷
 
-Suggestion: check whether `models/SenseVoiceSmall` already contains the `model.pt`
-file. If not, you need to download it; see [Download the speech recognition model file](Deployment.md#model-files)
+Suggestion: this happens with the local FunASR model (`ASR_FunASR`). Check whether `models/SenseVoiceSmall` contains the `model.pt`
+file; if not, download it, see [Model files](Deployment.md#model-files). The seeded default (OpenRouter STT) does not use it; set the `language` key of the `ASR_OpenRouter` row to fix the recognition language.
 
 ### 2. Why does the error "TTS task failed: file does not exist" appear? 📁
 
@@ -40,7 +40,6 @@ To improve the response speed, try replacing the components. Since version `0.5.
 |:---:|:---:|:---:|
 | ASR (speech recognition) | FunASR (local) | 👍XunfeiStreamASR (iFlytek streaming) |
 | LLM (large language model) | glm-4-flash (Zhipu) | 👍qwen-flash (Alibaba Bailian) |
-| VLLM (vision large model) | glm-4v-flash (Zhipu) | 👍qwen3.5-flash (Alibaba Bailian) |
 | TTS (speech synthesis) | EdgeTTS (Microsoft) | 👍DoubaoTTS (Volcano Engine) |
 | Intent (intent recognition) | function_call (function calling) | function_call (function calling) |
 | Memory (memory feature) | mem_local_short (local short-term memory) | mem_local_short (local short-term memory) |
@@ -60,42 +59,31 @@ VAD:
 ```
 
 ### 7. Deployment-related tutorials
-1. [How to do a minimal deployment](./Deployment.md)<br/>
-2. [How to do a full-module deployment](./Deployment_all.md)<br/>
-3. [How to deploy the MQTT gateway to enable the MQTT+UDP protocol](./mqtt-gateway-integration.md)<br/>
-4. [How to automatically pull the latest project code, then build and start it](./dev-ops-integration.md)<br/>
-5. [How to integrate with Nginx](https://github.com/xinnan-tech/xiaozhi-esp32-server/issues/791)<br/>
-6. [How to build your own Docker image after modifying the code](./docker-build.md)<br/>
+1. [How to deploy (Docker or from source)](./Deployment.md)<br/>
+2. [Minimal server design: database, agents, devices](./minimal-server-design.md)<br/>
 
 ### 8. Firmware build tutorials
 1. [How to build the Xiaozhi firmware yourself](./firmware-build.md)<br/>
 2. [How to change the OTA address based on the firmware built by Brother Xia](./firmware-setting.md)<br/>
-3. [How to configure firmware OTA auto-upgrade for a single-module deployment](./ota-upgrade-guide.md)<br/>
+3. [How to configure firmware OTA auto-upgrade](./ota-upgrade-guide.md)<br/>
 
-### 9. Extension tutorials
-1. [How to enable phone number registration for the Control Panel](./ali-sms-integration.md)<br/>
-2. [How to integrate HomeAssistant for smart home control](./homeassistant-integration.md)<br/>
-3. [How to enable the vision model to identify objects from photos](./mcp-vision-integration.md)<br/>
-4. [How to deploy an MCP endpoint](./mcp-endpoint-enable.md)<br/>
-5. [How to connect to an MCP endpoint](./mcp-endpoint-integration.md)<br/>
-6. [How to get device information with MCP methods](./mcp-get-device-info.md)<br/>
-7. [How to enable voiceprint recognition](./voiceprint-integration.md)<br/>
-8. [News plugin source configuration guide](./newsnow_plugin_config.md)<br/>
-9. [RAGFlow knowledge base integration guide](./ragflow-integration.md)<br/>
-10. [How to deploy a context provider](./context-provider-integration.md)<br/>
-11. [How to integrate PowerMem intelligent memory](./powermem-integration.md)<br/>
-12. [How to configure the weather plugin to query the weather](./weather-integration.md)<br/>
-13. [How to enable the device call plugin](./device-call-guide.md)<br/>
-14. [How to enable web search](./web-search-integration.md)<br/>
+### 9. Extension tutorials (server plugins are off by default, see the guides)
+1. [How to integrate HomeAssistant for smart home control](./homeassistant-integration.md)<br/>
+2. [How to deploy an MCP endpoint](./mcp-endpoint-enable.md)<br/>
+3. [How to connect to an MCP endpoint](./mcp-endpoint-integration.md)<br/>
+4. [How to get device information with MCP methods](./mcp-get-device-info.md)<br/>
+5. [News plugin source configuration guide](./newsnow_plugin_config.md)<br/>
+6. [How to deploy a context provider](./context-provider-integration.md)<br/>
+7. [How to configure the weather plugin to query the weather](./weather-integration.md)<br/>
+8. [How to enable web search](./web-search-integration.md)<br/>
 
 ### 10. Digital human tutorials
 1. [How to start the digital-human](./digital-human-wakeword.md)<br/>
 2. [How to deploy the digital-human on an N100 mini PC](./all-in-one-digital-human-setup.md)<br/>
 
-### 11. Voice cloning and local voice deployment tutorials
-1. [How to clone a voice in the Control Panel](./huoshan-streamTTS-voice-cloning.md)<br/>
-2. [How to deploy and integrate fish-speech local speech](./fish-speech-integration.md)<br/>
-4. [How to deploy and integrate PaddleSpeech local speech](./paddlespeech-deploy.md)<br/>
+### 11. Local voice deployment tutorials
+1. [How to deploy and integrate fish-speech local speech](./fish-speech-integration.md)<br/>
+2. [How to deploy and integrate PaddleSpeech local speech](./paddlespeech-deploy.md)<br/>
 
 ### 12. Performance testing tutorials
 1. [Component speed testing guide](./performance_tester.md)<br/>

@@ -50,7 +50,7 @@ class Dialogue:
     def get_llm_dialogue(self) -> List[Dict[str, str]]:
         # Call get_llm_dialogue_with_memory directly, passing None as memory_str
         # This ensures the speaker feature works on every call path
-        return self.get_llm_dialogue_with_memory(None, None)
+        return self.get_llm_dialogue_with_memory(None)
 
     def update_system_message(self, new_content: str):
         """Update or add the system message"""
@@ -92,8 +92,7 @@ class Dialogue:
         return result
 
     def get_llm_dialogue_with_memory(
-            self, memory_str: str = None, voiceprint_config: dict = None,
-            current_speaker: str = None,
+            self, memory_str: str = None,
     ) -> List[Dict[str, str]]:
         # Build the dialogue
         dialogue = []
@@ -119,31 +118,6 @@ class Dialogue:
                     full_prompt,
                     flags=re.DOTALL,
                 )
-
-            # Append speaker information
-            try:
-                current_speaker_name = (current_speaker or "").strip()
-                # Only output speakers_info when a valid identity was injected this turn, so the names in the list do not
-                # repeat every turn and induce the model to address them repeatedly; later turns no longer inject the identity and rely on the first turn kept in dialogue history
-                if current_speaker_name and current_speaker_name != "Unknown speaker":
-                    speakers = voiceprint_config.get("speakers", [])
-                    speakers_info = "\n<speakers_info>"
-                    speakers_info += f"\nCurrent speaker: {current_speaker_name}"
-                    for speaker_str in speakers:
-                        try:
-                            parts = speaker_str.split(",", 2)
-                            if len(parts) >= 2:
-                                name = parts[1].strip()
-                                description = (
-                                    parts[2].strip() if len(parts) >= 3 else ""
-                                )
-                                speakers_info += f"\n- {name}：{description}"
-                        except:
-                            pass
-                    speakers_info += "\n</speakers_info>"
-                    full_prompt += speakers_info
-            except:
-                pass
 
             dialogue.append({"role": "system", "content": full_prompt})
 

@@ -5,10 +5,6 @@ on:
     tags:
       - 'v*.*.*'  # Only triggered when a tag starting with v is pushed, e.g. v1.0.0
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Build Base Image"]
-    types:
-      - completed
 
 jobs:
   release:
