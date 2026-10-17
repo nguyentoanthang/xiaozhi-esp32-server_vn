@@ -804,72 +804,6 @@ TTS:
     volume_ratio: 1.0
     pitch_ratio: 1.0
     # language: "English"  # Output language, e.g. Chinese, English, Japanese, Korean; set it according to the languages supported by the chosen voice; defaults to English if left empty
-  #Volcengine TTS, supports bidirectional streaming TTS
-  HuoshanDoubleStreamTTS:
-    type: huoshan_double_stream
-    # Visit https://console.volcengine.com/speech/service/10007 to activate the speech synthesis large model and purchase voices
-    # Get the appid and access_token at the bottom of the page
-    # The resource ID is fixed to: volc.service_type.10029 (large-model speech synthesis and mixing)
-    # If you use Gizwits, change the endpoint address to wss://bytedance.gizwitsapi.com/api/v3/tts/bidirection
-    # Gizwits does not require an appid
-    ws_url: wss://openspeech.bytedance.com/api/v3/tts/bidirection
-    appid: your_volcengine_tts_appid
-    access_token: your_volcengine_tts_access_token
-    resource_id: volc.service_type.10029
-    speaker: zh_female_wanwanxiaohe_moon_bigtts
-    # Enable WebSocket connection reuse, enabled by default (note: with reuse, idle connections count toward concurrency while the device is listening)
-    enable_ws_reuse: True
-    # Related parameter documentation: https://www.volcengine.com/docs/6561/1329505
-    # Audio output configuration (audio_params) - you can add any audio parameters supported by Volcengine
-    audio_params:
-      speech_rate: 0  # Speech rate (-50~100)
-      loudness_rate: 0  # Volume (-50~100)
-      # Multi-emotion voice parameters. Note: currently only some voices support setting emotions.
-      # Related voice list: https://www.volcengine.com/docs/6561/1257544
-      # emotion: "neutral"  # Emotion type (only supported by some voices): neutral, happy, sad, angry, fearful, disgusted, surprised
-      # emotion_scale: 4  # Emotion intensity (1~5)
-    # Advanced text processing configuration (additions) - you can add any advanced parameters supported by Volcengine
-    additions:
-      post_process:
-        pitch: 0  # Pitch (-12~12)
-      # aigc_metadata: {}  # AIGC metadata configuration
-      # cache_config: {}  # Cache configuration
-    # Mix control configuration (mix_speaker) - multi-voice mixing (TTS 1.0 only)
-    # Mixing mainly applies to the voices of Doubao speech synthesis model 1.0; when using it, set req_params.speaker to custom_mix_bigtts
-    # mix_speaker:
-    #   speakers:
-    #     - source_speaker: zh_male_bvlazysheep
-    #       mix_factor: 0.3
-    #     - source_speaker: BV120_streaming
-    #       mix_factor: 0.3
-    #     - source_speaker: zh_male_ahu_conversation_wvae_bigtts
-    #       mix_factor: 0.4
-    # language: "English"  # Output language, e.g. Chinese, English, Japanese, Korean; set it according to the languages supported by the chosen voice; defaults to English if left empty
-  #Doubao speech synthesis model 2.0, supports bidirectional streaming TTS (based on the seed-tts-2.0 resource)
-  HuoshanDoubleStreamTTSV2:
-    type: huoshan_double_stream
-    # Visit https://console.volcengine.com/speech/service/10035 to activate the speech synthesis large model and purchase voices
-    # Get the appid and access_token at the bottom of the page
-    # The resource ID is fixed to: seed-tts-2.0 (Doubao speech synthesis model 2.0)
-    # If you use Gizwits, change the endpoint address to wss://bytedance.gizwitsapi.com/api/v3/tts/bidirection
-    # Gizwits does not require an appid
-    ws_url: wss://openspeech.bytedance.com/api/v3/tts/bidirection
-    appid: your_volcengine_tts_appid
-    access_token: your_volcengine_tts_access_token
-    resource_id: seed-tts-2.0
-    speaker: zh_female_xiaohe_uranus_bigtts
-    # Enable WebSocket connection reuse, enabled by default (note: with reuse, idle connections count toward concurrency while the device is listening)
-    enable_ws_reuse: True
-    # Related parameter documentation: https://www.volcengine.com/docs/6561/1329505
-    # Audio output configuration (audio_params) - you can add any audio parameters supported by Volcengine
-    audio_params:
-      speech_rate: 0  # Speech rate (-50~100)
-      loudness_rate: 0  # Volume (-50~100)
-    # Advanced text processing configuration (additions) - you can add any advanced parameters supported by Volcengine
-    additions:
-      post_process:
-        pitch: 0  # Pitch (-12~12)
-    # language: "English"  # Output language, e.g. Chinese, English, Japanese, Korean; set it according to the languages supported by the chosen voice; defaults to English if left empty
   CosyVoiceSiliconflow:
     type: siliconflow
     # SiliconFlow TTS
@@ -975,38 +909,6 @@ TTS:
     sample_steps: 32
     if_sr: false
     # language: "English"  # Output language, e.g. Chinese, English, Japanese, Korean; set it according to the languages supported by the chosen voice; defaults to English if left empty
-  MinimaxTTSHTTPStream:
-  # Minimax streaming speech synthesis service
-    type: minimax_httpstream
-    output_dir: tmp/
-    group_id: your_minimax_group_id
-    api_key: your_minimax_api_key
-    model: "speech-01-turbo"
-    voice_id: "female-shaonv"
-    # The following need not be set; defaults are used
-    # voice_setting:
-    #     voice_id: "male-qn-qingse"
-    #     speed: 1
-    #     vol: 1
-    #     pitch: 0
-    #     emotion: "happy"
-    # pronunciation_dict:
-    #     tone:
-    #       - "process/(chu3)(li3)"
-    #       - "danger/dangerous"
-    # audio_setting:
-    #     bitrate: 128000
-    #     format: "mp3"
-    #     channel: 1
-    # timber_weights:
-    #   -
-    #     voice_id: male-qn-qingse
-    #     weight: 1
-    #   -
-    #     voice_id: female-shaonv
-    #     weight: 1
-    # language_boost: auto
-    # language: "English"  # Output language, e.g. Chinese, English, Japanese, Korean; set it according to the languages supported by the chosen voice; defaults to English if left empty
   AliyunTTS:
     # Alibaba Cloud Intelligent Speech Interaction service; you must first activate the service on the Alibaba Cloud platform and then obtain the credentials
     # Platform URL: https://nls-portal.console.aliyun.com/
@@ -1026,30 +928,6 @@ TTS:
     # volume: 50
     # speech_rate: 0
     # pitch_rate: 0
-    # language: "English"  # Output language, e.g. Chinese, English, Japanese, Korean; set it according to the languages supported by the chosen voice; defaults to English if left empty
-  AliyunStreamTTS:
-    # Alibaba Cloud CosyVoice large-model streaming text-to-speech
-    # Uses the FlowingSpeechSynthesizer interface, with lower latency and more natural voice quality
-    # Streaming text-to-speech is only available in the commercial edition and does not support trial use; see the trial and commercial editions for details. To use this feature, activate the commercial edition.
-    # Supports the dedicated Long-series voices: longxiaochun, longyu, longchen, etc.
-    # Platform URL: https://nls-portal.console.aliyun.com/
-    # appkey URL: https://nls-portal.console.aliyun.com/applist
-    # token URL: https://nls-portal.console.aliyun.com/overview
-    # Uses three-stage streaming interaction: StartSynthesis -> RunSynthesis -> StopSynthesis
-    type: aliyun_stream
-    output_dir: tmp/
-    appkey: your_aliyun_appkey
-    token: your_aliyun_access_token  # temporary 24h token; for long-term use set access_key_id and access_key_secret below
-    voice: longxiaochun
-    access_key_id: your_aliyun_access_key_id
-    access_key_secret: your_aliyun_access_key_secret
-    # As of July 21, 2025, large-model voices are only available on the Beijing node; other nodes do not support them yet
-    host: nls-gateway-cn-beijing.aliyuncs.com
-    # The following need not be set; defaults are used
-    # format: pcm  # Audio format: pcm, wav, mp3
-    # volume: 50  # Volume: 0-100
-    # speech_rate: 0  # Speech rate: -500 to 500
-    # pitch_rate: 0  # Pitch: -500 to 500
     # language: "English"  # Output language, e.g. Chinese, English, Japanese, Korean; set it according to the languages supported by the chosen voice; defaults to English if left empty
   TencentTTS:
     # Tencent Cloud Intelligent Speech Interaction service; you must first activate the service on the Tencent Cloud platform
@@ -1133,53 +1011,4 @@ TTS:
     speed: 1.0  # Speech rate; 1.0 is normal, >1 is faster, <1 is slower
     volume: 1.0  # Volume; 1.0 is normal, >1 is louder, <1 is quieter
     save_path:   # Save path
-    # language: "English"  # Output language, e.g. Chinese, English, Japanese, Korean; set it according to the languages supported by the chosen voice; defaults to English if left empty
-  IndexStreamTTS:
-    # TTS API service based on the Index-TTS-vLLM project
-    # Tutorial: https://github.com/Ksuriuri/index-tts-vllm/blob/master/README.md
-    type: index_stream
-    api_url: http://127.0.0.1:11996/tts
-    audio_format: "pcm"
-    # Default voice; to use other voices, register them in the project's assets folder
-    voice: "jay_klee"
-    output_dir: tmp/
-    # language: "English"  # Output language, e.g. Chinese, English, Japanese, Korean; set it according to the languages supported by the chosen voice; defaults to English if left empty
-  AliBLTTS:
-    # Alibaba Bailian CosyVoice large-model streaming text-to-speech
-    # You can find your api_key here https://bailian.console.aliyun.com/?apiKey=1#/api-key
-    # cosyvoice-v3 and some voices require an application for activation
-    type: alibl_stream
-    api_key: your_api_key
-    # Compatible with the old address by default; for a workspace, replace it with wss://<WorkspaceId>.cn-beijing.maas.aliyuncs.com/api-ws/v1/inference
-    ws_url: wss://dashscope.aliyuncs.com/api-ws/v1/inference/
-    model: "cosyvoice-v2"
-    voice: "longcheng_v2"
-    output_dir: tmp/
-    # The following need not be set; defaults are used
-    # format: pcm  # Audio format: pcm, wav, mp3, opus
-    # volume: 50  # Volume: 0-100
-    # rate: 1  # Speech rate: 0.5~2
-    # pitch: 1  # Pitch: 0.5~2
-    # language: "English"  # Output language, e.g. Chinese, English, Japanese, Korean; set it according to the languages supported by the chosen voice; defaults to English if left empty
-  XunFeiTTS:
-    # iFLYTEK TTS service, official website: https://www.xfyun.cn/
-    # Log in to the iFLYTEK speech technology platform https://console.xfyun.cn/app/myapp and create the application
-    # Choose the services you need to get the API configuration https://console.xfyun.cn/services/uts
-    # Purchase the relevant services for the application (APPID) you want to use, e.g. super-humanlike synthesis https://console.xfyun.cn/services/uts
-    type: xunfei_stream
-    api_url: wss://cbm01.cn-huabei-1.xf-yun.com/v1/private/mcd9m97e6
-    app_id: your_app_id
-    api_secret: your_api_secret
-    api_key: your_api_key
-    voice: x5_lingxiaoxuan_flow
-    output_dir: tmp/
-    # The following need not be set; defaults are used. Note that V5 voices do not support colloquial settings
-    # oral_level: mid  # Colloquial level: high, mid, low
-    # spark_assist: 1  # Whether to colloquialize via the large model: on: 1, off: 0
-    # stop_split: 0  # Disable server-side sentence splitting: keep enabled: 0, disable: 1
-    # remain: 0  # Whether to keep the original written-language form	keep: 1, do not keep: 0
-    # format: raw  # Audio format: raw(PCM), lame(MP3), speex, opus, opus-wb, opus-swb, speex-wb
-    # volume: 50  # Volume: 0-100
-    # speed: 50  # Speech rate: 0-100
-    # pitch: 50  # Pitch: 0-100
     # language: "English"  # Output language, e.g. Chinese, English, Japanese, Korean; set it according to the languages supported by the chosen voice; defaults to English if left empty

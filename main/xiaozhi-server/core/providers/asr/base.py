@@ -119,6 +119,13 @@ class ASRProviderBase(ABC):
             else:
                 raw_text, _ = asr_result
 
+            # Guardrails: mask personal data before the text is logged or goes anywhere else
+            # The unmasked result is kept only for the device subtitle: never log or store it
+            shown_raw = raw_text
+            guardrail = getattr(conn, "guardrail", None)
+            if guardrail is not None:
+                raw_text = guardrail.mask_asr_result(raw_text)
+
             if isinstance(voiceprint_result, Exception):
                 logger.bind(tag=TAG).error(f"Voiceprint recognition failed: {voiceprint_result}")
                 speaker_name = ""
@@ -143,6 +150,10 @@ class ASRProviderBase(ABC):
 
                 # Convert to a JSON string for downstream use
                 enhanced_text = json.dumps(raw_text, ensure_ascii=False)
+                shown_text = json.dumps(
+                    {**shown_raw, **({"speaker": speaker_name} if speaker_name else {})},
+                    ensure_ascii=False,
+                )
                 content_for_length_check = raw_text.get("content", "")
             else:
                 # Plain text returned by other ASRs
@@ -153,6 +164,7 @@ class ASRProviderBase(ABC):
 
                 # Build a JSON string containing speaker information
                 enhanced_text = self._build_enhanced_text(raw_text, speaker_name)
+                shown_text = self._build_enhanced_text(shown_raw, speaker_name)
                 content_for_length_check = raw_text
 
             # Performance monitoring
@@ -167,7 +179,9 @@ class ASRProviderBase(ABC):
                 audio_snapshot = asr_audio_task.copy()
                 enqueue_asr_report(conn, enhanced_text, audio_snapshot)
                 # Report using the custom module
-                await startToChat(conn, enhanced_text)
+                await startToChat(
+                    conn, enhanced_text, display_text=shown_text if shown_text != enhanced_text else None
+                )
         except Exception as e:
             logger.bind(tag=TAG).error(f"Failed to handle speech stop: {e}")
             import traceback

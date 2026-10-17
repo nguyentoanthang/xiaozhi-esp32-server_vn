@@ -197,7 +197,7 @@ Websocket-Schnittstellenadresse: wss://2662r3426b.vicp.fun/xiaozhi/v1/
 | ASR (Spracherkennung) | FunASR (Lokal) | 👍XunfeiStreamASR (Xunfei-Streaming) |
 | LLM (Großes Modell) | glm-4-flash (Zhipu) | 👍qwen-flash (Alibaba Bailian) |
 | VLLM (Vision Large Model) | glm-4v-flash (Zhipu) | 👍qwen3.5-flash (Alibaba Bailian) |
-| TTS (Sprachsynthese) | EdgeTTS (Microsoft) | 👍HuoshanDoubleStreamTTS (Volcano-Streaming) |
+| TTS (Sprachsynthese) | EdgeTTS (Microsoft) | 👍DoubaoTTS (Volcano Engine) |
 | Intent (Absichtserkennung) | function_call (Funktionsaufruf) | function_call (Funktionsaufruf) |
 | Memory (Gedächtnisfunktion) | mem_local_short (Lokales Kurzzeitgedächtnis) | mem_local_short (Lokales Kurzzeitgedächtnis) |
 
@@ -278,8 +278,8 @@ Tatsächlich kann jedes VLLM, das OpenAI-Schnittstellenaufrufe unterstützt, int
 
 | Verwendungsmethode | Unterstützte Plattformen | Kostenlose Plattformen |
 |:---:|:---:|:---:|
-| Schnittstellenaufrufe | EdgeTTS, Volcano Engine Doubao TTS, Tencent Cloud, Alibaba Cloud TTS, AliYun Stream TTS, CosyVoiceSiliconflow, TTS302AI, CozeCnTTS, GizwitsTTS, ACGNTTS, OpenAITTS, Lingxi Streaming TTS, MinimaxTTS, Volcano Dual-Stream TTS | Lingxi Streaming TTS, EdgeTTS, CosyVoiceSiliconflow (teilweise) |
-| Lokale Dienste | FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3, Index-TTS, PaddleSpeech | Index-TTS, PaddleSpeech, FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3 |
+| Schnittstellenaufrufe | EdgeTTS, Volcano Engine Doubao TTS, Tencent Cloud, Alibaba Cloud TTS, CosyVoiceSiliconflow, TTS302AI, CozeCnTTS, GizwitsTTS, ACGNTTS, OpenAITTS, Lingxi Streaming TTS | Lingxi Streaming TTS, EdgeTTS, CosyVoiceSiliconflow (teilweise) |
+| Lokale Dienste | FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3, PaddleSpeech | PaddleSpeech, FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3 |
 
 ---
 

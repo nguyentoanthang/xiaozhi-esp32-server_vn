@@ -28,6 +28,8 @@ from core.utils.modules_initialize import (
     initialize_asr,
 )
 from core.handle.reportHandle import report, enqueue_tool_report
+from core.handle.sessionEndHandle import finish_chat_session
+from core.utils.guardrails import Guardrail
 from core.providers.tts.default import DefaultTTS
 from concurrent.futures import ThreadPoolExecutor
 from core.utils.dialogue import Message, Dialogue
@@ -109,6 +111,8 @@ class ConnectionHandler:
         self.welcome_msg = None
         self.max_output_size = 0
         self.chat_history_conf = 0
+        # Masks personal data in user text; rebuilt with the name list once the private config is loaded
+        self.guardrail = Guardrail.from_config(self.config)
         self.audio_format = "opus"
         self.sample_rate = 24000  # Default sample rate, dynamically updated from the client hello message
 
@@ -275,41 +279,57 @@ class ConnectionHandler:
                         f"Error when forcibly closing the connection: {close_error}"
                     )
 
+    def _drain_report_queue(self, timeout=5.0):
+        """Wait (blocking) until the chat records queued so far are handed to the db writer."""
+        if self.report_thread is None or not self.report_thread.is_alive():
+            return
+        deadline = time.time() + timeout
+        while self.report_queue.unfinished_tasks > 0 and time.time() < deadline:
+            time.sleep(0.05)
+
     async def _save_and_close(self, ws):
-        """Save memory and close the connection"""
+        """Store the title and memory, then close the connection"""
         try:
-            # TODO(phase 3): generate the chat title / summary and write chat_session at disconnect
-            # (the Java API calls that did this are gone).
             if self.device_refused:
                 return
 
-            # Daemon thread: save memory (memory only, no title)
-            if self.memory:
-                # Save memory asynchronously using the thread pool
-                def save_memory_task():
-                    try:
-                        # Create a new event loop (to avoid conflicts with the main loop)
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
-                        loop.run_until_complete(
-                            self.memory.save_memory(
-                                self.dialogue.dialogue, self.session_id
-                            )
-                        )
-                    except Exception as e:
-                        self.logger.bind(tag=TAG).error(f"Failed to save memory: {e}")
-                    finally:
+            # The last chat records must be queued before the connection resources are released
+            await asyncio.to_thread(self._drain_report_queue)
+
+            # Messages of this conversation without the temporary few-shot examples
+            messages = [m for m in self.dialogue.dialogue if not m.is_temporary]
+
+            # Daemon thread: close the chat session (title, summary) and save memory
+            def end_session_task():
+                try:
+                    finish_chat_session(self, messages)
+                except Exception as e:
+                    self.logger.bind(tag=TAG).error(f"Failed to write the session title: {e}")
+                if not self.memory:
+                    return
+                loop = None
+                try:
+                    # Create a new event loop (to avoid conflicts with the main loop)
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    loop.run_until_complete(
+                        self.memory.save_memory(messages, self.session_id)
+                    )
+                except Exception as e:
+                    self.logger.bind(tag=TAG).error(f"Failed to save memory: {e}")
+                finally:
+                    if loop is not None:
                         try:
                             loop.close()
                         except Exception:
                             pass
 
-                # Start a thread to save memory without waiting for completion
-                threading.Thread(target=save_memory_task, daemon=True).start()
+            # Start a thread to write them without waiting for completion
+            threading.Thread(target=end_session_task, daemon=True).start()
         except Exception as e:
-            self.logger.bind(tag=TAG).error(f"Failed to save memory: {e}")
+            self.logger.bind(tag=TAG).error(f"Failed to start the session end task: {e}")
         finally:
-            # Close the connection immediately without waiting for memory saving to finish
+            # Close the connection immediately without waiting for the LLM calls to finish
             try:
                 await self.close(ws)
             except Exception as close_error:
@@ -793,7 +813,7 @@ class ConnectionHandler:
             )
             self.agent_id = private_config.get("agent_id")
             self.logger.bind(tag=TAG).info(
-                f"{time.time() - begin_time} seconds, differentiated config loaded from the database: {json.dumps(filter_sensitive_info(private_config), ensure_ascii=False)}"
+                f"{time.time() - begin_time} seconds, differentiated config loaded from the database: {json.dumps(filter_sensitive_info({k: v for k, v in private_config.items() if k != "guardrail_names"}), ensure_ascii=False)}"
             )
             # Remember the connection time (through the writer thread, fire and forget)
             touch_device(get_database(), self.headers.get("device-id"))
@@ -806,6 +826,11 @@ class ConnectionHandler:
             self.logger.bind(tag=TAG).error(f"Failed to load the differentiated config: {e}")
             private_config = {}
         self.config_ready_event.set()
+
+        # Guardrail settings and names are read from the database for every connection
+        if private_config.get("guardrails") is not None:
+            self.config["guardrails"] = private_config["guardrails"]
+        self.guardrail = Guardrail.from_config(self.config, private_config.get("guardrail_names"))
 
         init_llm, init_tts, init_memory, init_intent = (
             False,
@@ -946,7 +971,6 @@ class ConnectionHandler:
             role_id=self.device_id,
             llm=self.llm,
             summary_memory=self.config.get("summaryMemory", None),
-            save_to_file=False,  # persisted in the memory table (phase 3), not in data/.memory.yaml
         )
 
         # Get the memory summary config
@@ -1493,11 +1517,8 @@ class ConnectionHandler:
                 if item is None:  # Detect the poison pill object
                     break
                 try:
-                    # Check the thread pool state
-                    if self.executor is None:
-                        continue
-                    # Submit the task to the thread pool
-                    self.executor.submit(self._process_report, *item)
+                    # Handled in order on this thread, so chat messages are stored in the order they happened
+                    self._process_report(*item)
                 except Exception as e:
                     self.logger.bind(tag=TAG).error(f"Chat history report thread error: {e}")
             except queue.Empty:

@@ -99,7 +99,7 @@ async def process_intent_result(
                 return False
 
             if function_name == "result_for_context":
-                await send_stt_message(conn, original_text)
+                await send_stt_message(conn, getattr(conn, "stt_display_text", None) or original_text)
                 conn.client_abort = False
 
                 def process_context_result():
@@ -148,7 +148,7 @@ async def process_intent_result(
                 "arguments": function_args,
             }
 
-            await send_stt_message(conn, original_text)
+            await send_stt_message(conn, getattr(conn, "stt_display_text", None) or original_text)
             conn.client_abort = False
 
             # Prepare tool call arguments

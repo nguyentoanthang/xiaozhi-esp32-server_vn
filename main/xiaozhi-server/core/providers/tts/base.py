@@ -123,10 +123,15 @@ class TTSProviderBase(ABC):
     def handle_audio_file(self, file_audio: bytes, text):
         self.before_stop_play_files.append((file_audio, text))
 
+    def _restore_masked_text(self, text):
+        """Guardrails: put real values back into the text sent to the TTS (restore_in_reply only)."""
+        guardrail = getattr(getattr(self, "conn", None), "guardrail", None)
+        return guardrail.restore(text) if guardrail is not None else text
+
     def to_tts_stream(self, text, opus_handler: Callable[[bytes], None] = None) -> None:
         # Keep the original text for display/reporting
         original_text = text
-        text = MarkdownCleaner.clean_markdown(text)
+        text = MarkdownCleaner.clean_markdown(self._restore_masked_text(text))
         # Replace in one pass with a regex to avoid repeated traversal and partial-match issues
         if self._correct_words_pattern:
             text = self._correct_words_pattern.sub(lambda m: self.correct_words[m.group(0)], text)
@@ -196,7 +201,7 @@ class TTSProviderBase(ABC):
     def to_tts(self, text):
         # Keep the original text for logging/display
         original_text = text
-        text = MarkdownCleaner.clean_markdown(text)
+        text = MarkdownCleaner.clean_markdown(self._restore_masked_text(text))
         if self._correct_words_pattern:
             text = self._correct_words_pattern.sub(lambda m: self.correct_words[m.group(0)], text)
         max_repeat_time = 5

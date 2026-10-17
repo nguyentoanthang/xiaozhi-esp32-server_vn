@@ -193,6 +193,12 @@ def _assemble_agent(db: Database, agent: sqlite3.Row, mac: Optional[str]) -> Dic
     cfg["context_providers"] = providers if isinstance(providers, list) else []
     cfg["chat_history_conf"] = int(agent["history_mode"])
 
+    # Guardrail settings and name list are read per connection, so edits apply from the next connection
+    cfg["guardrails"] = glob.get("guardrails") or {}
+    cfg["guardrail_names"] = [
+        row["name"] for row in db.query_all("SELECT name FROM guardrail_name WHERE enabled = 1")
+    ]
+
     cfg["device_max_output_size"] = glob.get("device_max_output_size", 0)
     cfg["delete_audio"] = bool(glob.get("delete_audio", True))
     cfg["tts_timeout"] = glob.get("tts_timeout", 15)

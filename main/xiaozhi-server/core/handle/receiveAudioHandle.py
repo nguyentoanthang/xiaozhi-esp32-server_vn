@@ -40,10 +40,17 @@ async def resume_vad_detection(conn: "ConnectionHandler"):
     conn.just_woken_up = False
 
 
-async def startToChat(conn: "ConnectionHandler", text):
+async def startToChat(conn: "ConnectionHandler", text, display_text=None):
+    """Start a chat turn. `text` is what the LLM, dialogue and logs see (already masked by the guardrail).
+
+    `display_text` is the same input before masking, in the same form (plain text or the speaker JSON);
+    it is only shown on the device as the subtitle and never logged, stored or sent to the LLM.
+    """
     # Check whether the input is JSON (containing speaker info)
     speaker_name = None
     actual_text = text
+    # Unmasked counterpart of actual_text, for the device subtitle only
+    shown_text = None
 
     try:
         # Try to parse JSON input
@@ -61,9 +68,19 @@ async def startToChat(conn: "ConnectionHandler", text):
                     actual_text = text
                 else:
                     actual_text = actual_content
+                if display_text is not None:
+                    shown_text = display_text
+                    shown = json.loads(display_text)
+                    if actual_text is not text:
+                        shown_text = shown["content"]
     except (json.JSONDecodeError, KeyError):
         # If parsing fails, keep using the original text
         pass
+
+    if shown_text is None:
+        shown_text = display_text if display_text is not None else actual_text
+    # Subtitle text for the stt message (the intent handler reads it too)
+    conn.stt_display_text = shown_text
 
     # Save speaker info to the connection object
     if speaker_name:
@@ -91,7 +108,7 @@ async def startToChat(conn: "ConnectionHandler", text):
         return
 
     # Intent not handled, continue the normal chat flow, using the actual text content
-    await send_stt_message(conn, actual_text)
+    await send_stt_message(conn, shown_text)
 
     # Prepare to start a new session
     conn.client_abort = False

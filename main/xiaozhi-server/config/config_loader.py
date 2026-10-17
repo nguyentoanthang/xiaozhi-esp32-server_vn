@@ -70,7 +70,10 @@ def _build_config_from_db(bootstrap):
     """Blocking: global settings + default agent models, with the bootstrap values on top."""
     from core.db import build_base_config
 
+    from core.db.seed import ensure_seeded
+
     db = get_config_database(bootstrap)
+    ensure_seeded(db)  # first start: fill an empty database; a seeded one is left alone
     config = build_base_config(db)
     server = config.setdefault("server", {})
     server.update(bootstrap["server"])

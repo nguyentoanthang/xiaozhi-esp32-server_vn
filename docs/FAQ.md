@@ -41,7 +41,7 @@ To improve the response speed, try replacing the components. Since version `0.5.
 | ASR (speech recognition) | FunASR (local) | 👍XunfeiStreamASR (iFlytek streaming) |
 | LLM (large language model) | glm-4-flash (Zhipu) | 👍qwen-flash (Alibaba Bailian) |
 | VLLM (vision large model) | glm-4v-flash (Zhipu) | 👍qwen3.5-flash (Alibaba Bailian) |
-| TTS (speech synthesis) | EdgeTTS (Microsoft) | 👍HuoshanDoubleStreamTTS (Volcano Engine streaming) |
+| TTS (speech synthesis) | EdgeTTS (Microsoft) | 👍DoubaoTTS (Volcano Engine) |
 | Intent (intent recognition) | function_call (function calling) | function_call (function calling) |
 | Memory (memory feature) | mem_local_short (local short-term memory) | mem_local_short (local short-term memory) |
 
@@ -94,8 +94,7 @@ VAD:
 
 ### 11. Voice cloning and local voice deployment tutorials
 1. [How to clone a voice in the Control Panel](./huoshan-streamTTS-voice-cloning.md)<br/>
-2. [How to deploy and integrate index-tts local speech](./index-stream-integration.md)<br/>
-3. [How to deploy and integrate fish-speech local speech](./fish-speech-integration.md)<br/>
+2. [How to deploy and integrate fish-speech local speech](./fish-speech-integration.md)<br/>
 4. [How to deploy and integrate PaddleSpeech local speech](./paddlespeech-deploy.md)<br/>
 
 ### 12. Performance testing tutorials

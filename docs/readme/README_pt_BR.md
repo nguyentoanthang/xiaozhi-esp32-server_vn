@@ -197,7 +197,7 @@ Endereço da Interface WebSocket: wss://2662r3426b.vicp.fun/xiaozhi/v1/
 | ASR(Reconhecimento de Fala) | FunASR(Local) | 👍XunfeiStreamASR(Xunfei Streaming) |
 | LLM(Modelo de Linguagem) | glm-4-flash(Zhipu) | 👍qwen-flash(Alibaba Bailian) |
 | VLLM(Modelo de Visão) | glm-4v-flash(Zhipu) | 👍qwen3.5-flash(Alibaba Bailian) |
-| TTS(Síntese de Voz) | EdgeTTS(Microsoft) | 👍HuoshanDoubleStreamTTS(Volcano Streaming) |
+| TTS(Síntese de Voz) | EdgeTTS(Microsoft) | 👍DoubaoTTS(Volcano Engine) |
 | Intent(Reconhecimento de Intenção) | function_call(Chamada de função) | function_call(Chamada de função) |
 | Memory(Função de Memória) | mem_local_short(Memória local de curto prazo) | mem_local_short(Memória local de curto prazo) |
 
@@ -278,8 +278,8 @@ Na verdade, qualquer VLLM que suporte chamadas via interface OpenAI pode ser int
 
 | Método de Uso | Plataformas Suportadas | Plataformas Gratuitas |
 |:---:|:---:|:---:|
-| Chamadas via interface | EdgeTTS, iFLYTEK, Volcano Engine, Tencent Cloud, Alibaba Cloud e Bailian, CosyVoiceSiliconflow, TTS302AI, CozeCnTTS, GizwitsTTS, ACGNTTS, OpenAITTS, Lingxi Streaming TTS, MinimaxTTS | Lingxi Streaming TTS, EdgeTTS, CosyVoiceSiliconflow(parcial) |
-| Serviços locais | FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3, Index-TTS, PaddleSpeech | Index-TTS, PaddleSpeech, FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3 |
+| Chamadas via interface | EdgeTTS, Volcano Engine, Tencent Cloud, Alibaba Cloud, CosyVoiceSiliconflow, TTS302AI, CozeCnTTS, GizwitsTTS, ACGNTTS, OpenAITTS, Lingxi Streaming TTS | Lingxi Streaming TTS, EdgeTTS, CosyVoiceSiliconflow(parcial) |
+| Serviços locais | FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3, PaddleSpeech | PaddleSpeech, FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3 |
 
 ---
 

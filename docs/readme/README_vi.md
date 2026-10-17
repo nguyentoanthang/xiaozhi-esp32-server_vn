@@ -198,7 +198,7 @@ Công cụ kiểm tra dịch vụ: https://2662r3426b.vicp.fun/test/
 | ASR(Nhận dạng giọng nói) | FunASR(Local) | 👍XunfeiStreamASR(Xunfei Streaming) |
 | LLM(Mô hình lớn) | glm-4-flash(Zhipu) | 👍qwen-flash(Alibaba Bailian) |
 | VLLM(Mô hình lớn thị giác) | glm-4v-flash(Zhipu) | 👍qwen3.5-flash(Alibaba Bailian) |
-| TTS(Tổng hợp giọng nói) | EdgeTTS(Microsoft) | 👍HuoshanDoubleStreamTTS(Volcano Streaming) |
+| TTS(Tổng hợp giọng nói) | EdgeTTS(Microsoft) | 👍DoubaoTTS(Volcano Engine) |
 | Intent(Nhận dạng ý định) | function_call(Gọi hàm) | function_call(Gọi hàm) |
 | Memory(Chức năng bộ nhớ) | mem_local_short(Bộ nhớ ngắn hạn cục bộ) | mem_local_short(Bộ nhớ ngắn hạn cục bộ) |
 
@@ -279,8 +279,8 @@ Trên thực tế, bất kỳ VLLM nào hỗ trợ gọi giao diện openai đ�
 
 | Phương pháp sử dụng | Nền tảng hỗ trợ | Nền tảng miễn phí |
 |:---:|:---:|:---:|
-| Gọi giao diện | EdgeTTS, iFlytek, Volcano Engine, Tencent Cloud, Alibaba Cloud và Bailian, CosyVoiceSiliconflow, TTS302AI, CozeCnTTS, GizwitsTTS, ACGNTTS, OpenAITTS, Lingxi streaming TTS, MinimaxTTS | Lingxi streaming TTS, EdgeTTS, CosyVoiceSiliconflow(một phần) |
-| Dịch vụ cục bộ | FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3, Index-TTS, PaddleSpeech | Index-TTS, PaddleSpeech, FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3 |
+| Gọi giao diện | EdgeTTS, Volcano Engine, Tencent Cloud, Alibaba Cloud, CosyVoiceSiliconflow, TTS302AI, CozeCnTTS, GizwitsTTS, ACGNTTS, OpenAITTS, Lingxi streaming TTS | Lingxi streaming TTS, EdgeTTS, CosyVoiceSiliconflow(một phần) |
+| Dịch vụ cục bộ | FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3, PaddleSpeech | PaddleSpeech, FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3 |
 
 ---
 

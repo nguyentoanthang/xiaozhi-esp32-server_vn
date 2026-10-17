@@ -1,10 +1,9 @@
 from ..base import MemoryProviderBase, logger
 import time
 import json
-import os
-import yaml
-from config.config_loader import get_project_dir
-import asyncio
+from core.db import get_database, utcnow_iso
+from core.db.config_assembly import normalize_mac
+from core.utils.llm_call import call_llm_no_stream
 from core.utils.util import check_model_key
 
 
@@ -98,38 +97,27 @@ class MemoryProvider(MemoryProviderBase):
     def __init__(self, config, summary_memory):
         super().__init__(config)
         self.short_memory = ""
-        self.save_to_file = True
-        self.memory_path = get_project_dir() + "data/.memory.yaml"
         self.load_memory(summary_memory)
 
-    def init_memory(
-        self, role_id, llm, summary_memory=None, save_to_file=True, **kwargs
-    ):
+    def init_memory(self, role_id, llm, summary_memory=None, **kwargs):
         super().init_memory(role_id, llm, **kwargs)
-        self.save_to_file = save_to_file
         self.load_memory(summary_memory)
 
     def load_memory(self, summary_memory):
-        # Return directly once the API has produced the summarized memory
-        if summary_memory or not self.save_to_file:
-            self.short_memory = summary_memory
-            return
+        # The summary comes from the `memory` table row of this device (see config_assembly)
+        self.short_memory = summary_memory or ""
 
-        all_memory = {}
-        if os.path.exists(self.memory_path):
-            with open(self.memory_path, "r", encoding="utf-8") as f:
-                all_memory = yaml.safe_load(f) or {}
-        if self.role_id in all_memory:
-            self.short_memory = all_memory[self.role_id]
-
-    def save_memory_to_file(self):
-        all_memory = {}
-        if os.path.exists(self.memory_path):
-            with open(self.memory_path, "r", encoding="utf-8") as f:
-                all_memory = yaml.safe_load(f) or {}
-        all_memory[self.role_id] = self.short_memory
-        with open(self.memory_path, "w", encoding="utf-8") as f:
-            yaml.dump(all_memory, f, allow_unicode=True)
+    def save_memory_to_db(self):
+        """Overwrite the memory row of this device (keyed by MAC) through the db writer thread."""
+        mac = normalize_mac(self.role_id)
+        if not mac:
+            logger.bind(tag=TAG).warning("Memory not saved: the device id is unknown")
+            return False
+        return get_database().write_sync(
+            "INSERT INTO memory(device_mac, summary, updated_at) VALUES (?, ?, ?) "
+            "ON CONFLICT(device_mac) DO UPDATE SET summary = excluded.summary, updated_at = excluded.updated_at",
+            (mac, self.short_memory, utcnow_iso()),
+        )
 
     async def save_memory(self, msgs, session_id=None):
         # Log the model info in use
@@ -172,26 +160,25 @@ class MemoryProvider(MemoryProviderBase):
         time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         msgStr += f"Current time: {time_str}"
 
-        if self.save_to_file:
-            try:
-                result = self.llm.response_no_stream(
-                    short_term_memory_prompt,
-                    msgStr,
-                    max_tokens=2000,
-                    temperature=0.2,
-                )
-                json_str = extract_json_data(result)
-                json.loads(json_str)  # Check that the JSON format is correct
-                self.short_memory = json_str
-                self.save_memory_to_file()
-            except Exception as e:
-                logger.bind(tag=TAG).error(f"Error in saving memory: {e}")
-        else:
-            # TODO(phase 3): summarise with the LLM and write the memory table row for this device.
-            # The Java chat-summary API that handled this case is gone, so nothing is stored yet.
-            logger.bind(tag=TAG).info(
-                "Memory persistence to the database is not implemented yet (phase 3); nothing saved"
+        try:
+            result = call_llm_no_stream(
+                self.llm,
+                "memory",
+                short_term_memory_prompt,
+                msgStr,
+                max_tokens=2000,
+                temperature=0.2,
             )
+            json_str = extract_json_data(result).strip()
+            json.loads(json_str)  # Check that the JSON format is correct
+        except Exception as e:
+            # Invalid or missing JSON: skip the update and keep the old memory
+            logger.bind(tag=TAG).error(f"Error in saving memory: {e}")
+            return self.short_memory
+        previous, self.short_memory = self.short_memory, json_str
+        if not self.save_memory_to_db():
+            self.short_memory = previous
+            logger.bind(tag=TAG).error(f"Memory not stored - Role: {self.role_id}, Session: {session_id}")
             return self.short_memory
         logger.bind(tag=TAG).info(
             f"Save memory successful - Role: {self.role_id}, Session: {session_id}"

@@ -6,6 +6,8 @@ Usage (from main/xiaozhi-server):
 
 Idempotent: every insert is INSERT OR IGNORE (or guarded), so running it again changes nothing
 and never overwrites values you edited by hand.
+The server also seeds automatically at startup, but only when the database has no default agent
+(ensure_seeded), so rows you deleted by hand are not brought back.
 Only the standard library and yaml are used, so it runs without the server dependencies.
 """
 
@@ -18,7 +20,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
-from core.db.database import PROJECT_DIR, Database, resolve_db_path
+from core.db.database import PROJECT_DIR, Database, _log, open_connection, resolve_db_path
 
 DEFAULT_AGENT_ID = "default"
 
@@ -173,6 +175,33 @@ def seed_database(conn: sqlite3.Connection, yaml_path: Optional[Path] = None) ->
                 ),
             ))
     return added
+
+
+def ensure_seeded(db: Database) -> bool:
+    """Seed the database when it has no default agent (fresh file, or the agent table is empty).
+
+    Returns True when the seed ran. A database that already has a default agent is left alone, so
+    settings, models or agents deleted by hand stay deleted. Never raises: a failure is logged and
+    the caller's NoDefaultAgent error then tells the user to run `python -m core.db.seed`.
+    """
+    try:
+        try:
+            has_default = db.query_one("SELECT 1 FROM agent WHERE is_default = 1") is not None
+        except sqlite3.OperationalError:  # tables missing
+            has_default = False
+        if has_default:
+            return False
+        _log("info", f"No default agent in {db.path}; seeding the database with defaults")
+        conn = open_connection(db.path)
+        try:
+            added = seed_database(conn)
+        finally:
+            conn.close()
+        _log("info", "Seeded: " + ", ".join(f"{t}={n}" for t, n in added.items()))
+        return True
+    except Exception as e:
+        _log("error", f"Automatic seeding failed: {e!r}")
+        return False
 
 
 def main(argv: Optional[List[str]] = None) -> int:

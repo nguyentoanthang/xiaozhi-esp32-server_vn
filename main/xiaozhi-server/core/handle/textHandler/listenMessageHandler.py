@@ -93,6 +93,13 @@ class ListenTextMessageHandler(TextMessageHandler):
                     conn.dialogue.put(Message(role="assistant", content=call_text))
                     return
 
+                # Guardrails: text typed or recognized on the device is user text too
+                guardrail = getattr(conn, "guardrail", None)
+                if guardrail is not None:
+                    original_text = guardrail.mask(original_text)
+                # The device subtitle shows what the user said; nothing else gets the unmasked text
+                shown_text = msg_json["text"]
+
                 # Check whether this is a wake word
                 is_wakeup_words = filtered_text in conn.config.get("wakeup_words")
                 # Whether wake word replies are enabled
@@ -100,7 +107,7 @@ class ListenTextMessageHandler(TextMessageHandler):
 
                 if is_wakeup_words and not enable_greeting:
                     # If it is a wake word and wake word replies are disabled, no answer is needed
-                    await send_stt_message(conn, original_text)
+                    await send_stt_message(conn, shown_text)
                     await send_tts_message(conn, "stop", None)
                     conn.client_is_speaking = False
                 elif is_wakeup_words:
@@ -113,4 +120,4 @@ class ListenTextMessageHandler(TextMessageHandler):
                     # Report text-only data (reuse the ASR report function without audio data)
                     enqueue_asr_report(conn, original_text, [])
                     # Otherwise the LLM needs to reply to the text content
-                    await startToChat(conn, original_text)
+                    await startToChat(conn, original_text, display_text=shown_text)

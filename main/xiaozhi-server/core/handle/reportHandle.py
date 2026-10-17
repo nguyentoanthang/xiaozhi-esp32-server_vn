@@ -14,6 +14,10 @@ import json
 import opuslib_next
 from typing import TYPE_CHECKING
 
+from core.db import get_database
+from core.db.chat_history import USER_SAMPLE_RATE, encode_pcm_to_opus_frames, record_message
+from core.db.config_assembly import normalize_mac
+
 if TYPE_CHECKING:
     from core.connection import ConnectionHandler
 
@@ -21,22 +25,68 @@ TAG = __name__
 
 
 async def report(conn: "ConnectionHandler", chat_type, text, audio_data, report_time):
-    """Perform the chat record report operation
+    """Store one chat record (chat_session / chat_message / chat_audio) through the db writer thread
+
+    Runs on the connection's report thread, so the Opus encoding below never blocks the event loop.
+    A failure is logged and never reaches the conversation.
 
     Args:
         conn: connection object
         chat_type: report type, 1 = user (ASR/PCM), 2 = agent (TTS/Opus), 3 = tool call
-        text: synthesized text
-        audio_data: audio data (PCM format when chat_type=1, Opus format when chat_type=2)
-        report_time: report time
+        text: message text
+        audio_data: list of audio chunks (PCM when chat_type=1, Opus packets when chat_type=2), or None
+        report_time: report time in milliseconds
     """
-    # TODO(phase 3): write to chat_session / chat_message / chat_audio through the db writer.
-    # The Java chat-history API is gone, so for now the queued item is dropped here and the
-    # WAV conversion below is not run. (pcm_to_wav / opus_to_wav stay for reference; phase 3
-    # stores Opus frames as received instead.)
-    conn.logger.bind(tag=TAG).debug(
-        f"Chat history not persisted yet (phase 3): type={chat_type}, {len(text or '')} chars"
-    )
+    try:
+        mode = conn.chat_history_conf
+        mac = normalize_mac(conn.device_id)
+        if mode == 0 or not mac or not text:
+            return
+
+        frames, sample_rate = None, USER_SAMPLE_RATE
+        if mode == 2 and audio_data:
+            try:
+                frames, sample_rate = _audio_to_opus_frames(conn, chat_type, audio_data)
+            except Exception as e:
+                # Keep the text row even when the audio cannot be encoded
+                conn.logger.bind(tag=TAG).error(f"Audio not stored, Opus encoding failed: {e}")
+
+        record_message(
+            get_database(),
+            session_id=conn.session_id,
+            device_mac=mac,
+            agent_id=conn.agent_id or conn.config.get("default_agent_id") or "",
+            chat_type=chat_type,
+            content=_message_content(chat_type, text),
+            opus_frames=frames,
+            sample_rate=sample_rate,
+            created_ms=report_time,
+        )
+    except Exception as e:
+        conn.logger.bind(tag=TAG).error(f"Failed to store chat record: {e}")
+
+
+def _message_content(chat_type, text) -> str:
+    """User text arrives in the ASR JSON form when it carries a speaker; store just the words."""
+    if chat_type == 1 and isinstance(text, str) and text.lstrip().startswith("{"):
+        try:
+            data = json.loads(text)
+            if isinstance(data, dict) and isinstance(data.get("content"), str):
+                return data["content"]
+        except ValueError:
+            pass
+    return text
+
+
+def _audio_to_opus_frames(conn: "ConnectionHandler", chat_type, audio_data):
+    """(Opus packets, sample rate). User audio is PCM and is encoded once here; agent audio is
+    already Opus and is stored as received (PCM only if the device negotiated a pcm format)."""
+    chunks = [bytes(c) for c in audio_data if c]
+    if chat_type == 1:
+        return encode_pcm_to_opus_frames(b"".join(chunks), USER_SAMPLE_RATE), USER_SAMPLE_RATE
+    if getattr(conn, "audio_format", "opus") == "pcm":
+        return encode_pcm_to_opus_frames(b"".join(chunks), conn.sample_rate), conn.sample_rate
+    return chunks, conn.sample_rate
 
 
 def pcm_to_wav(conn: "ConnectionHandler", pcm_data):

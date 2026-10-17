@@ -283,8 +283,7 @@ Here are some common questions for reference:
 8. [Weather plugin usage guide](./weather-integration.md)<br/>
 ## Voice Cloning and Local Voice Deployment Tutorials
 1. [How to clone a voice in the Control Panel](./huoshan-streamTTS-voice-cloning.md)<br/>
-2. [How to deploy and integrate index-tts local speech](./index-stream-integration.md)<br/>
-3. [How to deploy and integrate fish-speech local speech](./fish-speech-integration.md)<br/>
+2. [How to deploy and integrate fish-speech local speech](./fish-speech-integration.md)<br/>
 4. [How to deploy and integrate PaddleSpeech local speech](./paddlespeech-deploy.md)<br/>
 ## Performance Testing Tutorials
 1. [Component speed testing guide](./performance_tester.md)<br/>
