@@ -108,6 +108,7 @@ failures or errors on a machine without them. Live OpenRouter checks run only wi
 
 ## Documentation
 
+- [docs/setup-test-measure-guide.md](docs/setup-test-measure-guide.md): detailed setup/config/run guide, test checklist and resource measurement checklist
 - [docs/minimal-server-design.md](docs/minimal-server-design.md): decisions, schema, phases and implementation notes
 - [main/README_en.md](main/README_en.md): technical overview of the server code
 - [docs/mcp-endpoint-integration.md](docs/mcp-endpoint-integration.md), [docs/mcp-endpoint-enable.md](docs/mcp-endpoint-enable.md): MCP endpoint
