@@ -42,13 +42,13 @@ def test_existing_database_is_not_seeded_again(seeded_db):
 def test_deleted_rows_are_not_resurrected(seeded_db):
     db = seeded_db
     assert db.write_sync("DELETE FROM setting WHERE key = 'guardrails.mask_card'")
-    assert db.write_sync("DELETE FROM model_config WHERE id = 'ASR_OpenRouter'")
+    assert db.write_sync("DELETE FROM model_config WHERE id = 'ASR_FunASR'")
     assert db.write_sync("UPDATE agent SET name = 'My agent' WHERE id = 'default'")
 
     assert ensure_seeded(db) is False
 
     assert db.query_one("SELECT 1 FROM setting WHERE key = 'guardrails.mask_card'") is None
-    assert db.query_one("SELECT 1 FROM model_config WHERE id = 'ASR_OpenRouter'") is None
+    assert db.query_one("SELECT 1 FROM model_config WHERE id = 'ASR_FunASR'") is None
     assert db.query_one("SELECT name FROM agent WHERE id = 'default'")["name"] == "My agent"
 
 

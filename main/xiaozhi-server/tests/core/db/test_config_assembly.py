@@ -64,7 +64,7 @@ def test_agent_config_has_every_inventory_key(seeded_db):
     cfg = build_agent_config(db, MAC)  # auto-registers
     assert TOP_LEVEL_KEYS <= set(cfg)
     assert cfg["selected_module"] == {
-        "VAD": "VAD_SileroVAD", "ASR": "ASR_FunASR", "LLM": "LLM_OpenRouter", "TTS": "TTS_EdgeTTS",
+        "VAD": "VAD_SileroVAD", "ASR": "ASR_OpenRouter", "LLM": "LLM_OpenRouter", "TTS": "TTS_EdgeTTS",
         "Memory": "Memory_mem_local_short", "Intent": "Intent_function_call",
     }
     for mtype in ("VAD", "ASR", "LLM", "TTS", "Memory", "Intent"):
@@ -107,18 +107,18 @@ def test_summary_memory_comes_from_memory_table_per_mac(seeded_db):
 
 def test_disabled_model_is_not_selected(seeded_db):
     db = seeded_db
-    db.write_sync("UPDATE agent SET asr_id = 'ASR_OpenRouter' WHERE id = 'default'")
+    db.write_sync("UPDATE agent SET asr_id = 'ASR_FunASR' WHERE id = 'default'")
     cfg = build_agent_config(db, MAC)
     assert "ASR" not in cfg["selected_module"] and "ASR" not in cfg
-    db.write_sync("UPDATE model_config SET enabled = 1 WHERE id = 'ASR_OpenRouter'")
-    assert build_agent_config(db, MAC)["selected_module"]["ASR"] == "ASR_OpenRouter"
+    db.write_sync("UPDATE model_config SET enabled = 1 WHERE id = 'ASR_FunASR'")
+    assert build_agent_config(db, MAC)["selected_module"]["ASR"] == "ASR_FunASR"
 
 
 def test_base_config_is_global_plus_default_agent(seeded_db):
     cfg = build_base_config(seeded_db)
     assert cfg["server"]["timezone_offset"] == 7
     assert cfg["selected_module"]["LLM"] == "LLM_OpenRouter"
-    assert cfg["ASR"]["ASR_FunASR"]["type"] == "fun_local"
+    assert cfg["ASR"]["ASR_OpenRouter"]["type"] == "openrouter_stt"
     assert cfg["prompt"]
 
 

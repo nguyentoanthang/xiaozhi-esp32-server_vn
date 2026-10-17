@@ -41,6 +41,7 @@ from plugins_func.register import Action, ActionResponse, all_function_registry,
 from core.auth import AuthenticationError
 from config.config_loader import get_private_config
 from core.db import DeviceRefused, get_database, touch_device
+from core.db.usage import UsageScope, attribution_from_conn, bind_attribution, track_stream
 from core.providers.tts.dto.dto import ContentType, TTSMessageDTO, SentenceType
 from config.logger import setup_logging, build_module_string, create_connection_logger
 from core.utils.prompt_manager import PromptManager
@@ -300,6 +301,8 @@ class ConnectionHandler:
             messages = [m for m in self.dialogue.dialogue if not m.is_temporary]
 
             # Daemon thread: close the chat session (title, summary) and save memory
+            attribution = self.usage_attribution()
+
             def end_session_task():
                 try:
                     finish_chat_session(self, messages)
@@ -312,9 +315,11 @@ class ConnectionHandler:
                     # Create a new event loop (to avoid conflicts with the main loop)
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
-                    loop.run_until_complete(
-                        self.memory.save_memory(messages, self.session_id)
-                    )
+                    # The memory LLM call runs in this thread: attribute it to this device / agent / session
+                    with bind_attribution(attribution):
+                        loop.run_until_complete(
+                            self.memory.save_memory(messages, self.session_id)
+                        )
                 except Exception as e:
                     self.logger.bind(tag=TAG).error(f"Failed to save memory: {e}")
                 finally:
@@ -1053,6 +1058,15 @@ class ConnectionHandler:
         if hasattr(self, "loop") and self.loop:
             asyncio.run_coroutine_threadsafe(self.func_handler._initialize(), self.loop)
 
+    def usage_attribution(self):
+        """Device / agent / chat session of this connection, copied into every ai_usage row at call time."""
+        return attribution_from_conn(self)
+
+    def _track_llm_stream(self, stream, call_kind):
+        """Write one ai_usage row (purpose chat) when the LLM stream ends, was aborted or failed."""
+        scope = UsageScope("chat", self.usage_attribution(), call_kind=call_kind, llm=self.llm)
+        return track_stream(stream, scope)
+
     def change_system_prompt(self, prompt):
         self.prompt = prompt
         # Update the system prompt into the context
@@ -1141,6 +1155,7 @@ class ConnectionHandler:
                     ),
                     functions=functions,
                 )
+                llm_responses = self._track_llm_stream(llm_responses, "chat_functions")
             else:
                 llm_responses = self.llm.response(
                     self.session_id,
@@ -1148,6 +1163,7 @@ class ConnectionHandler:
                         memory_str, self.config.get("voiceprint", {}), speaker_for_system
                     ),
                 )
+                llm_responses = self._track_llm_stream(llm_responses, "chat")
         except Exception as e:
             self.logger.bind(tag=TAG).error(f"LLM processing error {query}: {e}")
             return None
@@ -1243,6 +1259,9 @@ class ConnectionHandler:
                     )
                 )
             return
+        finally:
+            # Also on abort / error: ends the stream so its ai_usage row is written now
+            llm_responses.close()
         # Handle function call
         if tool_call_flag:
             bHasError = False

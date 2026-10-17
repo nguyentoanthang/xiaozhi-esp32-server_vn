@@ -50,8 +50,8 @@ def test_seed_content(seeded_db):
         "VAD_SileroVAD", "ASR_FunASR", "ASR_OpenRouter", "LLM_OpenRouter", "TTS_EdgeTTS",
         "Memory_mem_local_short", "Memory_nomem", "Intent_function_call",
     }
-    assert models["ASR_FunASR"]["enabled"] == 1
-    assert models["ASR_OpenRouter"]["enabled"] == 0
+    assert models["ASR_FunASR"]["enabled"] == 0  # kept for A/B comparison
+    assert models["ASR_OpenRouter"]["enabled"] == 1
     assert json.loads(models["ASR_OpenRouter"]["config_json"])["type"] == "openrouter_stt"
     llm = json.loads(models["LLM_OpenRouter"]["config_json"])
     assert llm["type"] == "openrouter" and llm["api_key"] == ""
@@ -59,7 +59,7 @@ def test_seed_content(seeded_db):
     assert json.loads(models["Intent_function_call"]["config_json"])["functions"] == []
     agent = db.query_one("SELECT * FROM agent WHERE is_default = 1")
     assert (agent["asr_id"], agent["llm_id"], agent["mem_id"], agent["intent_id"], agent["history_mode"]) == (
-        "ASR_FunASR", "LLM_OpenRouter", "Memory_mem_local_short", "Intent_function_call", 2)
+        "ASR_OpenRouter", "LLM_OpenRouter", "Memory_mem_local_short", "Intent_function_call", 2)
 
 
 def test_seed_has_no_secrets_and_no_log_block(seeded_db):

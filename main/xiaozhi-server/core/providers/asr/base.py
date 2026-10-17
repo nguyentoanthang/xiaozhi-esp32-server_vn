@@ -13,6 +13,7 @@ import threading
 
 from abc import ABC, abstractmethod
 from config.logger import setup_logging
+from core.db.usage import attribution_from_conn, bind_attribution
 from core.providers.asr.dto.dto import InterfaceType
 from core.handle.receiveAudioHandle import startToChat
 from core.handle.reportHandle import enqueue_asr_report
@@ -83,6 +84,11 @@ class ASRProviderBase(ABC):
     # Handle speech stop
     async def handle_voice_stop(self, conn: "ConnectionHandler", asr_audio_task: List[bytes]):
         """Process ASR and voiceprint recognition in parallel"""
+        # The ASR instance is shared: tell it (and its ai_usage row) which device / agent / session this is
+        with bind_attribution(attribution_from_conn(conn)):
+            await self._handle_voice_stop(conn, asr_audio_task)
+
+    async def _handle_voice_stop(self, conn: "ConnectionHandler", asr_audio_task: List[bytes]):
         try:
             total_start_time = time.monotonic()
 

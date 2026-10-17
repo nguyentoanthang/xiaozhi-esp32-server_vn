@@ -8,6 +8,7 @@ from typing import Any, List, Optional, Tuple
 
 from core.db import get_database
 from core.db.chat_history import mark_session_ended, set_session_title
+from core.db.usage import attribution_from_conn
 from core.utils.llm_call import call_llm_no_stream
 
 TAG = __name__
@@ -79,7 +80,7 @@ def finish_chat_session(conn: Any, messages: Optional[List[Any]] = None) -> None
             return
         reply = call_llm_no_stream(
             conn.llm, "title", TITLE_PROMPT, transcript[-MAX_TRANSCRIPT_CHARS:],
-            max_tokens=200, temperature=0.2,
+            attribution=attribution_from_conn(conn), max_tokens=200, temperature=0.2,
         )
         title, summary = parse_title_reply(reply)
         if title or summary:

@@ -102,20 +102,21 @@ def _model_rows(cfg: Dict[str, Any]) -> List[Tuple[str, str, str, str, Dict[str,
     tts = dict((cfg.get("TTS") or {}).get("EdgeTTS") or {"type": "edge"})
     return [
         ("VAD_SileroVAD", "VAD", "SileroVAD", "SileroVAD", vad, 1),
-        # FunASR is the working ASR until the OpenRouter STT provider exists (phase 4)
-        ("ASR_FunASR", "ASR", "FunASR", "FunASR", asr, 1),
+        # OpenRouter STT is the seeded default; FunASR stays as a disabled row for A/B comparison
+        ("ASR_FunASR", "ASR", "FunASR", "FunASR", asr, 0),
         (
             "ASR_OpenRouter", "ASR", "openrouter_stt", "OpenRouter STT",
             {
                 "type": "openrouter_stt",
                 "api_key": "",
                 "model_name": "openai/whisper-large-v3",
+                "base_url": "https://openrouter.ai/api/v1",
                 "language": "",
                 "audio_format": "pcm",
                 "timeout_ms": 15000,
                 "output_dir": "tmp/",
             },
-            0,  # disabled until phase 4 implements the provider
+            1,
         ),
         (
             "LLM_OpenRouter", "LLM", "openrouter", "OpenRouter",
@@ -170,7 +171,7 @@ def seed_database(conn: sqlite3.Connection, yaml_path: Optional[Path] = None) ->
                 "mem_id, intent_id, history_mode) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, 2)",
                 (
                     DEFAULT_AGENT_ID, "Default agent", cfg.get("prompt"),
-                    "VAD_SileroVAD", "ASR_FunASR", "LLM_OpenRouter", "TTS_EdgeTTS",
+                    "VAD_SileroVAD", "ASR_OpenRouter", "LLM_OpenRouter", "TTS_EdgeTTS",
                     "Memory_mem_local_short", "Intent_function_call",
                 ),
             ))

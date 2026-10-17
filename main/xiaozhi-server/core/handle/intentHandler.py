@@ -121,7 +121,7 @@ async def process_intent_result(
                     # Use an async call to avoid blocking the event loop and affecting audio playback on other devices
                     try:
                         response = asyncio.run_coroutine_threadsafe(
-                            conn.intent.replyResult(context_prompt, original_text),
+                            conn.intent.replyResult(context_prompt, original_text, conn),
                             conn.loop,
                         ).result()
                     except Exception as e:
@@ -196,7 +196,7 @@ async def process_intent_result(
                         # Use an async call to avoid blocking the event loop and affecting audio playback on other devices
                         try:
                             llm_result = asyncio.run_coroutine_threadsafe(
-                                conn.intent.replyResult(text, original_text),
+                                conn.intent.replyResult(text, original_text, conn),
                                 conn.loop,
                             ).result()
                         except Exception as e:

@@ -7,6 +7,7 @@ from ..base import IntentProviderBase
 from plugins_func.functions.play_music import initialize_music_handler
 from config.logger import setup_logging
 from core.utils.util import get_system_error_response
+from core.utils.llm_call import call_llm_no_stream
 import re
 import json
 import hashlib
@@ -121,7 +122,7 @@ class IntentProvider(IntentProviderBase):
         )
         return prompt
 
-    async def replyResult(self, text: str, original_text: str):
+    async def replyResult(self, text: str, original_text: str, conn: "ConnectionHandler" = None):
         """Use asyncio.to_thread to avoid blocking the event loop"""
         try:
             user_prompt = (
@@ -130,9 +131,12 @@ class IntentProvider(IntentProviderBase):
             )
             # Use to_thread to run the synchronous blocking call in a thread pool without blocking the event loop
             llm_result = await asyncio.to_thread(
-                self.llm.response_no_stream,
-                system_prompt=text,
-                user_prompt=user_prompt,
+                call_llm_no_stream,
+                self.llm,
+                "intent",
+                text,
+                user_prompt,
+                conn.usage_attribution() if conn is not None else None,
             )
             return llm_result
         except Exception as e:
@@ -216,9 +220,12 @@ class IntentProvider(IntentProviderBase):
         try:
             # Use to_thread to run the synchronous blocking call in a thread pool to avoid blocking the event loop
             intent = await asyncio.to_thread(
-                self.llm.response_no_stream,
-                system_prompt=prompt_music,
-                user_prompt=user_prompt,
+                call_llm_no_stream,
+                self.llm,
+                "intent",
+                prompt_music,
+                user_prompt,
+                conn.usage_attribution(),
             )
         except Exception as e:
             logger.bind(tag=TAG).error(f"Error in intent detection LLM call: {e}")

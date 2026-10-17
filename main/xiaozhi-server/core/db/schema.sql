@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS ai_usage (
   prompt_tokens     INTEGER,
   completion_tokens INTEGER,
   total_tokens      INTEGER,
+  cached_tokens     INTEGER,                      -- prompt tokens served from the provider cache
   cost              REAL,                         -- OpenRouter usage.cost (USD)
   upstream_cost     REAL,
   is_byok           INTEGER,
