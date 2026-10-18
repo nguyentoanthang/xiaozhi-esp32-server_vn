@@ -111,6 +111,8 @@ celerybeat.pid
 
 # Environments
 .env
+# Local server API credentials
+/main/xiaozhi-server/.env
 .venv
 /.venv-*/
 env/

@@ -2,6 +2,7 @@ import os
 import asyncio
 import yaml
 from collections.abc import Mapping
+from dotenv import dotenv_values
 
 
 def get_project_dir():
@@ -16,7 +17,7 @@ def read_config(config_path):
 
 
 # Keys of data/.config.yaml that are needed before the database can be opened.
-# Everything else comes from the SQLite database (see docs/minimal-server-design.md, "Bootstrap").
+# Other settings come from SQLite; OpenRouter credentials come from the environment/.env.
 BOOTSTRAP_SERVER_KEYS = ("ip", "port", "http_port", "auth_key")
 
 
@@ -66,6 +67,25 @@ def get_config_database(bootstrap=None):
     return get_database(bootstrap["db"]["path"])
 
 
+def apply_provider_secrets(config):
+    """Inject the OpenRouter key in memory, without writing it to SQLite.
+
+    A process environment variable (including an explicitly empty one) takes
+    priority over xiaozhi-server/.env, regardless of the working directory.
+    """
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if api_key is None:
+        env_file = os.path.join(get_project_dir(), ".env")
+        api_key = dotenv_values(env_file, encoding="utf-8-sig", interpolate=False).get(
+            "OPENROUTER_API_KEY"
+        )
+    for module in ("LLM", "ASR"):
+        for provider in config.get(module, {}).values():
+            if provider.get("type") in ("openrouter", "openrouter_stt"):
+                provider["api_key"] = (api_key or "").strip()
+    return config
+
+
 def _build_config_from_db(bootstrap):
     """Blocking: global settings + default agent models, with the bootstrap values on top."""
     from core.db import build_base_config
@@ -81,7 +101,7 @@ def _build_config_from_db(bootstrap):
     config["db"] = {"path": db.path}
     # Always true in this build: config, agents and devices come from SQLite
     config["db_enabled"] = True
-    return config
+    return apply_provider_secrets(config)
 
 
 async def load_config_from_db(bootstrap=None):
@@ -116,7 +136,8 @@ async def get_private_config(config, device_id):
     from core.db import get_agent_config, get_database
 
     # The process-wide instance was opened by load_config()
-    return await get_agent_config(get_database(), device_id)
+    private_config = await get_agent_config(get_database(), device_id)
+    return apply_provider_secrets(private_config)
 
 
 def ensure_directories(config):

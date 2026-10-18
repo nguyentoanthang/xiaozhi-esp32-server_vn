@@ -579,7 +579,7 @@ class ConnectionHandler:
             )
             self.agent_id = private_config.get("agent_id")
             self.logger.bind(tag=TAG).info(
-                f"{time.time() - begin_time} seconds, differentiated config loaded from the database: {json.dumps(filter_sensitive_info({k: v for k, v in private_config.items() if k != "guardrail_names"}), ensure_ascii=False)}"
+                f"{time.time() - begin_time} seconds, differentiated config loaded from the database: {json.dumps(filter_sensitive_info({k: v for k, v in private_config.items() if k != 'guardrail_names'}), ensure_ascii=False)}"
             )
             # Remember the connection time (through the writer thread, fire and forget)
             touch_device(get_database(), self.headers.get("device-id"))
